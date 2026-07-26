@@ -1,13 +1,20 @@
 {
-  "name": "erp-chatbot-cli",
+  "name": "erp-chatbot-api",
   "version": "1.0.0",
   "private": true,
-  "description": "Interactive CLI for ERP Purchase and Sale APIs Data Search — Powered by Digify Soft Solutions",
-  "main": "index.js",
+  "description": "Enterprise ERP AI Chatbot Server powered by Groq LLM & Digify Soft Solutions ERP APIs",
+  "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
+    "cli": "node index.js",
     "test": "node test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "groq-sdk": "^0.3.3"
   },
   "author": "Digify Soft Solutions <https://digifysoft.in>",
   "license": "UNLICENSED"

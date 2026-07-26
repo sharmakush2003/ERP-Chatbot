@@ -1,0 +1,373 @@
+/* Digify Soft ERP AI Floating Chat Widget Styles */
+:root {
+  --digify-primary: #6366f1;
+  --digify-primary-hover: #4f46e5;
+  --digify-secondary: #ec4899;
+  --digify-bg: #0f172a;
+  --digify-card-bg: rgba(30, 41, 59, 0.85);
+  --digify-text: #f8fafc;
+  --digify-text-muted: #94a3b8;
+  --digify-border: rgba(255, 255, 255, 0.12);
+  --digify-user-msg: linear-gradient(135deg, #6366f1, #4f46e5);
+  --digify-ai-msg: rgba(30, 41, 59, 0.95);
+  --digify-radius: 16px;
+  --digify-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  --digify-font: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Floating Chat Trigger Button */
+.digify-chat-trigger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5);
+  cursor: pointer;
+  z-index: 999998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: digifyPulse 3s infinite;
+}
+
+.digify-chat-trigger:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 15px 35px rgba(99, 102, 241, 0.7);
+}
+
+.digify-chat-trigger svg {
+  width: 30px;
+  height: 30px;
+  fill: currentColor;
+  transition: transform 0.3s ease;
+}
+
+@keyframes digifyPulse {
+  0%, 100% { box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5); }
+  50% { box-shadow: 0 10px 35px rgba(236, 72, 153, 0.7); }
+}
+
+/* Floating Chat Modal Overlay */
+.digify-chat-window {
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  height: 620px;
+  max-height: calc(100vh - 120px);
+  background: var(--digify-card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--digify-border);
+  border-radius: var(--digify-radius);
+  box-shadow: var(--digify-shadow);
+  display: flex;
+  flex-direction: column;
+  z-index: 999999;
+  font-family: var(--digify-font);
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.digify-chat-window.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* Chat Header */
+.digify-chat-header {
+  padding: 16px 20px;
+  background: linear-gradient(90deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border-bottom: 1px solid var(--digify-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.digify-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.digify-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.digify-header-text h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--digify-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.digify-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  font-weight: 600;
+}
+
+.digify-header-text p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: var(--digify-text-muted);
+}
+
+.digify-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--digify-text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.digify-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Chat Body / Messages Area */
+.digify-chat-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
+}
+
+.digify-chat-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.digify-chat-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+/* Messages */
+.digify-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 88%;
+  animation: digifySlideIn 0.3s ease;
+}
+
+@keyframes digifySlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.digify-msg.user {
+  align-self: flex-end;
+}
+
+.digify-msg.ai {
+  align-self: flex-start;
+}
+
+.digify-msg-content {
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.digify-msg.user .digify-msg-content {
+  background: var(--digify-user-msg);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.digify-msg.ai .digify-msg-content {
+  background: var(--digify-ai-msg);
+  color: var(--digify-text);
+  border: 1px solid var(--digify-border);
+  border-bottom-left-radius: 4px;
+}
+
+.digify-msg-time {
+  font-size: 10px;
+  color: var(--digify-text-muted);
+  margin-top: 4px;
+  align-self: flex-end;
+}
+
+.digify-msg.ai .digify-msg-time {
+  align-self: flex-start;
+}
+
+/* Quick Suggestion Chips */
+.digify-chips-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.digify-chips-container::-webkit-scrollbar {
+  display: none;
+}
+
+.digify-chip {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.digify-chip:hover {
+  background: rgba(99, 102, 241, 0.35);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Chat Footer Input Area */
+.digify-chat-footer {
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid var(--digify-border);
+}
+
+.digify-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--digify-border);
+  border-radius: 24px;
+  padding: 4px 6px 4px 14px;
+  transition: border-color 0.2s ease;
+}
+
+.digify-input-wrapper:focus-within {
+  border-color: var(--digify-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.digify-input-wrapper input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--digify-text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.digify-input-wrapper input::placeholder {
+  color: var(--digify-text-muted);
+}
+
+.digify-send-btn, .digify-mic-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--digify-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.digify-send-btn {
+  background: var(--digify-primary);
+  color: #fff;
+}
+
+.digify-send-btn:hover {
+  background: var(--digify-primary-hover);
+  transform: scale(1.05);
+}
+
+.digify-mic-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.digify-mic-btn.listening {
+  color: #ef4444;
+  animation: digifyMicBlink 1s infinite;
+}
+
+@keyframes digifyMicBlink {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Typing Indicator Animation */
+.digify-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+}
+
+.digify-typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #a5b4fc;
+  border-radius: 50%;
+  animation: digifyDotBounce 1.4s infinite ease-in-out both;
+}
+
+.digify-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.digify-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes digifyDotBounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Markdown formatting inside AI messages */
+.digify-msg-content p { margin: 0 0 8px 0; }
+.digify-msg-content p:last-child { margin-bottom: 0; }
+.digify-msg-content code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #38bdf8; }
+.digify-msg-content pre { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; overflow-x: auto; font-family: monospace; }
+.digify-msg-content ul, .digify-msg-content ol { margin: 4px 0 8px 0; padding-left: 20px; }
