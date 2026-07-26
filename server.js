@@ -35,10 +35,10 @@ if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim() !== '' && !proce
   console.log('ℹ️  No GROQ_API_KEY set in .env — Server will use Deterministic Smart ERP Search Fallback.');
 }
 
-// Fetch ERP Data from Cloud Services
+// Fetch ERP Data from REST APIs
 async function loadAPIData() {
   isLoadingData = true;
-  console.log('🔄 Fetching real-time ERP data from Cloud Services...');
+  console.log('🔄 Fetching real-time data from ERP REST APIs...');
   try {
     const [pRes, sRes] = await Promise.all([
       fetch(PURCHASE_API_URL).then(r => r.json()).catch(() => ({ Vouchers: [] })),
@@ -49,7 +49,7 @@ async function loadAPIData() {
     sales = sRes.Vouchers || sRes.data || [];
     lastFetchedTime = new Date().toISOString();
 
-    console.log(`✅ Digify ERP Data Loaded! Purchases: ${purchases.length} | Sales: ${sales.length}`);
+    console.log(`✅ Digify ERP API Data Loaded! Purchases: ${purchases.length} | Sales: ${sales.length}`);
   } catch (err) {
     console.error('❌ Failed to fetch ERP APIs:', err.message);
   } finally {
@@ -119,13 +119,35 @@ function getErpSummaryStats() {
   };
 }
 
-// Search & Filter ERP Records
+// Smart Search & Filter ERP Records
 function searchRecords(query, maxResults = 10) {
   if (!query || query.trim() === '') return { pMatches: [], sMatches: [] };
   const q = query.toLowerCase().trim();
 
-  const pMatches = purchases.filter(p => JSON.stringify(p).toLowerCase().includes(q)).slice(0, maxResults);
-  const sMatches = sales.filter(s => JSON.stringify(s).toLowerCase().includes(q)).slice(0, maxResults);
+  let pMatches = [];
+  let sMatches = [];
+
+  const isGeneralSaleQuery = q.includes('sale') || q.includes('customer') || q.includes('sell');
+  const isGeneralPurchaseQuery = q.includes('purchase') || q.includes('vendor') || q.includes('supplier') || q.includes('buy');
+
+  // Handle generic prompts like "search sale invoices", "sale records", "purchases", etc.
+  if (q.includes('search sale') || q.includes('show sale') || q === 'sale invoices' || q === 'sales' || q === 'sale records') {
+    sMatches = sales.slice(0, maxResults);
+  } else if (q.includes('search purchase') || q.includes('show purchase') || q === 'purchase invoices' || q === 'purchases' || q === 'purchase records') {
+    pMatches = purchases.slice(0, maxResults);
+  } else {
+    // Text search in all fields
+    pMatches = purchases.filter(p => JSON.stringify(p).toLowerCase().includes(q)).slice(0, maxResults);
+    sMatches = sales.filter(s => JSON.stringify(s).toLowerCase().includes(q)).slice(0, maxResults);
+
+    // Fallbacks if no direct string match found for broad queries
+    if (sMatches.length === 0 && isGeneralSaleQuery && !isGeneralPurchaseQuery) {
+      sMatches = sales.slice(0, maxResults);
+    }
+    if (pMatches.length === 0 && isGeneralPurchaseQuery && !isGeneralSaleQuery) {
+      pMatches = purchases.slice(0, maxResults);
+    }
+  }
 
   return { pMatches, sMatches };
 }
@@ -133,11 +155,11 @@ function searchRecords(query, maxResults = 10) {
 // Groq LLM Processing Engine with Grounding
 async function askGroqLLM(userMessage, conversationHistory = []) {
   if (!groqClient) {
-    return null; // Fallback to local smart search if no Groq key
+    return null;
   }
 
   const summary = getErpSummaryStats();
-  const searchRes = searchRecords(userMessage, 15);
+  const searchRes = searchRecords(userMessage, 10);
 
   // Compact ERP Context string for LLM Grounding
   const contextData = {
@@ -151,40 +173,39 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
       netGSTPosition: summary.financialPosition.summaryText
     },
     matchingPurchaseRecords: searchRes.pMatches.map(p => ({
-      invoiceNo: p.invoiceNo || p.supplierinvoiceno,
-      date: p.invoiceDate || p.supplierinvoicedate,
-      partyName: p.partyName,
-      partyGroup: p.partyGroup,
+      invoiceNo: p.invoiceNo || p.supplierinvoiceno || 'N/A',
+      date: p.invoiceDate || p.supplierinvoicedate || 'N/A',
+      partyName: p.partyName || 'N/A',
+      partyGroup: p.partyGroup || 'N/A',
       amount: p.invoiceamount || 0,
-      items: (p.items || []).map(i => ({ name: i.itemName, qty: i.itemQty || i.qty, amount: i.itemAmount }))
+      items: (p.items || []).map(i => ({ name: i.itemName, qty: i.itemQty || i.qty || 1, amount: i.itemAmount || 0 }))
     })),
     matchingSaleRecords: searchRes.sMatches.map(s => ({
-      invoiceNo: s.invoiceNo,
-      date: s.invoiceDate,
-      customerName: s.partyName || s.shipping_add_lin1,
-      state: s.state || s.placeofsupply,
+      invoiceNo: s.invoiceNo || 'N/A',
+      date: s.invoiceDate || 'N/A',
+      customerName: s.partyName || s.shipping_add_lin1 || 'N/A',
+      state: s.state || s.placeofsupply || 'N/A',
       amount: s.invoiceamount || 0,
-      items: (s.items || []).map(i => ({ name: i.itemName, qty: i.itemQty || i.qty, amount: i.itemAmount }))
+      items: (s.items || []).map(i => ({ name: i.itemName, qty: i.itemQty || i.qty || 1, amount: i.itemAmount || 0 }))
     }))
   };
 
-  const systemPrompt = `You are Digify Soft ERP AI Assistant — an expert enterprise AI for Digify Soft Solutions (https://digifysoft.in).
-You are answering user queries based on real-time Digify Soft Cloud ERP Purchase and Sales records.
+  const systemPrompt = `You are Digify Soft ERP AI Assistant — an expert enterprise AI assistant for Digify Soft Solutions (https://digifysoft.in).
+You answer user queries directly from real-time ERP API records.
 
-STRICT GROUNDING & ACCURACY RULES:
-1. Use ONLY the provided ERP Context to answer. Do NOT invent invoice numbers, parties, or amounts.
-2. If exact information is found in matching records, give precise details (Invoice No, Party, Date, Items, Amount, GST).
+STRICT ACCURACY RULES:
+1. Answer using ONLY the provided ERP API Context. Do NOT invent invoice numbers, parties, or amounts.
+2. Whenever matching Sale or Purchase records are available in 'matchingSaleRecords' or 'matchingPurchaseRecords', ALWAYS list them clearly with Invoice No, Date, Customer/Vendor Name, Items, and Invoice Amount.
 3. If asked about financial summaries (Total Sales, Total Purchases, GST Position), state the exact numbers from 'erpSummary'.
-4. If no matching record is found for a specific search, state clearly: "No matching ERP record found in Digify Soft Cloud."
-5. Format your response cleanly using Markdown, bold highlights, bullet points, and emojis.
-6. Keep responses professional, helpful, concise, and polite.
+4. Format your response cleanly using Markdown, bold highlights, bullet points, and emojis.
+5. Keep responses professional, clear, helpful, and concise.
 
-CURRENT REAL-TIME ERP CONTEXT:
+REAL-TIME ERP API CONTEXT:
 ${JSON.stringify(contextData, null, 2)}`;
 
   const messages = [
     { role: 'system', content: systemPrompt },
-    ...conversationHistory.slice(-4), // keep last 4 messages for context
+    ...conversationHistory.slice(-4),
     { role: 'user', content: userMessage }
   ];
 
@@ -192,14 +213,13 @@ ${JSON.stringify(contextData, null, 2)}`;
     const completion = await groqClient.chat.completions.create({
       messages: messages,
       model: 'llama-3.3-70b-versatile',
-      temperature: 0.2, // Low temperature for high factual accuracy
+      temperature: 0.2,
       max_tokens: 1024
     });
 
     return completion.choices[0]?.message?.content || null;
   } catch (err) {
     console.error('Groq API Error:', err.message);
-    // Fall back to Llama-3-8b if 70b fails
     try {
       const completion = await groqClient.chat.completions.create({
         messages: messages,
@@ -215,13 +235,13 @@ ${JSON.stringify(contextData, null, 2)}`;
   }
 }
 
-// Local Smart Search Fallback (if Groq Key is not set or network fails)
+// Local Smart Search Fallback
 function generateDeterministicFallback(query) {
   const q = query.toLowerCase().trim();
   const summary = getErpSummaryStats();
 
-  if (q.includes('summary') || q.includes('total') || q.includes('gst') || q.includes('dashboard') || q.includes('sale') && q.includes('purchase')) {
-    return `### 💰 Digify Soft ERP Financial & GST Dashboard
+  if (q.includes('summary') || q.includes('total') || q.includes('gst') || q.includes('dashboard') || (q.includes('sale') && q.includes('purchase'))) {
+    return `### 💰 ERP Financial & GST Dashboard
 
 - 🛒 **Total Sales Revenue:** ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices)
 - 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)
@@ -240,20 +260,20 @@ function generateDeterministicFallback(query) {
   const total = pMatches.length + sMatches.length;
 
   if (total === 0) {
-    return `❌ No matching ERP records found for **"${query}"** in Digify Soft Cloud Services.\n\n*Tip: Try searching by Supplier Invoice No (e.g. GEHOHR001VPO338), Party Name (e.g. KESHAV), or Item (e.g. Rug).*`;
+    return `❌ No matching ERP API records found for **"${query}"**.\n\n*Tip: Try searching by Supplier Invoice No (e.g. GEHOHR001VPO338), Party Name (e.g. KESHAV), or Item (e.g. Rug).*`;
   }
 
-  let text = `✅ Found **${total} matching ERP record(s)** for **"${query}"**:\n\n`;
+  let text = `✅ Found **${total} ERP API record(s)** for **"${query}"**:\n\n`;
 
   if (sMatches.length > 0) {
-    text += `### 🛒 Sale Invoice Matches (${sMatches.length})\n`;
+    text += `### 🛒 Sale Invoice Records (${sMatches.length})\n`;
     sMatches.forEach((s, i) => {
       const invNo = s.invoiceNo || 'N/A';
       const party = s.partyName || s.shipping_add_lin1 || 'N/A';
       const amt = s.invoiceamount || 0;
       text += `**${i + 1}. Invoice:** \`${invNo}\` | **Date:** ${s.invoiceDate || 'N/A'}\n`;
       text += `   - **Customer:** ${party} (${s.state || 'N/A'})\n`;
-      text += `   - **Invoice Amount:** ₹${amt}\n`;
+      text += `   - **Amount:** ₹${amt}\n`;
       if (s.items && s.items.length) {
         text += `   - **Items:** ${s.items.map(it => `${it.itemName} (Qty: ${it.itemQty || it.qty || 1})`).join(', ')}\n`;
       }
@@ -262,7 +282,7 @@ function generateDeterministicFallback(query) {
   }
 
   if (pMatches.length > 0) {
-    text += `### 📦 Purchase Invoice Matches (${pMatches.length})\n`;
+    text += `### 📦 Purchase Invoice Records (${pMatches.length})\n`;
     pMatches.forEach((p, i) => {
       const invNo = p.invoiceNo || p.supplierinvoiceno || 'N/A';
       const party = p.partyName || 'N/A';
@@ -280,7 +300,6 @@ function generateDeterministicFallback(query) {
 
 // REST API Endpoints
 
-// 1. Health Status API
 app.get('/api/status', (req, res) => {
   res.json({
     status: 'ok',
@@ -293,7 +312,6 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// 2. Financial Summary API
 app.get('/api/summary', (req, res) => {
   res.json({
     status: 'ok',
@@ -301,19 +319,17 @@ app.get('/api/summary', (req, res) => {
   });
 });
 
-// 3. Force Data Refresh API
 app.post('/api/refresh', async (req, res) => {
   await loadAPIData();
   res.json({
     status: 'ok',
-    message: 'ERP Cloud Data Refreshed Successfully',
+    message: 'ERP API Data Refreshed Successfully',
     purchasesCount: purchases.length,
     salesCount: sales.length,
     lastFetchedTime: lastFetchedTime
   });
 });
 
-// 4. Core AI Chat API Endpoint
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -344,12 +360,10 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Serve Standalone Chat Widget JS & Preview
 app.get('/widget.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'widget.js'));
 });
 
-// Start Server
 app.listen(PORT, async () => {
   console.log(`\n=============================================================`);
   console.log(`🚀 Digify Soft ERP AI Chatbot Server running on port ${PORT}`);

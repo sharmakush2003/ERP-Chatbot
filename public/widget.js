@@ -1,9 +1,7 @@
 (function () {
-  // Prevent duplicate initialization
   if (window.DigifyERPChatbotInitialized) return;
   window.DigifyERPChatbotInitialized = true;
 
-  // Auto-detect backend server URL from current script tag
   let scriptSrc = '';
   if (document.currentScript) {
     scriptSrc = document.currentScript.src;
@@ -25,7 +23,6 @@
     } catch (e) {}
   }
 
-  // Load CSS & Fonts
   const fontLink = document.createElement('link');
   fontLink.rel = 'stylesheet';
   fontLink.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap';
@@ -36,7 +33,6 @@
   styleLink.href = serverBaseUrl + '/widget.css';
   document.head.appendChild(styleLink);
 
-  // Inject HTML Markup for Chat Floating Button & Window
   const container = document.createElement('div');
   container.id = 'digify-chatbot-root';
   container.innerHTML = `
@@ -52,8 +48,8 @@
         <div class="digify-header-info">
           <div class="digify-avatar">🤖</div>
           <div class="digify-header-text">
-            <h3>Digify ERP AI <span class="digify-badge">Groq Cloud</span></h3>
-            <p>Real-time Cloud ERP Search Engine</p>
+            <h3>Digify ERP AI <span class="digify-badge">Groq API</span></h3>
+            <p>Real-time ERP Search Assistant</p>
           </div>
         </div>
         <button class="digify-close-btn" id="digifyCloseBtn" title="Close Chat">
@@ -67,21 +63,22 @@
       <div class="digify-chat-body" id="digifyChatBody">
         <div class="digify-msg ai">
           <div class="digify-msg-content">
-            👋 **Welcome to Digify Soft ERP AI Assistance!**<br>
-            I am connected directly to your Digify Soft ERP Cloud records.<br><br>
-            *Try asking me about:*
+            👋 **Welcome to Digify Soft ERP AI Assistant!**<br>
+            I am connected directly to your ERP REST APIs.<br><br>
+            *Ask me anything about:*
             - 💰 **Total Sales & GST Collection Dashboard**
-            - 📦 **Search Supplier / Customer Invoices**
-            - 🔍 **Look up Item Stock & Tax Details**
+            - 📦 **Search Purchase Invoices**
+            - 🛒 **Search Sale Invoices**
+            - 🔍 **Vendor / Customer / Item details**
           </div>
           <span class="digify-msg-time">Just now</span>
         </div>
       </div>
 
       <div class="digify-chips-container">
-        <button class="digify-chip" data-prompt="Show Total Sales and GST Collection Dashboard">💰 Financial Dashboard</button>
-        <button class="digify-chip" data-prompt="Search Purchase Invoices">📦 Purchase Records</button>
-        <button class="digify-chip" data-prompt="Search Sale Invoices">🛒 Sale Records</button>
+        <button class="digify-chip" data-prompt="Show Financial Dashboard">💰 Financial Dashboard</button>
+        <button class="digify-chip" data-prompt="Show Purchase Invoices">📦 Purchase Records</button>
+        <button class="digify-chip" data-prompt="Show Sale Invoices">🛒 Sale Records</button>
         <button class="digify-chip" data-prompt="About Digify Soft Solutions">🏆 About Company</button>
       </div>
 
@@ -109,7 +106,6 @@
 
   document.body.appendChild(container);
 
-  // DOM References
   const triggerBtn = document.getElementById('digifyTriggerBtn');
   const closeBtn = document.getElementById('digifyCloseBtn');
   const chatWindow = document.getElementById('digifyChatWindow');
@@ -122,7 +118,6 @@
   let history = [];
   let isThinking = false;
 
-  // Toggle Window
   function toggleWindow() {
     chatWindow.classList.toggle('active');
     if (chatWindow.classList.contains('active')) {
@@ -133,7 +128,6 @@
   triggerBtn.addEventListener('click', toggleWindow);
   closeBtn.addEventListener('click', toggleWindow);
 
-  // Simple Markdown Formatter
   function parseMarkdown(text) {
     if (!text) return '';
     let html = text
@@ -151,7 +145,6 @@
     return html;
   }
 
-  // Append Message to UI
   function appendMessage(sender, text) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `digify-msg ${sender}`;
@@ -168,7 +161,6 @@
     chatBody.scrollTop = chatBody.scrollHeight;
   }
 
-  // Show Typing Indicator
   function showTypingIndicator() {
     const typingDiv = document.createElement('div');
     typingDiv.className = 'digify-msg ai';
@@ -191,7 +183,6 @@
     if (indicator) indicator.remove();
   }
 
-  // Send Message Logic
   async function sendMessage(text) {
     const msg = text || inputEl.value.trim();
     if (!msg || isThinking) return;
@@ -221,19 +212,17 @@
       }
     } catch (err) {
       removeTypingIndicator();
-      appendMessage('ai', `❌ Network Error: Could not reach Digify ERP Chatbot server at \`${serverBaseUrl}\`.`);
+      appendMessage('ai', `❌ Network Error: Could not reach ERP Chatbot server.`);
     } finally {
       isThinking = false;
     }
   }
 
-  // Event Listeners
   sendBtn.addEventListener('click', () => sendMessage());
   inputEl.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
   });
 
-  // Suggestion Chips
   chips.forEach(chip => {
     chip.addEventListener('click', () => {
       const prompt = chip.getAttribute('data-prompt');
@@ -241,7 +230,6 @@
     });
   });
 
-  // Voice Search (Speech Recognition)
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SpeechRecognition) {
     const recognition = new SpeechRecognition();
@@ -272,7 +260,7 @@
       inputEl.placeholder = 'Ask anything about ERP data...';
     };
   } else {
-    micBtn.style.display = 'none'; // Hide mic if not supported by browser
+    micBtn.style.display = 'none';
   }
 
 })();
