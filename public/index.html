@@ -3,514 +3,585 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digify ERP AI — Testing Console</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap">
+  <title>DJ Fast Soft ERP AI — Intelligent Console</title>
+  <meta name="description" content="DJ Fast Soft ERP AI — Real-time Sales & Purchase Intelligence Console powered by Groq Llama-3.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #070a13 0%, #0c1122 100%);
-      --sidebar-bg: rgba(13, 19, 39, 0.85);
-      --chat-bg: rgba(18, 25, 50, 0.6);
-      --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.15);
-      --accent-hover: #4f46e5;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --bg:           #060b18;
+      --surface-1:    rgba(13, 20, 45, 0.9);
+      --surface-2:    rgba(18, 28, 60, 0.6);
+      --surface-3:    rgba(99, 102, 241, 0.08);
+      --accent:       #6366f1;
+      --accent-light: #818cf8;
+      --accent-glow:  rgba(99,102,241,0.2);
+      --green:        #10b981;
+      --amber:        #f59e0b;
+      --red:          #ef4444;
+      --border:       rgba(255,255,255,0.07);
+      --border-accent:rgba(99,102,241,0.3);
+      --text-1:       #f1f5f9;
+      --text-2:       #94a3b8;
+      --text-3:       #64748b;
+      --shadow-lg:    0 20px 60px rgba(0,0,0,0.6);
+      --shadow-glow:  0 0 40px rgba(99,102,241,0.15);
+      --radius-sm:    10px;
+      --radius-md:    16px;
+      --radius-lg:    24px;
+      --transition:   all 0.25s cubic-bezier(0.4,0,0.2,1);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Outfit', sans-serif;
-      background: var(--bg-gradient);
-      color: var(--text-main);
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(99,102,241,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(16,185,129,0.08) 0%, transparent 60%);
+      color: var(--text-1);
       height: 100vh;
-      display: flex;
       overflow: hidden;
-    }
-
-    /* Layout structure */
-    .app-container {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-
-    /* Sidebar Styling */
-    .sidebar {
-      width: 320px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      padding: 30px 24px;
-      backdrop-filter: blur(20px);
-      z-index: 10;
     }
 
-    .brand-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 40px;
-    }
-
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #6366f1, #3b82f6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: bold;
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-    }
-
-    .brand-info h2 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .brand-info p {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 2px;
-    }
-
-    .section-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 16px;
-      margin-top: 10px;
-    }
-
-    .test-queries {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      flex-grow: 1;
-      overflow-y: auto;
-    }
-
-    .query-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
-      padding: 14px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .query-card:hover {
-      background: rgba(99, 102, 241, 0.08);
-      border-color: rgba(99, 102, 241, 0.3);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
-    }
-
-    .query-icon {
-      font-size: 18px;
-    }
-
-    .query-text {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-main);
-    }
-
-    .sidebar-footer {
-      border-top: 1px solid var(--border-color);
-      padding-top: 20px;
-      margin-top: 20px;
-    }
-
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 8px #10b981;
-    }
-
-    /* Main Chat Area */
-    .chat-area {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--chat-bg);
-      backdrop-filter: blur(10px);
-      position: relative;
-    }
-
-    .chat-header {
-      padding: 24px 40px;
-      border-bottom: 1px solid var(--border-color);
+    /* ── TOP NAV ── */
+    .top-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(13, 19, 39, 0.4);
+      padding: 0 28px;
+      height: 60px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(6,11,24,0.8);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+      flex-shrink: 0;
     }
-
-    .chat-header-title h1 {
-      font-size: 20px;
-      font-weight: 700;
-      background: linear-gradient(to right, #ffffff, #a5b4fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-
-    .chat-header-title p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 2px;
+    .nav-logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #6366f1, #3b82f6);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 16px rgba(99,102,241,0.4);
     }
-
-    .header-badge {
-      background: rgba(99, 102, 241, 0.15);
-      color: #a5b4fc;
-      border: 1px solid rgba(99, 102, 241, 0.3);
+    .nav-brand-text { font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+    .nav-brand-sub  { font-size: 11px; color: var(--text-2); margin-top: 1px; letter-spacing: 1px; text-transform: uppercase; }
+    .nav-pills { display: flex; gap: 6px; }
+    .nav-pill {
       padding: 6px 14px;
       border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-2);
+      transition: var(--transition);
+      font-family: inherit;
+    }
+    .nav-pill:hover, .nav-pill.active {
+      background: var(--accent-glow);
+      border-color: var(--border-accent);
+      color: var(--accent-light);
+    }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-2);
+      padding: 5px 12px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    /* ── MAIN LAYOUT ── */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── LEFT PANEL: DASHBOARD ── */
+    .dashboard-panel {
+      width: 420px;
+      flex-shrink: 0;
+      background: var(--surface-1);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 24px 20px;
+      gap: 18px;
+      backdrop-filter: blur(24px);
+    }
+
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .panel-title {
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--text-2);
+    }
+    .refresh-btn {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-2);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+    .refresh-btn:hover {
+      background: var(--accent-glow);
+      border-color: var(--border-accent);
+      color: var(--accent-light);
+    }
+    .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .kpi-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+      animation: fadeInUp 0.5s ease forwards;
+    }
+    .kpi-card:hover {
+      border-color: var(--border-accent);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+    .kpi-card.green::before { background: var(--green); }
+    .kpi-card.amber::before { background: var(--amber); }
+    .kpi-icon {
+      font-size: 22px; margin-bottom: 10px;
+    }
+    .kpi-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-size: 20px; font-weight: 800;
+      color: var(--text-1); line-height: 1;
+    }
+    .kpi-value.big { font-size: 16px; }
+    .kpi-sub {
+      font-size: 11px; color: var(--text-3); margin-top: 4px;
+    }
+
+    /* ── CHART SECTION ── */
+    .chart-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+    }
+    .chart-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .chart-title {
+      font-size: 13px; font-weight: 700; color: var(--text-1);
+    }
+    .chart-subtitle { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .chart-toggle { display: flex; gap: 4px; }
+    .chart-toggle-btn {
+      padding: 4px 10px; border-radius: 6px; font-size: 11px;
+      font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--text-3);
+      transition: var(--transition); font-family: inherit;
+    }
+    .chart-toggle-btn.active {
+      background: var(--accent-glow);
+      border-color: var(--border-accent);
+      color: var(--accent-light);
+    }
+    .chart-wrapper { position: relative; height: 180px; }
+    .chart-loading {
+      display: flex; align-items: center; justify-content: center;
+      height: 180px; color: var(--text-3); font-size: 13px; gap: 8px;
+    }
+
+    /* ── QUICK PROMPTS ── */
+    .quick-prompts { display: flex; flex-direction: column; gap: 8px; }
+    .quick-prompt-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer; color: var(--text-1);
+      font-size: 13px; font-weight: 500;
+      font-family: inherit;
+      transition: var(--transition);
+      text-align: left;
+    }
+    .quick-prompt-btn:hover {
+      background: var(--accent-glow);
+      border-color: var(--border-accent);
+      transform: translateX(4px);
+    }
+    .qp-icon { font-size: 16px; flex-shrink: 0; }
+    .qp-text { flex: 1; }
+    .qp-arrow { font-size: 12px; color: var(--text-3); }
+
+    /* ── RIGHT PANEL: CHAT ── */
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface-2);
+      backdrop-filter: blur(12px);
+    }
+
+    .chat-header {
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(6,11,24,0.4);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .chat-header-title h1 {
+      font-size: 18px; font-weight: 700;
+      background: linear-gradient(90deg, #fff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .chat-header-title p { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+    .header-badge {
+      padding: 5px 13px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid var(--border-accent);
+      color: var(--accent-light);
     }
 
     .chat-body {
-      flex-grow: 1;
-      overflow-y: auto;
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
+      flex: 1; overflow-y: auto;
+      padding: 28px 32px;
+      display: flex; flex-direction: column;
+      gap: 20px;
     }
 
-    /* Message Bubbles */
+    /* ── MESSAGES ── */
     .message {
-      display: flex;
-      flex-direction: column;
-      max-width: 75%;
-      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      display: flex; flex-direction: column;
+      max-width: 80%;
+      animation: fadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) forwards;
     }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    @keyframes fadeInUp {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
     }
-
-    .message.user {
-      align-self: flex-end;
-    }
-
-    .message.ai {
-      align-self: flex-start;
-    }
+    .message.user { align-self: flex-end; }
+    .message.ai   { align-self: flex-start; }
 
     .message-bubble {
-      padding: 16px 20px;
+      padding: 14px 18px;
       border-radius: 18px;
-      font-size: 14px;
-      line-height: 1.6;
-      box-shadow: var(--glass-shadow);
+      font-size: 14px; line-height: 1.65;
     }
-
     .message.user .message-bubble {
-      background: var(--accent);
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
       color: #fff;
       border-bottom-right-radius: 4px;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 4px 20px rgba(99,102,241,0.35);
     }
-
     .message.ai .message-bubble {
-      background: rgba(255, 255, 255, 0.04);
-      color: #e2e8f0;
-      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-1);
+      border: 1px solid var(--border);
       border-bottom-left-radius: 4px;
     }
-
+    .message-bubble h3 { font-size: 14px; font-weight: 700; margin: 10px 0 6px; color: #a5b4fc; }
+    .message-bubble h4 { font-size: 13px; font-weight: 600; margin: 8px 0 4px; color: #c7d2fe; }
+    .message-bubble strong { color: #e2e8f0; }
+    .message-bubble code {
+      background: rgba(99,102,241,0.18);
+      padding: 1px 6px; border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px; color: #a5b4fc;
+    }
     .message-time {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 6px;
-      align-self: flex-end;
+      font-size: 10px; color: var(--text-3);
+      margin-top: 5px;
     }
+    .message.ai .message-time { align-self: flex-start; }
+    .message.user .message-time { align-self: flex-end; }
 
-    .message.ai .message-time {
-      align-self: flex-start;
-    }
-
-    /* Typing Indicator */
+    /* ── TYPING INDICATOR ── */
     .typing-indicator {
-      display: flex;
-      gap: 6px;
-      padding: 10px 14px;
-      align-items: center;
+      display: flex; gap: 5px;
+      padding: 8px 12px; align-items: center;
     }
-
     .typing-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+      width: 7px; height: 7px; border-radius: 50%;
       background: var(--accent);
-      animation: bounce 1.4s infinite ease-in-out both;
+      animation: typingBounce 1.2s infinite ease-in-out both;
     }
-
     .typing-dot:nth-child(1) { animation-delay: -0.32s; }
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-    @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0); }
-      40% { transform: scale(1.0); }
+    @keyframes typingBounce {
+      0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+      40%          { transform: scale(1);   opacity: 1; }
     }
 
-    /* Input Footer */
+    /* ── CHAT INPUT ── */
     .chat-footer {
-      padding: 30px 40px;
-      border-top: 1px solid var(--border-color);
-      background: rgba(13, 19, 39, 0.5);
+      padding: 20px 32px 24px;
+      border-top: 1px solid var(--border);
+      background: rgba(6,11,24,0.4);
+      flex-shrink: 0;
     }
-
     .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
+      display: flex; align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
       padding: 8px 10px;
-      box-shadow: var(--glass-shadow);
-      transition: all 0.3s ease;
+      transition: var(--transition);
     }
-
     .input-wrapper:focus-within {
-      border-color: rgba(99, 102, 241, 0.5);
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 0 16px var(--accent-glow);
+      border-color: var(--border-accent);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
     }
-
     .chat-input {
-      flex-grow: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text-main);
-      padding: 12px 16px;
-      font-size: 14px;
-      font-family: inherit;
+      flex: 1; background: transparent;
+      border: none; outline: none;
+      color: var(--text-1);
+      padding: 10px 12px;
+      font-size: 14px; font-family: inherit;
     }
-
-    .chat-input::placeholder {
-      color: var(--text-muted);
-    }
-
+    .chat-input::placeholder { color: var(--text-3); }
     .send-btn {
       background: var(--accent);
-      color: white;
-      border: none;
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+      color: white; border: none;
+      width: 42px; height: 42px; border-radius: 12px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.2s ease, transform 0.2s ease;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition);
+      flex-shrink: 0;
     }
+    .send-btn:hover { background: #4f46e5; transform: scale(1.05); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .send-btn svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2.5; fill: none; }
 
-    .send-btn:hover {
-      background: var(--accent-hover);
-      transform: scale(1.03);
-    }
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
 
-    .send-btn svg {
-      width: 18px;
-      height: 18px;
-      stroke: currentColor;
-      stroke-width: 2.5;
-      fill: none;
-    }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Desktop View Restriction Styles */
-    #desktop-restriction-overlay {
+    /* ── RESTRICTION OVERLAY ── */
+    #restriction-overlay {
       display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #070a13;
-      z-index: 99999;
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 9999;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      text-align: center;
+      align-items: center; justify-content: center;
+      padding: 24px; text-align: center;
     }
-
     .restriction-card {
-      background: rgba(18, 25, 50, 0.6);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      padding: 40px 30px;
-      max-width: 480px;
-      box-shadow: var(--glass-shadow);
-      backdrop-filter: blur(16px);
-      animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 48px 36px; max-width: 460px;
+      backdrop-filter: blur(20px);
+      animation: fadeInUp 0.5s ease forwards;
     }
-
-    .restriction-icon {
-      font-size: 56px;
-      margin-bottom: 20px;
-      display: inline-block;
-      animation: floatIcon 3s infinite ease-in-out;
-    }
-
-    @keyframes floatIcon {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-
+    .restriction-icon { font-size: 60px; display: block; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
     .restriction-card h2 {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      background: linear-gradient(to right, #ffffff, #a5b4fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 22px; font-weight: 800; margin-bottom: 12px;
+      background: linear-gradient(90deg,#fff,#a5b4fc);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     }
-
-    .restriction-card p {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.7;
-    }
+    .restriction-card p { font-size: 14px; color: var(--text-2); line-height: 1.7; }
 
     @media (max-width: 1024px) {
-      .app-container {
-        display: none !important;
-      }
-      #desktop-restriction-overlay {
-        display: flex !important;
-      }
+      .app-container { display: none !important; }
+      .top-nav       { display: none !important; }
+      #restriction-overlay { display: flex !important; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Desktop Only Restriction Overlay -->
-  <div id="desktop-restriction-overlay">
+  <!-- Desktop Restriction -->
+  <div id="restriction-overlay">
     <div class="restriction-card">
       <span class="restriction-icon">💻</span>
       <h2>Desktop Screen Required</h2>
-      <p>For the best testing experience, this ERP AI Playground console is designed exclusively for desktop and laptop screens. Please switch to a desktop browser or increase your window size.</p>
+      <p>The DJ Fast Soft ERP AI Console is designed for desktop and laptop screens. Please open this page on a larger display for the best experience.</p>
     </div>
   </div>
 
-  <div class="app-container">
-    
-    <!-- Sidebar / Clickable Tests -->
-    <div class="sidebar">
-      <div class="brand-section">
-        <div class="brand-logo">🤖</div>
-        <div class="brand-info">
-          <h2>Digify ERP AI</h2>
-          <p>Testing Console</p>
-        </div>
-      </div>
-      
-      <div class="section-title">Quick Test Prompts</div>
-      
-      <div class="test-queries">
-        <div class="query-card" onclick="sendPrompt('Show Purchase Invoices')">
-          <span class="query-icon">📦</span>
-          <span class="query-text">Purchase Records</span>
-        </div>
-        <div class="query-card" onclick="sendPrompt('Show Sale Invoices')">
-          <span class="query-icon">🛒</span>
-          <span class="query-text">Sale Records</span>
-        </div>
-      </div>
-
-      <div class="sidebar-footer">
-        <div class="status-item">
-          <div class="status-dot"></div>
-          <span>Groq LLM Engine: <b>Active</b></span>
-        </div>
-        <div class="status-item">
-          <div class="status-dot"></div>
-          <span>ERP REST API: <b>Connected</b></span>
-        </div>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <div class="nav-logo">🤖</div>
+      <div>
+        <div class="nav-brand-text">DJ Fast Soft ERP AI</div>
+        <div class="nav-brand-sub">Intelligence Console</div>
       </div>
     </div>
+    <div class="nav-pills">
+      <button class="nav-pill active" id="viewDashboardBtn" onclick="switchView('dashboard')">📊 Dashboard</button>
+      <button class="nav-pill" id="viewChatBtn" onclick="switchView('chat')">💬 Chat Only</button>
+    </div>
+    <div class="nav-right">
+      <div class="status-badge" id="llmBadge">
+        <div class="status-dot"></div>
+        <span>Groq LLM Active</span>
+      </div>
+      <div class="status-badge" id="apiBadge">
+        <div class="status-dot"></div>
+        <span>ERP API Connected</span>
+      </div>
+    </div>
+  </nav>
 
-    <!-- Main Chat Window -->
-    <div class="chat-area">
+  <!-- Main App -->
+  <div class="app-container" id="appContainer">
+
+    <!-- LEFT: Dashboard Panel -->
+    <div class="dashboard-panel" id="dashboardPanel">
+
+      <!-- KPI Section -->
+      <div>
+        <div class="panel-header">
+          <div class="panel-title">Financial Overview</div>
+          <button class="refresh-btn" id="refreshBtn" onclick="refreshData()" title="Refresh Data">↻</button>
+        </div>
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi-card">
+            <div class="kpi-icon">🛒</div>
+            <div class="kpi-label">Total Sales Revenue</div>
+            <div class="kpi-value big" id="kpiSalesAmt">—</div>
+            <div class="kpi-sub" id="kpiSalesInv">Loading...</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-icon">📦</div>
+            <div class="kpi-label">Total Purchases</div>
+            <div class="kpi-value big" id="kpiPurchaseAmt">—</div>
+            <div class="kpi-sub" id="kpiPurchaseInv">Loading...</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-icon">📋</div>
+            <div class="kpi-label">Avg. Sale Value</div>
+            <div class="kpi-value big" id="kpiAvgSale">—</div>
+            <div class="kpi-sub">Per Invoice</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">📁</div>
+            <div class="kpi-label">Total Items (Sales)</div>
+            <div class="kpi-value" id="kpiSaleItems">—</div>
+            <div class="kpi-sub">Line Items</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-title">Monthly Revenue Trend</div>
+            <div class="chart-subtitle">Sales vs Purchases (₹)</div>
+          </div>
+          <div class="chart-toggle">
+            <button class="chart-toggle-btn active" id="chartBar" onclick="switchChart('bar')">Bar</button>
+            <button class="chart-toggle-btn" id="chartLine" onclick="switchChart('line')">Line</button>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <div class="chart-loading" id="chartLoading">⏳ Loading chart data...</div>
+          <canvas id="revenueChart" style="display:none;"></canvas>
+        </div>
+      </div>
+
+      <!-- Quick Prompts -->
+      <div>
+        <div class="panel-title" style="margin-bottom:12px;">Quick Search Prompts</div>
+        <div class="quick-prompts">
+          <button class="quick-prompt-btn" onclick="sendPrompt('Show Purchase Invoices')">
+            <span class="qp-icon">📦</span>
+            <span class="qp-text">Purchase Records</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" onclick="sendPrompt('Show Sale Invoices')">
+            <span class="qp-icon">🛒</span>
+            <span class="qp-text">Sale Records</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" onclick="sendPrompt('Total sales and purchases summary')">
+            <span class="qp-icon">💰</span>
+            <span class="qp-text">Financial Summary</span>
+            <span class="qp-arrow">›</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Chat Panel -->
+    <div class="chat-panel">
       <div class="chat-header">
         <div class="chat-header-title">
-          <h1>Interactive AI Testing Playground</h1>
-          <p>Connected to real-time purchase and sales APIs</p>
+          <h1>ERP AI Assistant</h1>
+          <p>Connected to real-time Sales & Purchase APIs</p>
         </div>
-        <span class="header-badge">Llama-3 Server Mode</span>
+        <span class="header-badge">Llama-3.3 · 70B</span>
       </div>
+
       <div class="chat-body" id="chatBody">
         <div class="message ai">
           <div class="message-bubble">
-            👋 <strong>Hi, Good morning! I am the ERP AI Bot for DJ Fast Soft.</strong><br><br>
-            I am connected directly to your real-time ERP databases. I can retrieve and search through **Sales Records** and **Purchase Records** instantly.<br><br>
-            Please choose what you want to enquire about today:
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-              <button onclick="sendPrompt('Show Purchase Invoices')" style="background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc; padding: 10px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.2s;">📦 Purchase Records</button>
-              <button onclick="sendPrompt('Show Sale Invoices')" style="background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc; padding: 10px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.2s;">🛒 Sale Records</button>
+            👋 <strong>Hi! I am the ERP AI Bot for DJ Fast Soft.</strong><br><br>
+            I'm connected to your real-time ERP databases. I can instantly search through <strong>Sales Records</strong> and <strong>Purchase Records</strong>.<br><br>
+            What would you like to enquire about today?
+            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+              <button onclick="sendPrompt('Show Purchase Invoices')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">📦 Purchase Records</button>
+              <button onclick="sendPrompt('Show Sale Invoices')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">🛒 Sale Records</button>
             </div>
           </div>
           <span class="message-time">Just now</span>
@@ -519,7 +590,9 @@
 
       <div class="chat-footer">
         <div class="input-wrapper">
-          <input type="text" class="chat-input" id="chatInput" placeholder="Ask anything about ERP invoices, vendors, or sales..." autocomplete="off">
+          <input type="text" class="chat-input" id="chatInput"
+            placeholder="Search by invoice number, customer name, vendor, or date…"
+            autocomplete="off">
           <button class="send-btn" id="sendBtn" onclick="sendUserMessage()">
             <svg viewBox="0 0 24 24">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -530,127 +603,260 @@
       </div>
     </div>
 
-  </div>
+  </div><!-- end .app-container -->
 
   <script>
-    const chatBody = document.getElementById('chatBody');
-    const chatInput = document.getElementById('chatInput');
+    // ── STATE ──────────────────────────────────────
     let conversationHistory = [];
     let isWaiting = false;
+    let chartInstance = null;
+    let currentChartType = 'bar';
+    let chartDataCache = null;
 
-    // Handle Enter keypress
-    chatInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendUserMessage();
-      }
+    const chatBody  = document.getElementById('chatBody');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn   = document.getElementById('sendBtn');
+
+    // ── INIT ──────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSummary();
+      loadChartData();
+      chatInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
+      });
     });
 
-    function appendMessage(sender, text) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `message ${sender}`;
-
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      // Convert simple Markdown formatting to HTML
-      const htmlContent = parseMarkdown(text);
-
-      msgDiv.innerHTML = `
-        <div class="message-bubble">${htmlContent}</div>
-        <span class="message-time">${timeStr}</span>
-      `;
-
-      chatBody.appendChild(msgDiv);
-      chatBody.scrollTop = chatBody.scrollHeight;
+    // ── VIEW SWITCH ───────────────────────────────
+    function switchView(view) {
+      const panel = document.getElementById('dashboardPanel');
+      document.getElementById('viewDashboardBtn').classList.toggle('active', view === 'dashboard');
+      document.getElementById('viewChatBtn').classList.toggle('active', view === 'chat');
+      panel.style.display = view === 'dashboard' ? 'flex' : 'none';
     }
 
-    function showTypingIndicator() {
-      const indicatorDiv = document.createElement('div');
-      indicatorDiv.className = 'message ai';
-      indicatorDiv.id = 'typingIndicator';
-      indicatorDiv.innerHTML = `
-        <div class="message-bubble">
-          <div class="typing-indicator">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-          </div>
-        </div>
-      `;
-      chatBody.appendChild(indicatorDiv);
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
+    // ── KPI LOADER ────────────────────────────────
+    async function loadSummary() {
+      try {
+        const res  = await fetch('/api/summary');
+        const json = await res.json();
+        if (json.status !== 'ok') return;
+        const { sales, purchases } = json.data;
 
-    function removeTypingIndicator() {
-      const indicator = document.getElementById('typingIndicator');
-      if (indicator) {
-        indicator.remove();
+        const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+        document.getElementById('kpiSalesAmt').textContent   = fmt(sales.totalAmount);
+        document.getElementById('kpiSalesInv').textContent   = `${sales.totalInvoices} Invoices`;
+        document.getElementById('kpiPurchaseAmt').textContent = fmt(purchases.totalAmount);
+        document.getElementById('kpiPurchaseInv').textContent = `${purchases.totalInvoices} Invoices`;
+        document.getElementById('kpiSaleItems').textContent  = sales.totalItems.toLocaleString('en-IN');
+
+        const avg = sales.totalInvoices > 0 ? (sales.totalAmount / sales.totalInvoices) : 0;
+        document.getElementById('kpiAvgSale').textContent = fmt(avg);
+      } catch (e) {
+        console.error('Summary load failed:', e);
       }
     }
 
+    // ── CHART ─────────────────────────────────────
+    async function loadChartData() {
+      try {
+        const res  = await fetch('/api/chartdata');
+        const json = await res.json();
+        if (json.status !== 'ok') return;
+        chartDataCache = json.data;
+        renderChart(currentChartType);
+      } catch (e) {
+        document.getElementById('chartLoading').textContent = '⚠️ Chart data unavailable';
+      }
+    }
+
+    function renderChart(type) {
+      if (!chartDataCache) return;
+      const { labels, salesData, purchasesData } = chartDataCache;
+
+      document.getElementById('chartLoading').style.display = 'none';
+      const canvas = document.getElementById('revenueChart');
+      canvas.style.display = 'block';
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(canvas, {
+        type: type,
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Sales (₹)',
+              data: salesData,
+              backgroundColor: type === 'bar' ? 'rgba(99,102,241,0.5)' : 'transparent',
+              borderColor: '#6366f1',
+              borderWidth: 2,
+              fill: type === 'line',
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#6366f1',
+            },
+            {
+              label: 'Purchases (₹)',
+              data: purchasesData,
+              backgroundColor: type === 'bar' ? 'rgba(16,185,129,0.4)' : 'transparent',
+              borderColor: '#10b981',
+              borderWidth: 2,
+              fill: type === 'line',
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#10b981',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { family: 'Outfit', size: 11 }, boxWidth: 12, padding: 14 }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(13,20,45,0.96)',
+              titleColor: '#e2e8f0', bodyColor: '#94a3b8',
+              borderColor: 'rgba(99,102,241,0.3)', borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: ctx => ` ${ctx.dataset.label}: ₹${Number(ctx.raw).toLocaleString('en-IN')}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#64748b', font: { size: 10 } },
+              grid: { color: 'rgba(255,255,255,0.04)' }
+            },
+            y: {
+              ticks: {
+                color: '#64748b', font: { size: 10 },
+                callback: v => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : v.toLocaleString('en-IN'))
+              },
+              grid: { color: 'rgba(255,255,255,0.04)' }
+            }
+          }
+        }
+      });
+    }
+
+    function switchChart(type) {
+      currentChartType = type;
+      document.getElementById('chartBar').classList.toggle('active', type === 'bar');
+      document.getElementById('chartLine').classList.toggle('active', type === 'line');
+      renderChart(type);
+    }
+
+    // ── REFRESH ───────────────────────────────────
+    async function refreshData() {
+      const btn = document.getElementById('refreshBtn');
+      btn.classList.add('spinning');
+      try {
+        await fetch('/api/refresh', { method: 'POST' });
+        chartDataCache = null;
+        await loadSummary();
+        await loadChartData();
+      } finally {
+        btn.classList.remove('spinning');
+      }
+    }
+
+    // ── CHAT ──────────────────────────────────────
     function parseMarkdown(text) {
       if (!text) return '';
       return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
         .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/`(.*?)`/g, '<code>$1</code>')
         .replace(/^\- (.*$)/gim, '• $1<br>')
+        .replace(/^\d+\. (.*$)/gim, (m, p) => `<span style="color:var(--accent-light);font-weight:600;">${m.match(/^\d+/)[0]}.</span> ${p}<br>`)
         .replace(/\n\n/g, '<br><br>')
         .replace(/\n/g, '<br>');
     }
 
-    async function sendPrompt(promptText) {
+    function timeStr() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement('div');
+      msg.className = `message ${sender}`;
+      msg.innerHTML = `
+        <div class="message-bubble">${sender === 'ai' ? parseMarkdown(text) : escapeHtml(text)}</div>
+        <span class="message-time">${timeStr()}</span>
+      `;
+      chatBody.appendChild(msg);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function escapeHtml(t) {
+      return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function showTyping() {
+      const d = document.createElement('div');
+      d.className = 'message ai'; d.id = 'typingIndicator';
+      d.innerHTML = `<div class="message-bubble"><div class="typing-indicator">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div></div>`;
+      chatBody.appendChild(d);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function hideTyping() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
+
+    function setWaiting(v) {
+      isWaiting = v;
+      sendBtn.disabled = v;
+      chatInput.disabled = v;
+    }
+
+    async function sendPrompt(text) {
       if (isWaiting) return;
-      chatInput.value = '';
-      await handleMessageSend(promptText);
+      await handleSend(text);
     }
 
     async function sendUserMessage() {
       const text = chatInput.value.trim();
       if (!text || isWaiting) return;
       chatInput.value = '';
-      await handleMessageSend(text);
+      await handleSend(text);
     }
 
-    async function handleMessageSend(text) {
+    async function handleSend(text) {
       appendMessage('user', text);
       conversationHistory.push({ role: 'user', content: text });
-      
-      isWaiting = true;
-      showTypingIndicator();
+      setWaiting(true);
+      showTyping();
 
       try {
-        const response = await fetch('/api/chat', {
+        const res = await fetch('/api/chat', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: text,
-            history: conversationHistory
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, history: conversationHistory })
         });
-
-        const data = await response.json();
-        removeTypingIndicator();
-
-        if (data.reply) {
-          appendMessage('ai', data.reply);
-          conversationHistory.push({ role: 'assistant', content: data.reply });
-        } else {
-          appendMessage('ai', '⚠️ Received empty response from server.');
-        }
-      } catch (error) {
-        removeTypingIndicator();
-        appendMessage('ai', '❌ Network Error: Could not connect to the ERP Chatbot server.');
-        console.error('API Error:', error);
+        const data = await res.json();
+        hideTyping();
+        const reply = data.reply || '⚠️ Empty response from server.';
+        appendMessage('ai', reply);
+        conversationHistory.push({ role: 'assistant', content: reply });
+      } catch (err) {
+        hideTyping();
+        appendMessage('ai', '❌ Network error — could not reach the ERP server. Please check your connection.');
+        console.error(err);
       } finally {
-        isWaiting = false;
+        setWaiting(false);
+        chatInput.focus();
       }
     }
   </script>

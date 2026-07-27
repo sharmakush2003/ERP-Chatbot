@@ -68,62 +68,73 @@ async function ensureDataLoaded() {
 // Auto Refresh ERP Data every 10 minutes
 setInterval(loadAPIData, 10 * 60 * 1000);
 
-// Calculate Exact Financial & GST Totals (100% Deterministic Code Math)
+// Calculate Exact Financial Totals (100% Deterministic Code Math)
 function getErpSummaryStats() {
-  let saleTotalAmt = 0, saleCGST = 0, saleSGST = 0, saleIGST = 0, saleItems = 0;
+  // SALES: invoiceamount is the top-level total. items[].itemAmount is NOT additive (it duplicates)
+  let saleTotalAmt = 0, saleItems = 0;
   sales.forEach(s => {
     saleTotalAmt += Number(s.invoiceamount || 0);
-    (s.items || []).forEach(item => {
-      saleItems++;
-      saleTotalAmt += Math.abs(Number(item.itemAmount || 0));
-      saleCGST += Number(item.cgst || 0);
-      saleSGST += Number(item.sgst || 0);
-      saleIGST += Number(item.igst || 0);
-    });
+    saleItems += (s.items || []).length;
   });
-  const totalSaleGST = saleCGST + saleSGST + saleIGST;
 
-  let purchaseTotalAmt = 0, purchaseCGST = 0, purchaseSGST = 0, purchaseIGST = 0, purchaseItems = 0;
+  // PURCHASES: invoiceamount is 0 in the API; total is sum of items[].itemAmount
+  let purchaseTotalAmt = 0, purchaseItems = 0;
   purchases.forEach(p => {
     purchaseTotalAmt += Number(p.invoiceamount || 0);
     (p.items || []).forEach(item => {
       purchaseItems++;
       purchaseTotalAmt += Math.abs(Number(item.itemAmount || 0));
-      purchaseCGST += Number(item.cgst || 0);
-      purchaseSGST += Number(item.sgst || 0);
-      purchaseIGST += Number(item.igst || 0);
     });
   });
-  const totalPurchaseGST = purchaseCGST + purchaseSGST + purchaseIGST;
-
-  const netGST = totalSaleGST - totalPurchaseGST;
 
   return {
     sales: {
       totalInvoices: sales.length,
       totalItems: saleItems,
-      totalAmount: saleTotalAmt,
-      cgst: saleCGST,
-      sgst: saleSGST,
-      igst: saleIGST,
-      totalGST: totalSaleGST
+      totalAmount: saleTotalAmt
     },
     purchases: {
       totalInvoices: purchases.length,
       totalItems: purchaseItems,
-      totalAmount: purchaseTotalAmt,
-      cgst: purchaseCGST,
-      sgst: purchaseSGST,
-      igst: purchaseIGST,
-      totalGST: totalPurchaseGST
-    },
-    financialPosition: {
-      netGSTLiability: netGST >= 0 ? netGST : 0,
-      availableITC: netGST < 0 ? Math.abs(netGST) : 0,
-      summaryText: netGST >= 0 
-        ? `Net Tax Liability to pay: ₹${netGST.toFixed(2)}` 
-        : `Net Input Tax Credit (ITC Available): ₹${Math.abs(netGST).toFixed(2)}`
+      totalAmount: purchaseTotalAmt
     }
+  };
+}
+
+// Build monthly chart data from raw records
+function getChartData() {
+  const monthlyData = {};
+
+  sales.forEach(s => {
+    const rawDate = s.invoiceDate || s.invoiceDateStr || '';
+    const d = new Date(rawDate);
+    if (!isNaN(d)) {
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthlyData[key]) monthlyData[key] = { sales: 0, purchases: 0 };
+      monthlyData[key].sales += Number(s.invoiceamount || 0);
+    }
+  });
+
+  purchases.forEach(p => {
+    const rawDate = p.invoiceDate || p.supplierinvoicedate || '';
+    const d = new Date(rawDate);
+    if (!isNaN(d)) {
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthlyData[key]) monthlyData[key] = { sales: 0, purchases: 0 };
+      (p.items || []).forEach(item => {
+        monthlyData[key].purchases += Math.abs(Number(item.itemAmount || 0));
+      });
+    }
+  });
+
+  const sortedKeys = Object.keys(monthlyData).sort();
+  return {
+    labels: sortedKeys.map(k => {
+      const [y, m] = k.split('-');
+      return new Date(y, m - 1).toLocaleString('en-IN', { month: 'short', year: '2-digit' });
+    }),
+    salesData: sortedKeys.map(k => Math.round(monthlyData[k].sales)),
+    purchasesData: sortedKeys.map(k => Math.round(monthlyData[k].purchases))
   };
 }
 
@@ -192,19 +203,20 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
     }))
   };
 
-  const systemPrompt = `You are Digify Soft ERP AI Assistant — an expert enterprise AI assistant for Digify Soft Solutions (https://digifysoft.in).
-You answer user queries directly from real-time ERP API records.
+  const systemPrompt = `You are DJ Fast Soft ERP AI Assistant — an expert enterprise chatbot for real-time ERP data.
+You answer user queries accurately using ONLY the real-time ERP API records provided below.
 
 STRICT ACCURACY RULES:
-1. Answer using ONLY the provided ERP API Context. Do NOT invent invoice numbers, parties, or amounts.
-2. Whenever matching Sale or Purchase records are available in 'matchingSaleRecords' or 'matchingPurchaseRecords', ALWAYS list them clearly with Invoice No, Date, Customer/Vendor Name, Items, and Invoice Amount.
-3. If asked about financial summaries (Total Sales, Total Purchases), state the exact numbers from 'erpSummary'. Do NOT calculate or mention any GST or tax figures, as the user wants to focus strictly on sales and purchases.
-4. GREETING RULE: If the user message is a simple greeting (such as 'Hi', 'Hello', 'Hey', etc.), do NOT display any sales, purchases, or context summaries. Simply respond with a friendly welcome message (e.g., 'Hello! I am your Digify Soft ERP assistant. How can I help you check your Sales or Purchase records today?') and wait for their request.
-5. GENERAL ENQUIRY RULE: If the user message is broad or general (e.g. 'sales', 'purchases', 'show me sales', 'show me purchase records'), do NOT dump list of invoices. Instead, respond politely by asking them what specific information they need and prompt them to provide one of the following filters to search:
-   - For Sales: Invoice Number (e.g. 'GEE/26-27/0009'), Invoice Date (e.g. '2026-04-15'), Customer Name (e.g. 'The Great Eastern Export'), or GSTIN/PAN number.
-   - For Purchases: Supplier Invoice Number (e.g. 'GEHOHR001VPO414'), Invoice Date, or Vendor/Supplier Name (e.g. 'WONDER WEAVE EXPORTS').
-6. Format your response cleanly using Markdown, bold highlights, bullet points, and emojis.
-7. Keep responses professional, clear, helpful, and concise.
+1. Use ONLY data from 'matchingSaleRecords' and 'matchingPurchaseRecords'. Do NOT hallucinate, invent, or assume any invoice numbers, party names, dates or amounts.
+2. If those arrays are empty and the user asked for specific records, reply: "I couldn't find any matching records in the ERP database. Could you provide a different invoice number, date, or party name?"
+3. Whenever matching records exist, list them clearly: Invoice No, Date, Customer/Vendor Name, Items, and Amount.
+4. Financial summaries: use exact figures from 'erpSummary'. Never mention GST, CGST, SGST, IGST or any tax figures.
+5. GREETING RULE: For greetings ('Hi', 'Hello', 'Hey'), respond warmly without showing any data.
+6. GENERAL ENQUIRY RULE: For broad queries ('show sales', 'purchases', 'invoices'), do NOT dump lists. Ask for a specific filter:
+   - Sales: Invoice No (e.g. GEE/26-27/0009), Date (e.g. 2026-04-15), or Customer Name.
+   - Purchases: Supplier Invoice No (e.g. GEHOHR001VPO414), Date, or Vendor Name.
+7. Format responses with Markdown: bold headings, bullet points, code backticks for invoice numbers, emojis.
+8. Be concise, professional, and friendly.
 
 REAL-TIME ERP API CONTEXT:
 ${JSON.stringify(contextData, null, 2)}`;
@@ -321,7 +333,7 @@ app.get('/api/status', async (req, res) => {
   await ensureDataLoaded();
   res.json({
     status: 'ok',
-    system: 'Digify Soft ERP AI System',
+    system: 'DJ Fast Soft ERP AI System',
     groqEnabled: Boolean(groqClient),
     purchasesCount: purchases.length,
     salesCount: sales.length,
@@ -335,6 +347,14 @@ app.get('/api/summary', async (req, res) => {
   res.json({
     status: 'ok',
     data: getErpSummaryStats()
+  });
+});
+
+app.get('/api/chartdata', async (req, res) => {
+  await ensureDataLoaded();
+  res.json({
+    status: 'ok',
+    data: getChartData()
   });
 });
 
