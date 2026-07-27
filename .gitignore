@@ -27,3 +27,5 @@ debug-api.js
 Thumbs.db
 .vscode/
 .idea/
+check_git_status.bat
+check_git_status.ps1
