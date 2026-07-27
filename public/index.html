@@ -411,13 +411,9 @@
       </div>
     </div>
     <div class="nav-right">
-      <div class="status-badge" id="llmBadge">
-        <div class="status-dot"></div>
-        <span>Groq LLM Active</span>
-      </div>
-      <div class="status-badge" id="apiBadge">
-        <div class="status-dot"></div>
-        <span>ERP API Connected</span>
+      <div class="status-badge" id="apiStatusBadge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">ERP AI Connected</span>
       </div>
     </div>
   </nav>
@@ -493,7 +489,7 @@
           <h1>ERP AI Assistant</h1>
           <p>Connected to real-time Sales & Purchase APIs</p>
         </div>
-        <span class="header-badge">Llama-3.3 · 70B</span>
+        <span class="header-badge" id="headerBadge">ERP AI Connected</span>
       </div>
 
       <div class="chat-body" id="chatBody">
@@ -550,10 +546,14 @@
 
     // ── KPI LOADER ────────────────────────────────
     async function loadSummary() {
+      const statusDot   = document.getElementById('statusDot');
+      const statusText  = document.getElementById('statusText');
+      const headerBadge = document.getElementById('headerBadge');
+
       try {
         const res  = await fetch('/api/summary');
         const json = await res.json();
-        if (json.status !== 'ok') return;
+        if (json.status !== 'ok') throw new Error('API Error');
         const { sales, purchases } = json.data;
 
         const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -566,20 +566,33 @@
 
         const avg = sales.totalInvoices > 0 ? (sales.totalAmount / sales.totalInvoices) : 0;
         document.getElementById('kpiAvgSale').textContent = fmt(avg);
+
+        if (statusDot) { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 6px #10b981'; }
+        if (statusText) statusText.textContent = 'ERP AI Connected';
+        if (headerBadge) { headerBadge.textContent = 'ERP AI Connected'; headerBadge.style.color = '#a5b4fc'; }
       } catch (e) {
         console.error('Summary load failed:', e);
+        if (statusDot) { statusDot.style.background = '#ef4444'; statusDot.style.boxShadow = '0 0 6px #ef4444'; }
+        if (statusText) statusText.textContent = 'ERP AI Disconnected';
+        if (headerBadge) { headerBadge.textContent = 'ERP AI Disconnected'; headerBadge.style.color = '#fca5a5'; }
       }
     }
 
     // ── REFRESH ───────────────────────────────────
     async function refreshData() {
       const btn = document.getElementById('refreshBtn');
+      if (btn.classList.contains('spinning')) return;
       btn.classList.add('spinning');
       try {
-        await fetch('/api/refresh', { method: 'POST' });
+        const res = await fetch('/api/refresh', { method: 'POST' });
+        await res.json();
         await loadSummary();
+      } catch (e) {
+        console.error('Refresh error:', e);
       } finally {
-        btn.classList.remove('spinning');
+        setTimeout(() => {
+          btn.classList.remove('spinning');
+        }, 500);
       }
     }
 
