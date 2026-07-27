@@ -57,6 +57,14 @@ async function loadAPIData() {
   }
 }
 
+// Ensure data is loaded (crucial for Vercel/serverless environments where app.listen is bypassed)
+async function ensureDataLoaded() {
+  if ((purchases.length === 0 || sales.length === 0) && !isLoadingData) {
+    console.log('⚠️ ERP cache empty. Fetching data on demand...');
+    await loadAPIData();
+  }
+}
+
 // Auto Refresh ERP Data every 10 minutes
 setInterval(loadAPIData, 10 * 60 * 1000);
 
@@ -288,7 +296,8 @@ function generateDeterministicFallback(query) {
 
 // REST API Endpoints
 
-app.get('/api/status', (req, res) => {
+app.get('/api/status', async (req, res) => {
+  await ensureDataLoaded();
   res.json({
     status: 'ok',
     system: 'Digify Soft ERP AI System',
@@ -300,7 +309,8 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-app.get('/api/summary', (req, res) => {
+app.get('/api/summary', async (req, res) => {
+  await ensureDataLoaded();
   res.json({
     status: 'ok',
     data: getErpSummaryStats()
@@ -324,6 +334,8 @@ app.post('/api/chat', async (req, res) => {
     if (!message || message.trim() === '') {
       return res.status(400).json({ error: 'Message cannot be empty' });
     }
+
+    await ensureDataLoaded();
 
     let reply = null;
     let mode = 'deterministic';
