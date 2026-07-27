@@ -13,8 +13,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ERP API Configuration
-const PURCHASE_API_URL = process.env.PURCHASE_API_URL || 'https://thegreateasternexports.jbbs.in/API/purchase_api.php';
-const SALE_API_URL = process.env.SALE_API_URL || 'https://thegreateasternexports.jbbs.in/API/sale_api.php';
+const PURCHASE_API_URL = (process.env.PURCHASE_API_URL || 'https://thegreateasternexports.jbbs.in/API/purchase_api.php').trim();
+const SALE_API_URL = (process.env.SALE_API_URL || 'https://thegreateasternexports.jbbs.in/API/sale_api.php').trim();
 
 // In-Memory Data Store
 let purchases = [];
@@ -41,8 +41,8 @@ async function loadAPIData() {
   console.log('🔄 Fetching real-time data from ERP REST APIs...');
   try {
     const [pRes, sRes] = await Promise.all([
-      fetch(PURCHASE_API_URL).then(r => r.json()).catch(() => ({ Vouchers: [] })),
-      fetch(SALE_API_URL).then(r => r.json()).catch(() => ({ Vouchers: [] }))
+      fetch(PURCHASE_API_URL).then(r => r.json()).catch((err) => { console.error('❌ Purchase API Fetch Error:', err.message); return { Vouchers: [] }; }),
+      fetch(SALE_API_URL).then(r => r.json()).catch((err) => { console.error('❌ Sale API Fetch Error:', err.message); return { Vouchers: [] }; })
     ]);
 
     purchases = pRes.Vouchers || pRes.data || [];
@@ -166,11 +166,8 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
     erpSummary: {
       totalSaleInvoices: summary.sales.totalInvoices,
       totalSaleRevenue: `₹${summary.sales.totalAmount.toFixed(2)}`,
-      totalSaleGSTCollected: `₹${summary.sales.totalGST.toFixed(2)}`,
       totalPurchaseInvoices: summary.purchases.totalInvoices,
-      totalPurchaseExpense: `₹${summary.purchases.totalAmount.toFixed(2)}`,
-      totalPurchaseGSTPaid: `₹${summary.purchases.totalGST.toFixed(2)}`,
-      netGSTPosition: summary.financialPosition.summaryText
+      totalPurchaseExpense: `₹${summary.purchases.totalAmount.toFixed(2)}`
     },
     matchingPurchaseRecords: searchRes.pMatches.map(p => ({
       invoiceNo: p.invoiceNo || p.supplierinvoiceno || 'N/A',
@@ -196,7 +193,7 @@ You answer user queries directly from real-time ERP API records.
 STRICT ACCURACY RULES:
 1. Answer using ONLY the provided ERP API Context. Do NOT invent invoice numbers, parties, or amounts.
 2. Whenever matching Sale or Purchase records are available in 'matchingSaleRecords' or 'matchingPurchaseRecords', ALWAYS list them clearly with Invoice No, Date, Customer/Vendor Name, Items, and Invoice Amount.
-3. If asked about financial summaries (Total Sales, Total Purchases, GST Position), state the exact numbers from 'erpSummary'.
+3. If asked about financial summaries (Total Sales, Total Purchases), state the exact numbers from 'erpSummary'. Do NOT calculate or mention any GST or tax figures, as the user wants to focus strictly on sales and purchases.
 4. Format your response cleanly using Markdown, bold highlights, bullet points, and emojis.
 5. Keep responses professional, clear, helpful, and concise.
 
@@ -240,20 +237,11 @@ function generateDeterministicFallback(query) {
   const q = query.toLowerCase().trim();
   const summary = getErpSummaryStats();
 
-  if (q.includes('summary') || q.includes('total') || q.includes('gst') || q.includes('dashboard') || (q.includes('sale') && q.includes('purchase'))) {
-    return `### 💰 ERP Financial & GST Dashboard
+  if (q.includes('summary') || q.includes('total') || q.includes('dashboard') || (q.includes('sale') && q.includes('purchase'))) {
+    return `### 💰 ERP Financial Dashboard
 
 - 🛒 **Total Sales Revenue:** ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices)
-- 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)
-
----
-#### 📊 GST Collection Breakdown:
-- **Output GST Collected (Sales):** ₹${summary.sales.totalGST.toFixed(2)}
-  - *CGST:* ₹${summary.sales.cgst.toFixed(2)} | *SGST:* ₹${summary.sales.sgst.toFixed(2)} | *IGST:* ₹${summary.sales.igst.toFixed(2)}
-- **Input GST Paid (Purchases):** ₹${summary.purchases.totalGST.toFixed(2)}
-  - *CGST:* ₹${summary.purchases.cgst.toFixed(2)} | *SGST:* ₹${summary.purchases.sgst.toFixed(2)} | *IGST:* ₹${summary.purchases.igst.toFixed(2)}
-
-**💵 Net GST Position:** ${summary.financialPosition.summaryText}`;
+- 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)`;
   }
 
   const { pMatches, sMatches } = searchRecords(query, 5);
@@ -373,3 +361,5 @@ app.listen(PORT, async () => {
   
   await loadAPIData();
 });
+
+module.exports = app;
