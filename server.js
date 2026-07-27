@@ -138,24 +138,21 @@ function searchRecords(query, maxResults = 10) {
   const isGeneralSaleQuery = q.includes('sale') || q.includes('customer') || q.includes('sell');
   const isGeneralPurchaseQuery = q.includes('purchase') || q.includes('vendor') || q.includes('supplier') || q.includes('buy');
 
-  // Handle generic prompts like "search sale invoices", "sale records", "purchases", etc.
-  if (q.includes('search sale') || q.includes('show sale') || q === 'sale invoices' || q === 'sales' || q === 'sale records') {
-    sMatches = sales.slice(0, maxResults);
-  } else if (q.includes('search purchase') || q.includes('show purchase') || q === 'purchase invoices' || q === 'purchases' || q === 'purchase records') {
-    pMatches = purchases.slice(0, maxResults);
-  } else {
-    // Text search in all fields
-    pMatches = purchases.filter(p => JSON.stringify(p).toLowerCase().includes(q)).slice(0, maxResults);
-    sMatches = sales.filter(s => JSON.stringify(s).toLowerCase().includes(q)).slice(0, maxResults);
+  // List of words that constitute generic queries
+  const genericWords = ['sale', 'sales', 'customer', 'customers', 'sell', 'purchase', 'purchases', 'vendor', 'vendors', 'supplier', 'suppliers', 'buy', 'show', 'search', 'list', 'all', 'record', 'records', 'invoice', 'invoices', 'show me', 'list of'];
+  
+  // Check if query is entirely comprised of generic words and is short
+  const words = q.split(/\s+/);
+  const isAllGeneric = words.every(w => genericWords.includes(w) || w.length <= 2);
 
-    // Fallbacks if no direct string match found for broad queries
-    if (sMatches.length === 0 && isGeneralSaleQuery && !isGeneralPurchaseQuery) {
-      sMatches = sales.slice(0, maxResults);
-    }
-    if (pMatches.length === 0 && isGeneralPurchaseQuery && !isGeneralSaleQuery) {
-      pMatches = purchases.slice(0, maxResults);
-    }
+  if (isAllGeneric) {
+    // Return empty matches so the prompt/fallback handles the user guidance
+    return { pMatches: [], sMatches: [] };
   }
+
+  // Text search in all fields
+  pMatches = purchases.filter(p => JSON.stringify(p).toLowerCase().includes(q)).slice(0, maxResults);
+  sMatches = sales.filter(s => JSON.stringify(s).toLowerCase().includes(q)).slice(0, maxResults);
 
   return { pMatches, sMatches };
 }
@@ -203,8 +200,11 @@ STRICT ACCURACY RULES:
 2. Whenever matching Sale or Purchase records are available in 'matchingSaleRecords' or 'matchingPurchaseRecords', ALWAYS list them clearly with Invoice No, Date, Customer/Vendor Name, Items, and Invoice Amount.
 3. If asked about financial summaries (Total Sales, Total Purchases), state the exact numbers from 'erpSummary'. Do NOT calculate or mention any GST or tax figures, as the user wants to focus strictly on sales and purchases.
 4. GREETING RULE: If the user message is a simple greeting (such as 'Hi', 'Hello', 'Hey', etc.), do NOT display any sales, purchases, or context summaries. Simply respond with a friendly welcome message (e.g., 'Hello! I am your Digify Soft ERP assistant. How can I help you check your Sales or Purchase records today?') and wait for their request.
-5. Format your response cleanly using Markdown, bold highlights, bullet points, and emojis.
-6. Keep responses professional, clear, helpful, and concise.
+5. GENERAL ENQUIRY RULE: If the user message is broad or general (e.g. 'sales', 'purchases', 'show me sales', 'show me purchase records'), do NOT dump list of invoices. Instead, respond politely by asking them what specific information they need and prompt them to provide one of the following filters to search:
+   - For Sales: Invoice Number (e.g. 'GEE/26-27/0009'), Invoice Date (e.g. '2026-04-15'), Customer Name (e.g. 'The Great Eastern Export'), or GSTIN/PAN number.
+   - For Purchases: Supplier Invoice Number (e.g. 'GEHOHR001VPO414'), Invoice Date, or Vendor/Supplier Name (e.g. 'WONDER WEAVE EXPORTS').
+6. Format your response cleanly using Markdown, bold highlights, bullet points, and emojis.
+7. Keep responses professional, clear, helpful, and concise.
 
 REAL-TIME ERP API CONTEXT:
 ${JSON.stringify(contextData, null, 2)}`;
@@ -251,6 +251,26 @@ function generateDeterministicFallback(query) {
 
 - 🛒 **Total Sales Revenue:** ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices)
 - 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)`;
+  }
+
+  const isGeneralSaleQuery = q === 'sales' || q === 'sale' || q === 'sale records' || q === 'sale invoices' || q.includes('show sale') || q.includes('search sale');
+  const isGeneralPurchaseQuery = q === 'purchases' || q === 'purchase' || q === 'purchase records' || q === 'purchase invoices' || q.includes('show purchase') || q.includes('search purchase') || q === 'vendor' || q === 'supplier';
+
+  if (isGeneralSaleQuery && !isGeneralPurchaseQuery) {
+    return `### 🛒 Sales Enquiry
+Please specify what sales information you need by providing one of the following:
+1. **Invoice Number** (e.g., \`GEE/26-27/0009\`)
+2. **Invoice Date** (e.g., \`2026-04-15\`)
+3. **Customer Name** (e.g., \`The Great Eastern Export\`)
+4. **GSTIN / PAN Number** or any unique customer identifier.`;
+  }
+
+  if (isGeneralPurchaseQuery && !isGeneralSaleQuery) {
+    return `### 📦 Purchases Enquiry
+Please specify what purchase information you need by providing one of the following:
+1. **Supplier Invoice Number** (e.g., \`GEHOHR001VPO414\`)
+2. **Invoice Date** (e.g., \`2026-04-15\`)
+3. **Vendor / Supplier Name** (e.g., \`WONDER WEAVE EXPORTS\`)`;
   }
 
   const { pMatches, sMatches } = searchRecords(query, 5);
