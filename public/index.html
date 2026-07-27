@@ -3,29 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DJ Fast Soft ERP AI — Intelligent Console</title>
-  <meta name="description" content="DJ Fast Soft ERP AI — Real-time Sales & Purchase Intelligence Console powered by Groq Llama-3.">
+  <title>Digify Soft ERP AI — Intelligence Console</title>
+  <meta name="description" content="Digify Soft ERP AI — Real-time Sales & Purchase Intelligence Console.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg:           #060b18;
       --surface-1:    rgba(13, 20, 45, 0.9);
       --surface-2:    rgba(18, 28, 60, 0.6);
-      --surface-3:    rgba(99, 102, 241, 0.08);
       --accent:       #6366f1;
       --accent-light: #818cf8;
       --accent-glow:  rgba(99,102,241,0.2);
       --green:        #10b981;
       --amber:        #f59e0b;
-      --red:          #ef4444;
       --border:       rgba(255,255,255,0.07);
       --border-accent:rgba(99,102,241,0.3);
       --text-1:       #f1f5f9;
       --text-2:       #94a3b8;
       --text-3:       #64748b;
-      --shadow-lg:    0 20px 60px rgba(0,0,0,0.6);
       --shadow-glow:  0 0 40px rgba(99,102,241,0.15);
       --radius-sm:    10px;
       --radius-md:    16px;
@@ -76,23 +72,6 @@
     }
     .nav-brand-text { font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
     .nav-brand-sub  { font-size: 11px; color: var(--text-2); margin-top: 1px; letter-spacing: 1px; text-transform: uppercase; }
-    .nav-pills { display: flex; gap: 6px; }
-    .nav-pill {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px; font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-2);
-      transition: var(--transition);
-      font-family: inherit;
-    }
-    .nav-pill:hover, .nav-pill.active {
-      background: var(--accent-glow);
-      border-color: var(--border-accent);
-      color: var(--accent-light);
-    }
     .nav-right { display: flex; align-items: center; gap: 12px; }
     .status-badge {
       display: flex; align-items: center; gap: 6px;
@@ -116,9 +95,9 @@
       overflow: hidden;
     }
 
-    /* ── LEFT PANEL: DASHBOARD ── */
+    /* ── LEFT PANEL: FINANCIAL SUMMARY ── */
     .dashboard-panel {
-      width: 420px;
+      width: 380px;
       flex-shrink: 0;
       background: var(--surface-1);
       border-right: 1px solid var(--border);
@@ -126,7 +105,7 @@
       flex-direction: column;
       overflow-y: auto;
       padding: 24px 20px;
-      gap: 18px;
+      gap: 24px;
       backdrop-filter: blur(24px);
     }
 
@@ -135,7 +114,7 @@
       margin-bottom: 4px;
     }
     .panel-title {
-      font-size: 13px; font-weight: 700;
+      font-size: 12px; font-weight: 700;
       letter-spacing: 1.2px; text-transform: uppercase;
       color: var(--text-2);
     }
@@ -198,52 +177,18 @@
       letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 6px;
     }
     .kpi-value {
-      font-size: 20px; font-weight: 800;
-      color: var(--text-1); line-height: 1;
+      font-size: 18px; font-weight: 800;
+      color: var(--text-1); line-height: 1.2;
     }
-    .kpi-value.big { font-size: 16px; }
     .kpi-sub {
       font-size: 11px; color: var(--text-3); margin-top: 4px;
     }
 
-    /* ── CHART SECTION ── */
-    .chart-card {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 18px;
-    }
-    .chart-card-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .chart-title {
-      font-size: 13px; font-weight: 700; color: var(--text-1);
-    }
-    .chart-subtitle { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-    .chart-toggle { display: flex; gap: 4px; }
-    .chart-toggle-btn {
-      padding: 4px 10px; border-radius: 6px; font-size: 11px;
-      font-weight: 600; cursor: pointer; border: 1px solid var(--border);
-      background: transparent; color: var(--text-3);
-      transition: var(--transition); font-family: inherit;
-    }
-    .chart-toggle-btn.active {
-      background: var(--accent-glow);
-      border-color: var(--border-accent);
-      color: var(--accent-light);
-    }
-    .chart-wrapper { position: relative; height: 180px; }
-    .chart-loading {
-      display: flex; align-items: center; justify-content: center;
-      height: 180px; color: var(--text-3); font-size: 13px; gap: 8px;
-    }
-
     /* ── QUICK PROMPTS ── */
-    .quick-prompts { display: flex; flex-direction: column; gap: 8px; }
+    .quick-prompts { display: flex; flex-direction: column; gap: 10px; }
     .quick-prompt-btn {
       display: flex; align-items: center; gap: 12px;
-      padding: 12px 14px;
+      padding: 14px 16px;
       background: transparent;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
@@ -258,9 +203,9 @@
       border-color: var(--border-accent);
       transform: translateX(4px);
     }
-    .qp-icon { font-size: 16px; flex-shrink: 0; }
+    .qp-icon { font-size: 18px; flex-shrink: 0; }
     .qp-text { flex: 1; }
-    .qp-arrow { font-size: 12px; color: var(--text-3); }
+    .qp-arrow { font-size: 14px; color: var(--text-3); }
 
     /* ── RIGHT PANEL: CHAT ── */
     .chat-panel {
@@ -452,7 +397,7 @@
     <div class="restriction-card">
       <span class="restriction-icon">💻</span>
       <h2>Desktop Screen Required</h2>
-      <p>The DJ Fast Soft ERP AI Console is designed for desktop and laptop screens. Please open this page on a larger display for the best experience.</p>
+      <p>The Digify Soft ERP AI Console is designed for desktop and laptop screens. Please open this page on a larger display for the best experience.</p>
     </div>
   </div>
 
@@ -461,13 +406,9 @@
     <div class="nav-brand">
       <div class="nav-logo">🤖</div>
       <div>
-        <div class="nav-brand-text">DJ Fast Soft ERP AI</div>
+        <div class="nav-brand-text">Digify Soft ERP AI</div>
         <div class="nav-brand-sub">Intelligence Console</div>
       </div>
-    </div>
-    <div class="nav-pills">
-      <button class="nav-pill active" id="viewDashboardBtn" onclick="switchView('dashboard')">📊 Dashboard</button>
-      <button class="nav-pill" id="viewChatBtn" onclick="switchView('chat')">💬 Chat Only</button>
     </div>
     <div class="nav-right">
       <div class="status-badge" id="llmBadge">
@@ -484,8 +425,8 @@
   <!-- Main App -->
   <div class="app-container" id="appContainer">
 
-    <!-- LEFT: Dashboard Panel -->
-    <div class="dashboard-panel" id="dashboardPanel">
+    <!-- LEFT: Financial Summary Panel -->
+    <div class="dashboard-panel">
 
       <!-- KPI Section -->
       <div>
@@ -493,23 +434,23 @@
           <div class="panel-title">Financial Overview</div>
           <button class="refresh-btn" id="refreshBtn" onclick="refreshData()" title="Refresh Data">↻</button>
         </div>
-        <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-grid">
           <div class="kpi-card">
             <div class="kpi-icon">🛒</div>
             <div class="kpi-label">Total Sales Revenue</div>
-            <div class="kpi-value big" id="kpiSalesAmt">—</div>
+            <div class="kpi-value" id="kpiSalesAmt">—</div>
             <div class="kpi-sub" id="kpiSalesInv">Loading...</div>
           </div>
           <div class="kpi-card green">
             <div class="kpi-icon">📦</div>
             <div class="kpi-label">Total Purchases</div>
-            <div class="kpi-value big" id="kpiPurchaseAmt">—</div>
+            <div class="kpi-value" id="kpiPurchaseAmt">—</div>
             <div class="kpi-sub" id="kpiPurchaseInv">Loading...</div>
           </div>
           <div class="kpi-card amber">
             <div class="kpi-icon">📋</div>
             <div class="kpi-label">Avg. Sale Value</div>
-            <div class="kpi-value big" id="kpiAvgSale">—</div>
+            <div class="kpi-value" id="kpiAvgSale">—</div>
             <div class="kpi-sub">Per Invoice</div>
           </div>
           <div class="kpi-card">
@@ -518,24 +459,6 @@
             <div class="kpi-value" id="kpiSaleItems">—</div>
             <div class="kpi-sub">Line Items</div>
           </div>
-        </div>
-      </div>
-
-      <!-- Chart Section -->
-      <div class="chart-card">
-        <div class="chart-card-header">
-          <div>
-            <div class="chart-title">Monthly Revenue Trend</div>
-            <div class="chart-subtitle">Sales vs Purchases (₹)</div>
-          </div>
-          <div class="chart-toggle">
-            <button class="chart-toggle-btn active" id="chartBar" onclick="switchChart('bar')">Bar</button>
-            <button class="chart-toggle-btn" id="chartLine" onclick="switchChart('line')">Line</button>
-          </div>
-        </div>
-        <div class="chart-wrapper">
-          <div class="chart-loading" id="chartLoading">⏳ Loading chart data...</div>
-          <canvas id="revenueChart" style="display:none;"></canvas>
         </div>
       </div>
 
@@ -576,7 +499,7 @@
       <div class="chat-body" id="chatBody">
         <div class="message ai">
           <div class="message-bubble">
-            👋 <strong>Hi! I am the ERP AI Bot for DJ Fast Soft.</strong><br><br>
+            👋 <strong>Hi! I am the ERP AI Bot for Digify Soft.</strong><br><br>
             I'm connected to your real-time ERP databases. I can instantly search through <strong>Sales Records</strong> and <strong>Purchase Records</strong>.<br><br>
             What would you like to enquire about today?
             <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
@@ -609,9 +532,6 @@
     // ── STATE ──────────────────────────────────────
     let conversationHistory = [];
     let isWaiting = false;
-    let chartInstance = null;
-    let currentChartType = 'bar';
-    let chartDataCache = null;
 
     const chatBody  = document.getElementById('chatBody');
     const chatInput = document.getElementById('chatInput');
@@ -620,19 +540,10 @@
     // ── INIT ──────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
       loadSummary();
-      loadChartData();
       chatInput.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
       });
     });
-
-    // ── VIEW SWITCH ───────────────────────────────
-    function switchView(view) {
-      const panel = document.getElementById('dashboardPanel');
-      document.getElementById('viewDashboardBtn').classList.toggle('active', view === 'dashboard');
-      document.getElementById('viewChatBtn').classList.toggle('active', view === 'chat');
-      panel.style.display = view === 'dashboard' ? 'flex' : 'none';
-    }
 
     // ── KPI LOADER ────────────────────────────────
     async function loadSummary() {
@@ -657,109 +568,13 @@
       }
     }
 
-    // ── CHART ─────────────────────────────────────
-    async function loadChartData() {
-      try {
-        const res  = await fetch('/api/chartdata');
-        const json = await res.json();
-        if (json.status !== 'ok') return;
-        chartDataCache = json.data;
-        renderChart(currentChartType);
-      } catch (e) {
-        document.getElementById('chartLoading').textContent = '⚠️ Chart data unavailable';
-      }
-    }
-
-    function renderChart(type) {
-      if (!chartDataCache) return;
-      const { labels, salesData, purchasesData } = chartDataCache;
-
-      document.getElementById('chartLoading').style.display = 'none';
-      const canvas = document.getElementById('revenueChart');
-      canvas.style.display = 'block';
-
-      if (chartInstance) chartInstance.destroy();
-
-      chartInstance = new Chart(canvas, {
-        type: type,
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Sales (₹)',
-              data: salesData,
-              backgroundColor: type === 'bar' ? 'rgba(99,102,241,0.5)' : 'transparent',
-              borderColor: '#6366f1',
-              borderWidth: 2,
-              fill: type === 'line',
-              tension: 0.4,
-              pointRadius: 4,
-              pointBackgroundColor: '#6366f1',
-            },
-            {
-              label: 'Purchases (₹)',
-              data: purchasesData,
-              backgroundColor: type === 'bar' ? 'rgba(16,185,129,0.4)' : 'transparent',
-              borderColor: '#10b981',
-              borderWidth: 2,
-              fill: type === 'line',
-              tension: 0.4,
-              pointRadius: 4,
-              pointBackgroundColor: '#10b981',
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            legend: {
-              labels: { color: '#94a3b8', font: { family: 'Outfit', size: 11 }, boxWidth: 12, padding: 14 }
-            },
-            tooltip: {
-              backgroundColor: 'rgba(13,20,45,0.96)',
-              titleColor: '#e2e8f0', bodyColor: '#94a3b8',
-              borderColor: 'rgba(99,102,241,0.3)', borderWidth: 1,
-              padding: 12,
-              callbacks: {
-                label: ctx => ` ${ctx.dataset.label}: ₹${Number(ctx.raw).toLocaleString('en-IN')}`
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: '#64748b', font: { size: 10 } },
-              grid: { color: 'rgba(255,255,255,0.04)' }
-            },
-            y: {
-              ticks: {
-                color: '#64748b', font: { size: 10 },
-                callback: v => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : v.toLocaleString('en-IN'))
-              },
-              grid: { color: 'rgba(255,255,255,0.04)' }
-            }
-          }
-        }
-      });
-    }
-
-    function switchChart(type) {
-      currentChartType = type;
-      document.getElementById('chartBar').classList.toggle('active', type === 'bar');
-      document.getElementById('chartLine').classList.toggle('active', type === 'line');
-      renderChart(type);
-    }
-
     // ── REFRESH ───────────────────────────────────
     async function refreshData() {
       const btn = document.getElementById('refreshBtn');
       btn.classList.add('spinning');
       try {
         await fetch('/api/refresh', { method: 'POST' });
-        chartDataCache = null;
         await loadSummary();
-        await loadChartData();
       } finally {
         btn.classList.remove('spinning');
       }

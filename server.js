@@ -203,7 +203,7 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
     }))
   };
 
-  const systemPrompt = `You are DJ Fast Soft ERP AI Assistant — an expert enterprise chatbot for real-time ERP data.
+  const systemPrompt = `You are Digify Soft ERP AI Assistant — an expert enterprise chatbot for real-time ERP data.
 You answer user queries accurately using ONLY the real-time ERP API records provided below.
 
 STRICT ACCURACY RULES:
@@ -333,7 +333,7 @@ app.get('/api/status', async (req, res) => {
   await ensureDataLoaded();
   res.json({
     status: 'ok',
-    system: 'DJ Fast Soft ERP AI System',
+    system: 'Digify Soft ERP AI System',
     groqEnabled: Boolean(groqClient),
     purchasesCount: purchases.length,
     salesCount: sales.length,
