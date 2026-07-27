@@ -101,6 +101,55 @@ function getErpSummaryStats() {
   };
 }
 
+// Compute Top Analytics (Customers, Suppliers, Items) for Business Intelligence Queries
+function getTopAnalytics() {
+  const customerMap = {};
+  sales.forEach(s => {
+    const party = (s.partyName || s.shipping_add_lin1 || 'Unknown Customer').trim();
+    if (!customerMap[party]) customerMap[party] = { name: party, totalAmount: 0, invoiceCount: 0 };
+    customerMap[party].totalAmount += Number(s.invoiceamount || 0);
+    customerMap[party].invoiceCount += 1;
+  });
+
+  const topCustomers = Object.values(customerMap)
+    .sort((a, b) => b.totalAmount - a.totalAmount)
+    .slice(0, 5)
+    .map(c => `${c.name}: ₹${c.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${c.invoiceCount} invoices)`);
+
+  const supplierMap = {};
+  purchases.forEach(p => {
+    const party = (p.partyName || 'Unknown Vendor').trim();
+    if (!supplierMap[party]) supplierMap[party] = { name: party, totalAmount: 0, invoiceCount: 0 };
+    let pAmt = Number(p.invoiceamount || 0);
+    (p.items || []).forEach(item => {
+      pAmt += Math.abs(Number(item.itemAmount || 0));
+    });
+    supplierMap[party].totalAmount += pAmt;
+    supplierMap[party].invoiceCount += 1;
+  });
+
+  const topSuppliers = Object.values(supplierMap)
+    .sort((a, b) => b.totalAmount - a.totalAmount)
+    .slice(0, 5)
+    .map(s => `${s.name}: ₹${s.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${s.invoiceCount} invoices)`);
+
+  const saleItemMap = {};
+  sales.forEach(s => {
+    (s.items || []).forEach(item => {
+      const name = (item.itemName || 'Unknown Item').trim();
+      if (!saleItemMap[name]) saleItemMap[name] = { name, totalQty: 0 };
+      saleItemMap[name].totalQty += Number(item.itemQty || item.qty || 1);
+    });
+  });
+
+  const topSaleItems = Object.values(saleItemMap)
+    .sort((a, b) => b.totalQty - a.totalQty)
+    .slice(0, 5)
+    .map(i => `${i.name} (${i.totalQty} units sold)`);
+
+  return { topCustomers, topSuppliers, topSaleItems };
+}
+
 // Build monthly chart data from raw records
 function getChartData() {
   const monthlyData = {};
@@ -177,6 +226,8 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
   const summary = getErpSummaryStats();
   const searchRes = searchRecords(userMessage, 10);
 
+  const analytics = getTopAnalytics();
+
   // Compact ERP Context string for LLM Grounding
   const contextData = {
     erpSummary: {
@@ -185,6 +236,7 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
       totalPurchaseInvoices: summary.purchases.totalInvoices,
       totalPurchaseExpense: `₹${summary.purchases.totalAmount.toFixed(2)}`
     },
+    topAnalytics: analytics,
     matchingPurchaseRecords: searchRes.pMatches.map(p => ({
       invoiceNo: p.invoiceNo || p.supplierinvoiceno || 'N/A',
       date: p.invoiceDate || p.supplierinvoicedate || 'N/A',
@@ -207,16 +259,18 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
 You answer user queries accurately using ONLY the real-time ERP API records provided below.
 
 STRICT ACCURACY RULES:
-1. Use ONLY data from 'matchingSaleRecords' and 'matchingPurchaseRecords'. Do NOT hallucinate, invent, or assume any invoice numbers, party names, dates or amounts.
-2. If those arrays are empty and the user asked for specific records, reply: "I couldn't find any matching records in the ERP database. Could you provide a different invoice number, date, or party name?"
-3. Whenever matching records exist, list them clearly: Invoice No, Date, Customer/Vendor Name, Items, and Amount.
-4. Financial summaries: use exact figures from 'erpSummary'. Never mention GST, CGST, SGST, IGST or any tax figures.
-5. GREETING RULE: For greetings ('Hi', 'Hello', 'Hey'), respond warmly without showing any data.
-6. GENERAL ENQUIRY RULE: For broad queries ('show sales', 'purchases', 'invoices'), do NOT dump lists. Ask for a specific filter:
+1. Use ONLY data from 'matchingSaleRecords', 'matchingPurchaseRecords', 'erpSummary', and 'topAnalytics'. Do NOT hallucinate, invent, or assume any invoice numbers, party names, dates or amounts.
+2. If asked about Top Customers, Top Suppliers, or Top Selling Items, answer using the exact figures from 'topAnalytics'.
+3. If asked for a Business Summary, Executive Overview, or Status Today, provide a clean executive breakdown including Total Sales Revenue, Total Purchase Expenses, Top Customers, and Top Suppliers.
+4. If specific search arrays are empty and the user asked for specific invoice/party details, reply: "I couldn't find any matching records in the ERP database. Could you provide a different invoice number, date, or party name?"
+5. Whenever matching records exist, list them clearly: Invoice No, Date, Customer/Vendor Name, Items, and Amount.
+6. Financial summaries: use exact figures from 'erpSummary'. Never mention GST, CGST, SGST, IGST or any tax figures.
+7. GREETING RULE: For greetings ('Hi', 'Hello', 'Hey'), respond warmly without showing any data.
+8. GENERAL ENQUIRY RULE: For broad queries ('show sales', 'purchases', 'invoices'), do NOT dump lists. Ask for a specific filter:
    - Sales: Invoice No (e.g. GEE/26-27/0009), Date (e.g. 2026-04-15), or Customer Name.
    - Purchases: Supplier Invoice No (e.g. GEHOHR001VPO414), Date, or Vendor Name.
-7. Format responses with Markdown: bold headings, bullet points, code backticks for invoice numbers, emojis.
-8. Be concise, professional, and friendly.
+9. Format responses with Markdown: bold headings, bullet points, code backticks for invoice numbers, emojis.
+10. Be concise, professional, executive-ready, and friendly.
 
 REAL-TIME ERP API CONTEXT:
 ${JSON.stringify(contextData, null, 2)}`;
@@ -257,12 +311,35 @@ ${JSON.stringify(contextData, null, 2)}`;
 function generateDeterministicFallback(query) {
   const q = query.toLowerCase().trim();
   const summary = getErpSummaryStats();
+  const analytics = getTopAnalytics();
 
-  if (q.includes('summary') || q.includes('total') || q.includes('dashboard') || (q.includes('sale') && q.includes('purchase'))) {
-    return `### 💰 ERP Financial Dashboard
+  if (q.includes('summary') || q.includes('status') || q.includes('total') || q.includes('dashboard') || q.includes('executive') || (q.includes('sale') && q.includes('purchase'))) {
+    let resp = `### 💰 Executive ERP Business Summary\n\n`;
+    resp += `- 🛒 **Total Sales Revenue:** ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices)\n`;
+    resp += `- 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)\n\n`;
+    resp += `#### 🏆 Top Customers by Sales Revenue:\n`;
+    analytics.topCustomers.forEach(c => { resp += `- ${c}\n`; });
+    resp += `\n#### 🏭 Top Suppliers by Purchase Value:\n`;
+    analytics.topSuppliers.forEach(s => { resp += `- ${s}\n`; });
+    return resp;
+  }
 
-- 🛒 **Total Sales Revenue:** ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices)
-- 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)`;
+  if (q.includes('top customer') || q.includes('best customer') || q.includes('customer analysis')) {
+    let resp = `### 👥 Top Customers Analysis\n\n`;
+    analytics.topCustomers.forEach((c, idx) => { resp += `${idx + 1}. ${c}\n`; });
+    return resp;
+  }
+
+  if (q.includes('top supplier') || q.includes('top vendor') || q.includes('supplier analysis') || q.includes('highest purchase supplier')) {
+    let resp = `### 🏭 Top Suppliers Analysis\n\n`;
+    analytics.topSuppliers.forEach((s, idx) => { resp += `${idx + 1}. ${s}\n`; });
+    return resp;
+  }
+
+  if (q.includes('best selling') || q.includes('top product') || q.includes('top item') || q.includes('product analysis')) {
+    let resp = `### 📦 Top Selling Products\n\n`;
+    analytics.topSaleItems.forEach((item, idx) => { resp += `${idx + 1}. ${item}\n`; });
+    return resp;
   }
 
   const isGeneralSaleQuery = q === 'sales' || q === 'sale' || q === 'sale records' || q === 'sale invoices' || q.includes('show sale') || q.includes('search sale');
