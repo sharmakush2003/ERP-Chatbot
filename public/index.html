@@ -401,6 +401,26 @@
     </div>
   </div>
 
+  <!-- Disclaimer Info Popup Modal -->
+  <div id="disclaimerModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--surface-1); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 28px 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-glow); position: relative; animation: fadeInUp 0.3s ease;">
+      <button onclick="toggleDisclaimerModal()" style="position: absolute; top: 14px; right: 14px; background: transparent; border: none; color: var(--text-2); font-size: 18px; cursor: pointer; padding: 4px;">✕</button>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+        <span style="font-size: 24px;">ℹ️</span>
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-1);">AI Disclaimer & System Notice</h3>
+      </div>
+      <p style="font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 12px;">
+        Digify Soft ERP AI is an artificial intelligence assistant. While highly intelligent, AI-generated responses can occasionally contain errors and come with no guarantee.
+      </p>
+      <p style="font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 16px;">
+        Please cross-verify critical financial data with your official ERP records.
+      </p>
+      <div style="font-size: 11px; color: var(--accent-light); background: rgba(99,102,241,0.12); border: 1px solid var(--border-accent); padding: 8px 12px; border-radius: 8px; text-align: center; font-weight: 600;">
+        ⚙️ Status: System currently in Testing Mode
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="nav-brand">
@@ -489,7 +509,10 @@
           <h1>ERP AI Assistant</h1>
           <p>Connected to real-time Sales & Purchase APIs</p>
         </div>
-        <span class="header-badge" id="headerBadge">ERP AI Connected</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button onclick="toggleDisclaimerModal()" title="AI Notice & Disclaimer" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #a5b4fc; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--border-accent)'" onmouseout="this.style.borderColor='var(--border)'">ℹ️</button>
+          <span class="header-badge" id="headerBadge">ERP AI Connected</span>
+        </div>
       </div>
 
       <div class="chat-body" id="chatBody">
@@ -519,9 +542,6 @@
             </svg>
           </button>
         </div>
-        <div style="font-size: 11px; color: var(--text-3); text-align: center; margin-top: 10px; line-height: 1.4; opacity: 0.85;">
-          ⚠️ <b>Note:</b> Digify Soft ERP AI is an artificial intelligence assistant. While highly intelligent, AI-generated responses can occasionally contain errors and come with no guarantee. Please cross-verify important data with official ERP records. (System currently in Testing Mode).
-        </div>
       </div>
     </div>
 
@@ -542,7 +562,23 @@
       chatInput.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
       });
+      // Periodic notice popup reminder every 3 minutes
+      setInterval(() => {
+        const modal = document.getElementById('disclaimerModal');
+        if (modal && modal.style.display !== 'flex') {
+          toggleDisclaimerModal();
+          setTimeout(() => {
+            if (modal.style.display === 'flex') modal.style.display = 'none';
+          }, 4000);
+        }
+      }, 3 * 60 * 1000);
     });
+
+    function toggleDisclaimerModal() {
+      const modal = document.getElementById('disclaimerModal');
+      if (!modal) return;
+      modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
 
     // ── KPI LOADER ────────────────────────────────
     async function loadSummary() {
