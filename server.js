@@ -1137,16 +1137,14 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    let reply = null;
+    // 2. Check deterministic structured workflow first (e.g. Sales, Purchases, Year/Month/Date guided flows)
+    let reply = generateDeterministicFallback(message);
     let mode = 'deterministic';
 
-    if (groqClient) {
+    // 3. Fall back to Groq LLM for open-ended conversational queries if available
+    if (!reply && groqClient) {
       reply = await askGroqLLM(message, history || []);
       if (reply) mode = 'groq-llm';
-    }
-
-    if (!reply) {
-      reply = generateDeterministicFallback(message);
     }
 
     res.json({
