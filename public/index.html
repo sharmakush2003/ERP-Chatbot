@@ -4,21 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digify Soft ERP AI — Intelligence Console</title>
-  <meta name="description" content="Digify Soft ERP AI — Real-time Sales & Purchase Intelligence Console.">
+  <meta name="description" content="Digify Soft ERP AI — Real-time Sales, Purchase, Dispatch & Inventory Intelligence Console powered by AI.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap">
   <style>
     :root {
       --bg:           #060b18;
-      --surface-1:    rgba(13, 20, 45, 0.9);
-      --surface-2:    rgba(18, 28, 60, 0.6);
+      --surface-1:    rgba(13, 20, 45, 0.92);
+      --surface-2:    rgba(18, 28, 60, 0.55);
+      --surface-3:    rgba(25, 35, 70, 0.4);
       --accent:       #6366f1;
       --accent-light: #818cf8;
-      --accent-glow:  rgba(99,102,241,0.2);
+      --accent-glow:  rgba(99,102,241,0.18);
       --green:        #10b981;
+      --green-glow:   rgba(16,185,129,0.18);
       --amber:        #f59e0b;
+      --amber-glow:   rgba(245,158,11,0.18);
+      --red:          #ef4444;
+      --cyan:         #06b6d4;
+      --cyan-glow:    rgba(6,182,212,0.18);
+      --purple:       #a855f7;
+      --purple-glow:  rgba(168,85,247,0.18);
       --border:       rgba(255,255,255,0.07);
-      --border-accent:rgba(99,102,241,0.3);
+      --border-accent:rgba(99,102,241,0.35);
       --text-1:       #f1f5f9;
       --text-2:       #94a3b8;
       --text-3:       #64748b;
@@ -35,8 +43,9 @@
       font-family: 'Outfit', sans-serif;
       background: var(--bg);
       background-image:
-        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(99,102,241,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(16,185,129,0.08) 0%, transparent 60%);
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(99,102,241,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(16,185,129,0.09) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 60% at 50% 50%, rgba(168,85,247,0.04) 0%, transparent 70%);
       color: var(--text-1);
       height: 100vh;
       overflow: hidden;
@@ -52,27 +61,23 @@
       padding: 0 28px;
       height: 60px;
       border-bottom: 1px solid var(--border);
-      background: rgba(6,11,24,0.8);
-      backdrop-filter: blur(20px);
+      background: rgba(6,11,24,0.85);
+      backdrop-filter: blur(24px);
       z-index: 100;
       flex-shrink: 0;
     }
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
     .nav-logo {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, #6366f1, #3b82f6);
-      border-radius: 10px;
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #3b82f6 100%);
+      border-radius: 11px;
       display: flex; align-items: center; justify-content: center;
       font-size: 18px;
-      box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+      box-shadow: 0 4px 20px rgba(99,102,241,0.45);
     }
     .nav-brand-text { font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
-    .nav-brand-sub  { font-size: 11px; color: var(--text-2); margin-top: 1px; letter-spacing: 1px; text-transform: uppercase; }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-brand-sub  { font-size: 11px; color: var(--text-2); margin-top: 1px; letter-spacing: 1.2px; text-transform: uppercase; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
     .status-badge {
       display: flex; align-items: center; gap: 6px;
       font-size: 12px; color: var(--text-2);
@@ -83,21 +88,17 @@
     .status-dot {
       width: 7px; height: 7px; border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 6px var(--green);
+      box-shadow: 0 0 8px var(--green);
       animation: pulse 2s infinite;
     }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    @keyframes pulse { 0%,100%{opacity:1; transform:scale(1)} 50%{opacity:0.6; transform:scale(0.85)} }
 
     /* ── MAIN LAYOUT ── */
-    .app-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    .app-container { display: flex; flex: 1; overflow: hidden; }
 
-    /* ── LEFT PANEL: FINANCIAL SUMMARY ── */
+    /* ── LEFT PANEL ── */
     .dashboard-panel {
-      width: 380px;
+      width: 370px;
       flex-shrink: 0;
       background: var(--surface-1);
       border-right: 1px solid var(--border);
@@ -105,55 +106,48 @@
       flex-direction: column;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 20px 18px;
-      gap: 18px;
+      padding: 18px 16px;
+      gap: 16px;
       backdrop-filter: blur(24px);
     }
+    .dashboard-panel::-webkit-scrollbar { width: 4px; }
+    .dashboard-panel::-webkit-scrollbar-track { background: transparent; }
+    .dashboard-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
 
     .panel-header {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 4px;
     }
     .panel-title {
-      font-size: 12px; font-weight: 700;
-      letter-spacing: 1.2px; text-transform: uppercase;
-      color: var(--text-2);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--text-3);
     }
     .refresh-btn {
-      width: 30px; height: 30px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-2);
-      cursor: pointer;
+      width: 28px; height: 28px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-2); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      transition: var(--transition);
-      font-family: inherit;
+      font-size: 14px; transition: var(--transition); font-family: inherit;
     }
-    .refresh-btn:hover {
-      background: var(--accent-glow);
-      border-color: var(--border-accent);
-      color: var(--accent-light);
-    }
+    .refresh-btn:hover { background: var(--accent-glow); border-color: var(--border-accent); color: var(--accent-light); }
     .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── KPI CARDS ── */
+    /* ── KPI GRID (3 columns) ── */
     .kpi-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
     }
     .kpi-card {
       background: var(--surface-2);
       border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
+      border-radius: var(--radius-sm);
+      padding: 12px 10px;
+      position: relative; overflow: hidden;
       transition: var(--transition);
       animation: fadeInUp 0.5s ease forwards;
+      cursor: default;
     }
     .kpi-card:hover {
       border-color: var(--border-accent);
@@ -161,40 +155,37 @@
       transform: translateY(-2px);
     }
     .kpi-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--accent);
-      opacity: 0.5;
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: var(--accent); opacity: 0.6;
     }
     .kpi-card.green::before { background: var(--green); }
     .kpi-card.amber::before { background: var(--amber); }
-    .kpi-icon {
-      font-size: 22px; margin-bottom: 10px;
-    }
+    .kpi-card.cyan::before  { background: var(--cyan); }
+    .kpi-card.purple::before { background: var(--purple); }
+    .kpi-card.red::before   { background: var(--red); }
+    .kpi-icon { font-size: 18px; margin-bottom: 6px; }
     .kpi-label {
-      font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 6px;
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--text-3); margin-bottom: 4px;
     }
     .kpi-value {
-      font-size: 18px; font-weight: 800;
+      font-size: 15px; font-weight: 800;
       color: var(--text-1); line-height: 1.2;
+      word-break: break-all;
     }
-    .kpi-sub {
-      font-size: 11px; color: var(--text-3); margin-top: 4px;
-    }
+    .kpi-sub { font-size: 10px; color: var(--text-3); margin-top: 3px; }
 
     /* ── QUICK PROMPTS ── */
-    .quick-prompts { display: flex; flex-direction: column; gap: 8px; }
+    .quick-prompts { display: flex; flex-direction: column; gap: 7px; }
     .quick-prompt-btn {
       display: flex; align-items: center; gap: 10px;
-      padding: 11px 14px;
+      padding: 10px 12px;
       background: transparent;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       cursor: pointer; color: var(--text-1);
-      font-size: 13px; font-weight: 500;
+      font-size: 12.5px; font-weight: 500;
       font-family: inherit;
       transition: var(--transition);
       text-align: left;
@@ -204,52 +195,63 @@
       border-color: var(--border-accent);
       transform: translateX(4px);
     }
-    .qp-icon { font-size: 18px; flex-shrink: 0; }
+    .quick-prompt-btn.green:hover { background: var(--green-glow); border-color: rgba(16,185,129,0.4); }
+    .quick-prompt-btn.amber:hover { background: var(--amber-glow); border-color: rgba(245,158,11,0.4); }
+    .quick-prompt-btn.cyan:hover  { background: var(--cyan-glow);  border-color: rgba(6,182,212,0.4); }
+    .quick-prompt-btn.purple:hover{ background: var(--purple-glow); border-color: rgba(168,85,247,0.4); }
+    .qp-icon { font-size: 16px; flex-shrink: 0; }
     .qp-text { flex: 1; }
-    .qp-arrow { font-size: 14px; color: var(--text-3); }
+    .qp-arrow { font-size: 13px; color: var(--text-3); }
 
     /* ── RIGHT PANEL: CHAT ── */
     .chat-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+      flex: 1; display: flex; flex-direction: column;
       overflow: hidden;
       background: var(--surface-2);
       backdrop-filter: blur(12px);
     }
-
     .chat-header {
-      padding: 20px 32px;
+      padding: 18px 28px;
       border-bottom: 1px solid var(--border);
-      background: rgba(6,11,24,0.4);
+      background: rgba(6,11,24,0.45);
       display: flex; align-items: center; justify-content: space-between;
       flex-shrink: 0;
     }
     .chat-header-title h1 {
-      font-size: 18px; font-weight: 700;
-      background: linear-gradient(90deg, #fff 0%, #a5b4fc 100%);
+      font-size: 17px; font-weight: 700;
+      background: linear-gradient(90deg, #fff 0%, #a5b4fc 60%, #6ee7b7 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .chat-header-title p { font-size: 12px; color: var(--text-2); margin-top: 2px; }
     .header-badge {
-      padding: 5px 13px; border-radius: 20px;
+      padding: 5px 12px; border-radius: 20px;
       font-size: 11px; font-weight: 600;
       background: rgba(99,102,241,0.12);
       border: 1px solid var(--border-accent);
       color: var(--accent-light);
     }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      width: 32px; height: 32px; border-radius: 9px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; transition: var(--transition);
+    }
+    .icon-btn:hover { background: var(--accent-glow); border-color: var(--border-accent); color: var(--accent-light); }
 
     .chat-body {
       flex: 1; overflow-y: auto;
-      padding: 28px 32px;
+      padding: 24px 28px;
       display: flex; flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
     /* ── MESSAGES ── */
     .message {
       display: flex; flex-direction: column;
-      max-width: 80%;
+      max-width: 82%;
       animation: fadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) forwards;
     }
     @keyframes fadeInUp {
@@ -260,9 +262,9 @@
     .message.ai   { align-self: flex-start; }
 
     .message-bubble {
-      padding: 14px 18px;
+      padding: 13px 17px;
       border-radius: 18px;
-      font-size: 14px; line-height: 1.65;
+      font-size: 13.5px; line-height: 1.7;
     }
     .message.user .message-bubble {
       background: linear-gradient(135deg, #6366f1, #4f46e5);
@@ -271,32 +273,60 @@
       box-shadow: 0 4px 20px rgba(99,102,241,0.35);
     }
     .message.ai .message-bubble {
-      background: rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.035);
       color: var(--text-1);
       border: 1px solid var(--border);
       border-bottom-left-radius: 4px;
     }
-    .message-bubble h3 { font-size: 14px; font-weight: 700; margin: 10px 0 6px; color: #a5b4fc; }
+    .message-bubble h3 { font-size: 14px; font-weight: 700; margin: 10px 0 5px; color: #a5b4fc; }
     .message-bubble h4 { font-size: 13px; font-weight: 600; margin: 8px 0 4px; color: #c7d2fe; }
     .message-bubble strong { color: #e2e8f0; }
+    .message-bubble em { color: var(--text-2); font-style: italic; }
     .message-bubble code {
       background: rgba(99,102,241,0.18);
       padding: 1px 6px; border-radius: 4px;
       font-family: 'Courier New', monospace;
-      font-size: 13px; color: #a5b4fc;
+      font-size: 12px; color: #a5b4fc;
     }
-    .message-time {
-      font-size: 10px; color: var(--text-3);
-      margin-top: 5px;
+    /* ── MARKDOWN TABLE STYLES ── */
+    .message-bubble table {
+      width: 100%; border-collapse: collapse;
+      margin: 10px 0; font-size: 12.5px;
+      border-radius: 8px; overflow: hidden;
     }
-    .message.ai .message-time { align-self: flex-start; }
+    .message-bubble th {
+      background: rgba(99,102,241,0.22);
+      color: #c7d2fe; font-weight: 700;
+      padding: 8px 12px; text-align: left;
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .message-bubble td {
+      padding: 7px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--text-1);
+    }
+    .message-bubble tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .message-bubble tr:last-child td { border-bottom: none; }
+
+    .message-time { font-size: 10px; color: var(--text-3); margin-top: 4px; }
+    .message.ai   .message-time { align-self: flex-start; }
     .message.user .message-time { align-self: flex-end; }
 
-    /* ── TYPING INDICATOR ── */
-    .typing-indicator {
-      display: flex; gap: 5px;
-      padding: 8px 12px; align-items: center;
+    /* ── AI BADGE ── */
+    .ai-label {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700;
+      color: var(--accent-light);
+      background: rgba(99,102,241,0.12);
+      border: 1px solid var(--border-accent);
+      padding: 2px 8px; border-radius: 20px;
+      margin-bottom: 5px; align-self: flex-start;
+      letter-spacing: 0.5px;
     }
+
+    /* ── TYPING INDICATOR ── */
+    .typing-indicator { display: flex; gap: 5px; padding: 8px 12px; align-items: center; }
     .typing-dot {
       width: 7px; height: 7px; border-radius: 50%;
       background: var(--accent);
@@ -311,18 +341,17 @@
 
     /* ── CHAT INPUT ── */
     .chat-footer {
-      padding: 20px 32px 24px;
+      padding: 16px 28px 22px;
       border-top: 1px solid var(--border);
       background: rgba(6,11,24,0.4);
       flex-shrink: 0;
     }
     .input-wrapper {
-      display: flex; align-items: center;
-      gap: 10px;
+      display: flex; align-items: center; gap: 8px;
       background: rgba(255,255,255,0.03);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 8px 10px;
+      padding: 6px 8px;
       transition: var(--transition);
     }
     .input-wrapper:focus-within {
@@ -334,46 +363,48 @@
       flex: 1; background: transparent;
       border: none; outline: none;
       color: var(--text-1);
-      padding: 10px 12px;
-      font-size: 14px; font-family: inherit;
+      padding: 10px 10px;
+      font-size: 13.5px; font-family: inherit;
     }
     .chat-input::placeholder { color: var(--text-3); }
+    .mic-btn {
+      background: transparent; border: none;
+      color: var(--text-3); cursor: pointer;
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition); font-size: 16px; flex-shrink: 0;
+    }
+    .mic-btn:hover { background: rgba(16,185,129,0.15); color: var(--green); }
+    .mic-btn.listening { background: rgba(239,68,68,0.15); color: var(--red); animation: pulse 1s infinite; }
     .send-btn {
-      background: var(--accent);
-      color: white; border: none;
-      width: 42px; height: 42px; border-radius: 12px;
+      background: var(--accent); color: white; border: none;
+      width: 40px; height: 40px; border-radius: 11px;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: var(--transition);
-      flex-shrink: 0;
+      transition: var(--transition); flex-shrink: 0;
     }
-    .send-btn:hover { background: #4f46e5; transform: scale(1.05); }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .send-btn svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+    .send-btn:hover { background: #4f46e5; transform: scale(1.06); box-shadow: 0 4px 14px rgba(99,102,241,0.4); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .send-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; }
 
     /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.09); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
 
     /* ── RESTRICTION OVERLAY ── */
     #restriction-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: var(--bg);
-      z-index: 9999;
+      display: none; position: fixed; inset: 0;
+      background: var(--bg); z-index: 9999;
       flex-direction: column;
       align-items: center; justify-content: center;
       padding: 24px; text-align: center;
     }
     .restriction-card {
-      background: var(--surface-1);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 48px 36px; max-width: 460px;
-      backdrop-filter: blur(20px);
-      animation: fadeInUp 0.5s ease forwards;
+      background: var(--surface-1); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 48px 36px; max-width: 460px;
+      backdrop-filter: blur(20px); animation: fadeInUp 0.5s ease forwards;
     }
     .restriction-icon { font-size: 60px; display: block; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
     @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
@@ -403,20 +434,20 @@
   </div>
 
   <!-- Disclaimer Info Popup Modal -->
-  <div id="disclaimerModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: var(--surface-1); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 28px 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-glow); position: relative; animation: fadeInUp 0.3s ease;">
-      <button onclick="toggleDisclaimerModal()" style="position: absolute; top: 14px; right: 14px; background: transparent; border: none; color: var(--text-2); font-size: 18px; cursor: pointer; padding: 4px;">✕</button>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-        <span style="font-size: 24px;">ℹ️</span>
-        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-1);">AI Disclaimer & System Notice</h3>
+  <div id="disclaimerModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:var(--surface-1); border:1px solid var(--border-accent); border-radius:var(--radius-md); padding:28px 24px; max-width:440px; width:100%; box-shadow:var(--shadow-glow); position:relative; animation:fadeInUp 0.3s ease;">
+      <button onclick="toggleDisclaimerModal()" style="position:absolute; top:14px; right:14px; background:transparent; border:none; color:var(--text-2); font-size:18px; cursor:pointer; padding:4px;">✕</button>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+        <span style="font-size:24px;">ℹ️</span>
+        <h3 style="font-size:16px; font-weight:700; color:var(--text-1);">AI Disclaimer & System Notice</h3>
       </div>
-      <p style="font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 12px;">
+      <p style="font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:12px;">
         Digify Soft ERP AI is an artificial intelligence assistant. While highly intelligent, AI-generated responses can occasionally contain errors and come with no guarantee.
       </p>
-      <p style="font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 16px;">
+      <p style="font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:16px;">
         Please cross-verify critical financial data with your official ERP records.
       </p>
-      <div style="font-size: 11px; color: var(--accent-light); background: rgba(99,102,241,0.12); border: 1px solid var(--border-accent); padding: 8px 12px; border-radius: 8px; text-align: center; font-weight: 600;">
+      <div style="font-size:11px; color:var(--accent-light); background:rgba(99,102,241,0.12); border:1px solid var(--border-accent); padding:8px 12px; border-radius:8px; text-align:center; font-weight:600;">
         ⚙️ Status: System currently in Testing Mode
       </div>
     </div>
@@ -442,46 +473,58 @@
   <!-- Main App -->
   <div class="app-container" id="appContainer">
 
-    <!-- LEFT: Financial Summary Panel -->
+    <!-- LEFT: Dashboard Panel -->
     <div class="dashboard-panel">
 
       <!-- KPI Section -->
       <div>
-        <div class="panel-header">
+        <div class="panel-header" style="margin-bottom:10px;">
           <div class="panel-title">Financial Overview</div>
           <button class="refresh-btn" id="refreshBtn" onclick="refreshData()" title="Refresh Data">↻</button>
         </div>
         <div class="kpi-grid">
           <div class="kpi-card">
             <div class="kpi-icon">🛒</div>
-            <div class="kpi-label">Total Sales Revenue</div>
+            <div class="kpi-label">Sales Revenue</div>
             <div class="kpi-value" id="kpiSalesAmt">—</div>
             <div class="kpi-sub" id="kpiSalesInv">Loading...</div>
           </div>
           <div class="kpi-card green">
             <div class="kpi-icon">📦</div>
-            <div class="kpi-label">Total Purchases</div>
+            <div class="kpi-label">Purchases</div>
             <div class="kpi-value" id="kpiPurchaseAmt">—</div>
             <div class="kpi-sub" id="kpiPurchaseInv">Loading...</div>
           </div>
+          <div class="kpi-card purple">
+            <div class="kpi-icon">📈</div>
+            <div class="kpi-label">Gross Margin</div>
+            <div class="kpi-value" id="kpiMargin">—</div>
+            <div class="kpi-sub">Profit %</div>
+          </div>
+          <div class="kpi-card cyan">
+            <div class="kpi-icon">🚚</div>
+            <div class="kpi-label">Dispatched</div>
+            <div class="kpi-value" id="kpiDispatch">—</div>
+            <div class="kpi-sub">Total Units</div>
+          </div>
           <div class="kpi-card amber">
-            <div class="kpi-icon">📋</div>
-            <div class="kpi-label">Avg. Sale Value</div>
-            <div class="kpi-value" id="kpiAvgSale">—</div>
-            <div class="kpi-sub">Per Invoice</div>
+            <div class="kpi-icon">🏭</div>
+            <div class="kpi-label">Inventory Val</div>
+            <div class="kpi-value" id="kpiInventory">—</div>
+            <div class="kpi-sub" id="kpiInventorySub">Stock Value</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-icon">📁</div>
-            <div class="kpi-label">Total Items (Sales)</div>
-            <div class="kpi-value" id="kpiSaleItems">—</div>
-            <div class="kpi-sub">Line Items</div>
+            <div class="kpi-icon">📋</div>
+            <div class="kpi-label">Avg. Sale</div>
+            <div class="kpi-value" id="kpiAvgSale">—</div>
+            <div class="kpi-sub">Per Invoice</div>
           </div>
         </div>
       </div>
 
       <!-- Quick Prompts -->
       <div>
-        <div class="panel-title" style="margin-bottom:12px;">Quick Search Prompts</div>
+        <div class="panel-title" style="margin-bottom:10px;">Quick Search Prompts</div>
         <div class="quick-prompts">
           <button class="quick-prompt-btn" onclick="sendPrompt('Executive Summary')">
             <span class="qp-icon">💰</span>
@@ -490,20 +533,20 @@
           </button>
           <button class="quick-prompt-btn" onclick="sendPrompt('Month-wise Sales')">
             <span class="qp-icon">🛒</span>
-            <span class="qp-text">Month Sales</span>
+            <span class="qp-text">Month-wise Sales</span>
             <span class="qp-arrow">›</span>
           </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Month Purchases')">
+          <button class="quick-prompt-btn green" onclick="sendPrompt('Month Purchases')">
             <span class="qp-icon">📦</span>
             <span class="qp-text">Month Purchases</span>
             <span class="qp-arrow">›</span>
           </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Dispatch for the Month')">
+          <button class="quick-prompt-btn amber" onclick="sendPrompt('Dispatch for the Month')">
             <span class="qp-icon">🚚</span>
             <span class="qp-text">Dispatch Report</span>
             <span class="qp-arrow">›</span>
           </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Total Inventory Summary')">
+          <button class="quick-prompt-btn cyan" onclick="sendPrompt('Total Inventory Summary')">
             <span class="qp-icon">🏭</span>
             <span class="qp-text">Total Inventory Stock</span>
             <span class="qp-arrow">›</span>
@@ -511,6 +554,16 @@
           <button class="quick-prompt-btn" onclick="sendPrompt('Inventory for Bath Rug')">
             <span class="qp-icon">🔎</span>
             <span class="qp-text">Product Stock Lookup</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn purple" onclick="sendPrompt('Top Customers and Vendors')">
+            <span class="qp-icon">🏆</span>
+            <span class="qp-text">Top Customers & Vendors</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" style="border-color:rgba(239,68,68,0.25);" onclick="sendPrompt('Low Stock Alerts')">
+            <span class="qp-icon">⚠️</span>
+            <span class="qp-text" style="color:#fca5a5;">Low Stock Alerts</span>
             <span class="qp-arrow">›</span>
           </button>
         </div>
@@ -523,25 +576,36 @@
       <div class="chat-header">
         <div class="chat-header-title">
           <h1>ERP AI Assistant</h1>
-          <p>Connected to real-time Sales & Purchase APIs</p>
+          <p>Connected to real-time Sales, Purchase, Dispatch & Inventory APIs</p>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <button onclick="toggleDisclaimerModal()" title="AI Notice & Disclaimer" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: #a5b4fc; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--border-accent)'" onmouseout="this.style.borderColor='var(--border)'">ℹ️</button>
+        <div class="header-actions">
+          <button class="icon-btn" onclick="copyChat()" title="Copy / Export Chat">📋</button>
+          <button class="icon-btn" onclick="toggleDisclaimerModal()" title="AI Notice & Disclaimer">ℹ️</button>
           <span class="header-badge" id="headerBadge">ERP AI Connected</span>
         </div>
       </div>
 
       <div class="chat-body" id="chatBody">
         <div class="message ai">
+          <div class="ai-label">🤖 Digify AI</div>
           <div class="message-bubble">
             👋 <strong>Hi! I am the ERP AI Bot for Digify Soft.</strong><br><br>
-            I'm connected to your real-time ERP databases. I can instantly query <strong>Sales Analytics (Month/Date/Year)</strong>, <strong>Purchase Analytics</strong>, <strong>Outward Dispatches</strong>, and <strong>Inventory Stock & Valuation</strong>.<br><br>
+            I'm connected to your real-time ERP databases. I can instantly query:<br><br>
+            🛒 <strong>Sales Analytics</strong> (Month / Date / Year)<br>
+            📦 <strong>Purchase Analytics</strong> (Month / Date / Year)<br>
+            🚚 <strong>Dispatch Reports</strong> (Monthly & Daily)<br>
+            🏭 <strong>Inventory Stock & Valuation</strong><br>
+            🏆 <strong>Top Customers, Vendors & Best-Sellers</strong><br>
+            ⚠️ <strong>Low Stock & Reorder Alerts</strong><br>
+            📈 <strong>Gross Profit & Margin Analysis</strong><br><br>
             What would you like to enquire about today?
-            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-              <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">🛒 Month Sales</button>
-              <button onclick="sendPrompt('Month Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">📦 Month Purchases</button>
-              <button onclick="sendPrompt('Dispatch for the Month')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.3)'" onmouseout="this.style.background='rgba(245,158,11,0.18)'">🚚 Dispatch Summary</button>
-              <button onclick="sendPrompt('Total Inventory Summary')" style="background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.3)'" onmouseout="this.style.background='rgba(59,130,246,0.18)'">🏭 Total Inventory</button>
+            <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+              <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">🛒 Month Sales</button>
+              <button onclick="sendPrompt('Month Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">📦 Month Purchases</button>
+              <button onclick="sendPrompt('Dispatch for the Month')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.3)'" onmouseout="this.style.background='rgba(245,158,11,0.18)'">🚚 Dispatch</button>
+              <button onclick="sendPrompt('Total Inventory Summary')" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.35);color:#67e8f9;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(6,182,212,0.25)'" onmouseout="this.style.background='rgba(6,182,212,0.15)'">🏭 Inventory</button>
+              <button onclick="sendPrompt('Top Customers and Vendors')" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.35);color:#d8b4fe;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(168,85,247,0.25)'" onmouseout="this.style.background='rgba(168,85,247,0.15)'">🏆 Top Customers</button>
+              <button onclick="sendPrompt('Low Stock Alerts')" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.22)'" onmouseout="this.style.background='rgba(239,68,68,0.12)'">⚠️ Low Stock</button>
             </div>
           </div>
           <span class="message-time">Just now</span>
@@ -551,8 +615,9 @@
       <div class="chat-footer">
         <div class="input-wrapper">
           <input type="text" class="chat-input" id="chatInput"
-            placeholder="Search by invoice number, customer name, vendor, or date…"
+            placeholder="Ask anything — invoice number, customer name, vendor, month sales, inventory…"
             autocomplete="off">
+          <button class="mic-btn" id="micBtn" title="Voice Search">🎤</button>
           <button class="send-btn" id="sendBtn" onclick="sendUserMessage()">
             <svg viewBox="0 0 24 24">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -573,6 +638,7 @@
     const chatBody  = document.getElementById('chatBody');
     const chatInput = document.getElementById('chatInput');
     const sendBtn   = document.getElementById('sendBtn');
+    const micBtn    = document.getElementById('micBtn');
 
     // ── INIT ──────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
@@ -580,16 +646,15 @@
       chatInput.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
       });
-      // Periodic notice popup reminder every 3 minutes
+      initVoice();
+      // Periodic disclaimer reminder every 5 minutes
       setInterval(() => {
         const modal = document.getElementById('disclaimerModal');
         if (modal && modal.style.display !== 'flex') {
           toggleDisclaimerModal();
-          setTimeout(() => {
-            if (modal.style.display === 'flex') modal.style.display = 'none';
-          }, 4000);
+          setTimeout(() => { if (modal.style.display === 'flex') modal.style.display = 'none'; }, 4000);
         }
-      }, 3 * 60 * 1000);
+      }, 5 * 60 * 1000);
     });
 
     function toggleDisclaimerModal() {
@@ -605,29 +670,59 @@
       const headerBadge = document.getElementById('headerBadge');
 
       try {
-        const res  = await fetch('/api/summary');
-        const json = await res.json();
-        if (json.status !== 'ok') throw new Error('API Error');
-        const { sales, purchases } = json.data;
+        const [summaryRes, dispatchRes, inventoryRes] = await Promise.all([
+          fetch('/api/summary'),
+          fetch('/api/analytics/dispatch'),
+          fetch('/api/analytics/inventory')
+        ]);
+        const summaryJson   = await summaryRes.json();
+        const dispatchJson  = await dispatchRes.json();
+        const inventoryJson = await inventoryRes.json();
 
-        const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (summaryJson.status !== 'ok') throw new Error('API Error');
 
-        document.getElementById('kpiSalesAmt').textContent   = fmt(sales.totalAmount);
-        document.getElementById('kpiSalesInv').textContent   = `${sales.totalInvoices} Invoices`;
-        document.getElementById('kpiPurchaseAmt').textContent = fmt(purchases.totalAmount);
+        const { sales, purchases } = summaryJson.data;
+        const dispatch  = dispatchJson.data;
+        const inventory = inventoryJson.data;
+
+        const fmt  = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        const fmtK = (n) => {
+          if (n >= 1e7) return '₹' + (n / 1e7).toFixed(2) + 'Cr';
+          if (n >= 1e5) return '₹' + (n / 1e5).toFixed(2) + 'L';
+          return fmt(n);
+        };
+
+        document.getElementById('kpiSalesAmt').textContent    = fmtK(sales.totalAmount);
+        document.getElementById('kpiSalesInv').textContent    = `${sales.totalInvoices} Invoices`;
+        document.getElementById('kpiPurchaseAmt').textContent = fmtK(purchases.totalAmount);
         document.getElementById('kpiPurchaseInv').textContent = `${purchases.totalInvoices} Invoices`;
-        document.getElementById('kpiSaleItems').textContent  = sales.totalItems.toLocaleString('en-IN');
 
         const avg = sales.totalInvoices > 0 ? (sales.totalAmount / sales.totalInvoices) : 0;
-        document.getElementById('kpiAvgSale').textContent = fmt(avg);
+        document.getElementById('kpiAvgSale').textContent = fmtK(avg);
 
-        if (statusDot) { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 6px #10b981'; }
-        if (statusText) statusText.textContent = 'ERP AI Connected';
+        // Gross Margin
+        const grossProfit = sales.totalAmount - purchases.totalAmount;
+        const marginPct = sales.totalAmount > 0 ? ((grossProfit / sales.totalAmount) * 100).toFixed(1) : '0.0';
+        document.getElementById('kpiMargin').textContent = marginPct + '%';
+
+        // Dispatch
+        if (dispatch && dispatch.grandTotalDispatchQty !== undefined) {
+          document.getElementById('kpiDispatch').textContent = dispatch.grandTotalDispatchQty.toLocaleString('en-IN');
+        }
+
+        // Inventory
+        if (inventory && inventory.totalInventoryVal !== undefined) {
+          document.getElementById('kpiInventory').textContent = fmtK(inventory.totalInventoryVal);
+          document.getElementById('kpiInventorySub').textContent = `${inventory.totalUniqueProducts} Products`;
+        }
+
+        if (statusDot)   { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 8px #10b981'; }
+        if (statusText)  statusText.textContent = 'ERP AI Connected';
         if (headerBadge) { headerBadge.textContent = 'ERP AI Connected'; headerBadge.style.color = '#a5b4fc'; }
       } catch (e) {
         console.error('Summary load failed:', e);
-        if (statusDot) { statusDot.style.background = '#ef4444'; statusDot.style.boxShadow = '0 0 6px #ef4444'; }
-        if (statusText) statusText.textContent = 'ERP AI Disconnected';
+        if (statusDot)   { statusDot.style.background = '#ef4444'; statusDot.style.boxShadow = '0 0 6px #ef4444'; }
+        if (statusText)  statusText.textContent = 'ERP AI Disconnected';
         if (headerBadge) { headerBadge.textContent = 'ERP AI Disconnected'; headerBadge.style.color = '#fca5a5'; }
       }
     }
@@ -638,32 +733,87 @@
       if (btn.classList.contains('spinning')) return;
       btn.classList.add('spinning');
       try {
-        const res = await fetch('/api/refresh', { method: 'POST' });
-        await res.json();
+        await fetch('/api/refresh', { method: 'POST' });
         await loadSummary();
-      } catch (e) {
-        console.error('Refresh error:', e);
-      } finally {
-        setTimeout(() => {
-          btn.classList.remove('spinning');
-        }, 500);
-      }
+      } catch (e) { console.error('Refresh error:', e); }
+      finally { setTimeout(() => btn.classList.remove('spinning'), 500); }
     }
 
-    // ── CHAT ──────────────────────────────────────
+    // ── VOICE / MIC ──────────────────────────────
+    function initVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) { micBtn.style.display = 'none'; return; }
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-IN';
+      recognition.continuous = false;
+      micBtn.addEventListener('click', () => {
+        if (micBtn.classList.contains('listening')) { recognition.stop(); }
+        else { recognition.start(); }
+      });
+      recognition.onstart = () => {
+        micBtn.classList.add('listening');
+        chatInput.placeholder = '🎤 Listening... Speak now';
+      };
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        chatInput.value = transcript;
+        sendUserMessage();
+      };
+      recognition.onend = () => {
+        micBtn.classList.remove('listening');
+        chatInput.placeholder = 'Ask anything — invoice number, customer name, vendor, month sales, inventory…';
+      };
+      recognition.onerror = () => recognition.stop();
+    }
+
+    // ── COPY/EXPORT CHAT ─────────────────────────
+    function copyChat() {
+      const msgs = chatBody.querySelectorAll('.message');
+      let text = '=== Digify ERP AI Chat Export ===\n\n';
+      msgs.forEach(msg => {
+        const role = msg.classList.contains('user') ? 'You' : 'ERP AI';
+        const bubble = msg.querySelector('.message-bubble');
+        const time = msg.querySelector('.message-time');
+        if (bubble) text += `[${role}] ${time ? time.textContent : ''}\n${bubble.innerText}\n\n`;
+      });
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.icon-btn');
+        btn.textContent = '✅';
+        setTimeout(() => btn.textContent = '📋', 2000);
+      });
+    }
+
+    // ── MARKDOWN PARSER ───────────────────────────
     function parseMarkdown(text) {
       if (!text) return '';
-      return text
+      let html = text
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
         .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/`(.*?)`/g, '<code>$1</code>')
-        .replace(/^\- (.*$)/gim, '• $1<br>')
+        .replace(/^- (.*$)/gim, '• $1<br>')
         .replace(/^\d+\. (.*$)/gim, (m, p) => `<span style="color:var(--accent-light);font-weight:600;">${m.match(/^\d+/)[0]}.</span> ${p}<br>`)
         .replace(/\n\n/g, '<br><br>')
         .replace(/\n/g, '<br>');
+
+      // Render Markdown tables: |col|col| format
+      html = html.replace(/(\|[^\n]+\|(\n|<br>)){2,}/g, (tableBlock) => {
+        const rows = tableBlock.split(/\n|<br>/).filter(r => r.trim().startsWith('|') && r.trim().endsWith('|'));
+        if (rows.length < 2) return tableBlock;
+        let tableHtml = '<table>';
+        rows.forEach((row, i) => {
+          if (/^\|[-| ]+\|$/.test(row.trim())) return; // skip separator row
+          const cells = row.trim().slice(1, -1).split('|').map(c => c.trim());
+          const tag = i === 0 ? 'th' : 'td';
+          tableHtml += '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+        });
+        tableHtml += '</table>';
+        return tableHtml;
+      });
+
+      return html;
     }
 
     function timeStr() {
@@ -673,7 +823,9 @@
     function appendMessage(sender, text) {
       const msg = document.createElement('div');
       msg.className = `message ${sender}`;
+      const aiLabel = sender === 'ai' ? '<div class="ai-label">🤖 Digify AI</div>' : '';
       msg.innerHTML = `
+        ${aiLabel}
         <div class="message-bubble">${sender === 'ai' ? parseMarkdown(text) : escapeHtml(text)}</div>
         <span class="message-time">${timeStr()}</span>
       `;

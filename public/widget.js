@@ -63,15 +63,17 @@
       <div class="digify-chat-body" id="digifyChatBody">
         <div class="digify-msg ai">
           <div class="digify-msg-content">
-            👋 **Welcome to Digify Soft ERP AI Assistant!**<br>
-            I am connected directly to your ERP REST APIs.<br><br>
-            *Ask me anything about:*
-            - 💰 **Executive ERP Business Summary**
-            - 🛒 **Month-wise, Date-wise & Year Sales**
-            - 📦 **Month-wise, Date-wise & Year Purchases**
-            - 🚚 **Dispatch for the Month & Day**
-            - 🏭 **Inventory Total Value & Stock Quantity**
-            - 🔎 **Product Stock Lookup** *(e.g. "inventory for Bath Rug")*
+            👋 **Welcome to Digify Soft ERP AI!**<br>
+            I'm connected directly to your ERP REST APIs.<br><br>
+            *I can instantly answer:*
+            - 🛒 **Month/Date/Year Sales Analytics**
+            - 📦 **Month/Date/Year Purchase Analytics**
+            - 🚚 **Dispatch Reports (Monthly & Daily)**
+            - 🏭 **Total Inventory Value & Stock Quantity**
+            - 🔎 **Product-wise Stock Lookup**
+            - 🏆 **Top Customers, Vendors & Best-Sellers**
+            - ⚠️ **Low Stock & Reorder Alerts**
+            - 📈 **Gross Profit & Margin Analysis**
           </div>
           <span class="digify-msg-time">Just now</span>
         </div>
@@ -81,9 +83,11 @@
         <button class="digify-chip" data-prompt="Executive Summary">💰 Executive Summary</button>
         <button class="digify-chip" data-prompt="Month-wise Sales">🛒 Month Sales</button>
         <button class="digify-chip" data-prompt="Month Purchases">📦 Month Purchases</button>
-        <button class="digify-chip" data-prompt="Dispatch for the Month">🚚 Dispatch Summary</button>
+        <button class="digify-chip" data-prompt="Dispatch for the Month">🚚 Dispatch Report</button>
         <button class="digify-chip" data-prompt="Total Inventory Summary">🏭 Inventory Total</button>
-        <button class="digify-chip" data-prompt="Inventory for Bath Rug">🔎 Product Inventory</button>
+        <button class="digify-chip" data-prompt="Inventory for Bath Rug">🔎 Product Lookup</button>
+        <button class="digify-chip" data-prompt="Top Customers and Vendors">🏆 Top Customers</button>
+        <button class="digify-chip" data-prompt="Low Stock Alerts">⚠️ Low Stock</button>
       </div>
 
       <div class="digify-chat-footer">

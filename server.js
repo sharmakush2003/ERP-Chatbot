@@ -292,6 +292,8 @@ function getInventorySummary(productQuery = '') {
 
 // Compute Top Analytics (Customers, Suppliers, Items) for Business Intelligence Queries
 function getTopAnalytics() {
+  const summary = getErpSummaryStats();
+
   const customerMap = {};
   sales.forEach(s => {
     const party = (s.partyName || s.shipping_add_lin1 || 'Unknown Customer').trim();
@@ -303,7 +305,7 @@ function getTopAnalytics() {
   const topCustomers = Object.values(customerMap)
     .sort((a, b) => b.totalAmount - a.totalAmount)
     .slice(0, 5)
-    .map(c => `${c.name}: ₹${c.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${c.invoiceCount} invoices)`);
+    .map(c => ({ name: c.name, totalAmount: c.totalAmount, invoiceCount: c.invoiceCount }));
 
   const supplierMap = {};
   purchases.forEach(p => {
@@ -320,7 +322,7 @@ function getTopAnalytics() {
   const topSuppliers = Object.values(supplierMap)
     .sort((a, b) => b.totalAmount - a.totalAmount)
     .slice(0, 5)
-    .map(s => `${s.name}: ₹${s.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${s.invoiceCount} invoices)`);
+    .map(s => ({ name: s.name, totalAmount: s.totalAmount, invoiceCount: s.invoiceCount }));
 
   const saleItemMap = {};
   sales.forEach(s => {
@@ -334,9 +336,32 @@ function getTopAnalytics() {
   const topSaleItems = Object.values(saleItemMap)
     .sort((a, b) => b.totalQty - a.totalQty)
     .slice(0, 5)
-    .map(i => `${i.name} (${i.totalQty} units sold)`);
+    .map(i => ({ name: i.name, totalQty: i.totalQty }));
 
-  return { topCustomers, topSuppliers, topSaleItems };
+  // Gross Profit Margin
+  const grossProfit = summary.sales.totalAmount - summary.purchases.totalAmount;
+  const grossMarginPct = summary.sales.totalAmount > 0
+    ? ((grossProfit / summary.sales.totalAmount) * 100).toFixed(2)
+    : '0.00';
+
+  return { topCustomers, topSuppliers, topSaleItems, grossProfit, grossMarginPct };
+}
+
+// Low Stock Alert Engine — flags products with netStockQty below threshold
+function getLowStockAlerts(threshold = 10) {
+  const inv = getInventorySummary();
+  const outOfStock = inv.products.filter(p => p.netStockQty === 0 && p.purchasedQty > 0);
+  const lowStock = inv.products.filter(p => p.netStockQty > 0 && p.netStockQty <= threshold);
+  const overstocked = inv.products.filter(p => p.netStockQty > 100).slice(0, 5);
+
+  return {
+    threshold,
+    outOfStockCount: outOfStock.length,
+    lowStockCount: lowStock.length,
+    outOfStock: outOfStock.slice(0, 10),
+    lowStock: lowStock.slice(0, 10),
+    overstocked
+  };
 }
 
 // Build monthly chart data from raw records
@@ -529,13 +554,21 @@ function generateDeterministicFallback(query) {
 
   // 1. Executive Business Summary
   if (q.includes('summary') || q.includes('status') || q.includes('dashboard') || q.includes('executive') || (q.includes('sale') && q.includes('purchase') && !q.includes('month') && !q.includes('date'))) {
+    const grossProfit = summary.sales.totalAmount - summary.purchases.totalAmount;
+    const grossMarginPct = summary.sales.totalAmount > 0
+      ? ((grossProfit / summary.sales.totalAmount) * 100).toFixed(2) : '0.00';
     let resp = `### 💰 Executive ERP Business Summary\n\n`;
-    resp += `- 🛒 **Total Sales Revenue:** ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices)\n`;
-    resp += `- 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)\n\n`;
-    resp += `#### 🏆 Top Customers by Sales Revenue:\n`;
-    analytics.topCustomers.forEach(c => { resp += `- ${c}\n`; });
-    resp += `\n#### 🏭 Top Suppliers by Purchase Value:\n`;
-    analytics.topSuppliers.forEach(s => { resp += `- ${s}\n`; });
+    resp += `| Metric | Value |\n|---|---|\n`;
+    resp += `| 🛒 Total Sales Revenue | ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices) |\n`;
+    resp += `| 📦 Total Purchase Expenses | ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices) |\n`;
+    resp += `| 💚 Gross Profit | ₹${grossProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })} |\n`;
+    resp += `| 📈 Gross Margin % | ${grossMarginPct}% |\n\n`;
+    resp += `#### 🏆 Top 5 Customers by Revenue:\n`;
+    analytics.topCustomers.forEach((c, i) => { resp += `${i+1}. **${c.name}** — ₹${c.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${c.invoiceCount} invoices)\n`; });
+    resp += `\n#### 🏭 Top 5 Suppliers by Purchase Value:\n`;
+    analytics.topSuppliers.forEach((s, i) => { resp += `${i+1}. **${s.name}** — ₹${s.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${s.invoiceCount} invoices)\n`; });
+    resp += `\n#### 📦 Top 5 Best-Selling Products:\n`;
+    analytics.topSaleItems.forEach((item, i) => { resp += `${i+1}. **${item.name}** — ${item.totalQty} units sold\n`; });
     return resp;
   }
 
@@ -655,22 +688,63 @@ function generateDeterministicFallback(query) {
     }
   }
 
-  // 6. Top Customer / Supplier Analytics
-  if (q.includes('top customer') || q.includes('best customer') || q.includes('customer analysis')) {
-    let resp = `### 👥 Top Customers Analysis\n\n`;
-    analytics.topCustomers.forEach((c, idx) => { resp += `${idx + 1}. ${c}\n`; });
+  // 6. Top Customer / Supplier / Product Analytics
+  if (q.includes('top customer') || q.includes('best customer') || q.includes('customer analysis') || q.includes('top vendor') || q.includes('top supplier') || q.includes('supplier analysis') || q.includes('customers and vendor') || q.includes('customers & vendor') || q.includes('customers and supplier')) {
+    const grossProfit = summary.sales.totalAmount - summary.purchases.totalAmount;
+    const grossMarginPct = summary.sales.totalAmount > 0 ? ((grossProfit / summary.sales.totalAmount) * 100).toFixed(2) : '0.00';
+    let resp = `### 🏆 Top Customers & Vendors Business Intelligence\n\n`;
+    resp += `**💚 Gross Profit Margin: ${grossMarginPct}%** (₹${grossProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })})\n\n`;
+    resp += `#### 👥 Top 5 Customers by Sales Revenue:\n`;
+    resp += `| # | Customer | Revenue | Invoices |\n|---|---|---|---|\n`;
+    analytics.topCustomers.forEach((c, idx) => { resp += `| ${idx + 1} | ${c.name} | ₹${c.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${c.invoiceCount} |\n`; });
+    resp += `\n#### 🏭 Top 5 Suppliers by Purchase Value:\n`;
+    resp += `| # | Supplier | Purchased | Invoices |\n|---|---|---|---|\n`;
+    analytics.topSuppliers.forEach((s, idx) => { resp += `| ${idx + 1} | ${s.name} | ₹${s.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${s.invoiceCount} |\n`; });
+    resp += `\n#### 📦 Top 5 Best-Selling Products:\n`;
+    analytics.topSaleItems.forEach((item, idx) => { resp += `${idx + 1}. **${item.name}** — ${item.totalQty} units sold\n`; });
     return resp;
   }
 
-  if (q.includes('top supplier') || q.includes('top vendor') || q.includes('supplier analysis') || q.includes('highest purchase supplier')) {
-    let resp = `### 🏭 Top Suppliers Analysis\n\n`;
-    analytics.topSuppliers.forEach((s, idx) => { resp += `${idx + 1}. ${s}\n`; });
+  // 7. Low Stock Alerts
+  if (q.includes('low stock') || q.includes('stock alert') || q.includes('reorder') || q.includes('out of stock') || q.includes('low inventory')) {
+    const alerts = getLowStockAlerts();
+    let resp = `### ⚠️ Inventory Low Stock Alerts\n\n`;
+    resp += `- 🔴 **Out of Stock Products:** ${alerts.outOfStockCount}\n`;
+    resp += `- 🟡 **Low Stock Products** (< ${alerts.threshold} units): ${alerts.lowStockCount}\n\n`;
+    if (alerts.outOfStock.length > 0) {
+      resp += `#### 🔴 Out of Stock (Immediate Reorder Needed):\n`;
+      resp += `| Product | Category | Purchased | Dispatched |\n|---|---|---|---|\n`;
+      alerts.outOfStock.forEach(p => { resp += `| **${p.name}** | ${p.category} | ${p.purchasedQty} | ${p.dispatchedQty} |\n`; });
+      resp += `\n`;
+    }
+    if (alerts.lowStock.length > 0) {
+      resp += `#### 🟡 Low Stock (Reorder Soon):\n`;
+      resp += `| Product | Net Stock | Unit Cost | Valuation |\n|---|---|---|---|\n`;
+      alerts.lowStock.forEach(p => { resp += `| **${p.name}** | ${p.netStockQty} units | ₹${p.unitCost.toFixed(2)} | ₹${p.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} |\n`; });
+    }
+    if (alerts.outOfStockCount === 0 && alerts.lowStockCount === 0) {
+      resp += `✅ **All products are well-stocked!** No reorder alerts at this time.`;
+    }
     return resp;
   }
 
   if (q.includes('best selling') || q.includes('top product') || q.includes('top item') || q.includes('product analysis')) {
     let resp = `### 📦 Top Selling Products\n\n`;
-    analytics.topSaleItems.forEach((item, idx) => { resp += `${idx + 1}. ${item}\n`; });
+    resp += `| # | Product | Units Sold |\n|---|---|---|\n`;
+    analytics.topSaleItems.forEach((item, idx) => { resp += `| ${idx + 1} | **${item.name}** | ${item.totalQty} units |\n`; });
+    return resp;
+  }
+
+  // 8. Profit Margin Query
+  if (q.includes('profit') || q.includes('margin') || q.includes('gross profit')) {
+    const grossProfit = summary.sales.totalAmount - summary.purchases.totalAmount;
+    const grossMarginPct = summary.sales.totalAmount > 0 ? ((grossProfit / summary.sales.totalAmount) * 100).toFixed(2) : '0.00';
+    let resp = `### 📈 Gross Profit & Margin Analysis\n\n`;
+    resp += `| Metric | Value |\n|---|---|\n`;
+    resp += `| 🛒 Total Sales Revenue | ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} |\n`;
+    resp += `| 📦 Total Purchase Expenses | ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} |\n`;
+    resp += `| 💚 Gross Profit | ₹${grossProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })} |\n`;
+    resp += `| 📈 Gross Margin % | **${grossMarginPct}%** |\n`;
     return resp;
   }
 
@@ -798,6 +872,27 @@ app.get('/api/chartdata', async (req, res) => {
   res.json({
     status: 'ok',
     data: getChartData()
+  });
+});
+
+app.get('/api/analytics/bi', async (req, res) => {
+  await ensureDataLoaded();
+  const summary = getErpSummaryStats();
+  const analytics = getTopAnalytics();
+  const alerts = getLowStockAlerts();
+  const grossProfit = summary.sales.totalAmount - summary.purchases.totalAmount;
+  const grossMarginPct = summary.sales.totalAmount > 0
+    ? ((grossProfit / summary.sales.totalAmount) * 100).toFixed(2) : '0.00';
+  res.json({
+    status: 'ok',
+    data: {
+      grossProfit,
+      grossMarginPct,
+      topCustomers: analytics.topCustomers,
+      topSuppliers: analytics.topSuppliers,
+      topSaleItems: analytics.topSaleItems,
+      lowStockAlerts: alerts
+    }
   });
 });
 
