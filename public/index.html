@@ -103,9 +103,10 @@
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      padding: 24px 20px;
-      gap: 24px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px 18px;
+      gap: 18px;
       backdrop-filter: blur(24px);
     }
 
@@ -185,10 +186,10 @@
     }
 
     /* ── QUICK PROMPTS ── */
-    .quick-prompts { display: flex; flex-direction: column; gap: 10px; }
+    .quick-prompts { display: flex; flex-direction: column; gap: 8px; }
     .quick-prompt-btn {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px;
       background: transparent;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
