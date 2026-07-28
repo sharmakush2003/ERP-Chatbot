@@ -557,77 +557,107 @@ function generateDeterministicFallback(query) {
     return "🚧 **Building... Will take some time**";
   }
 
-  // 2. Primary "Sales" query (exact or generic sales request)
+  // ==========================================
+  // 🛒 SALES GUIDED WORKFLOW
+  // ==========================================
+
+  // Step 1: User asks for "Sales"
   if (q === 'sales' || q === 'sale' || q === 'show sales' || q === 'sales report') {
-    let resp = `### 🛒 Sales Reports\n\n`;
-    resp += `Which Sales report would you like to view? Please select an option below:\n\n`;
+    let resp = `### 🛒 Sales Reports\n\nPlease select how you would like to view your Sales:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    resp += `  <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Month-wise Sales</button>\n`;
-    resp += `  <button onclick="sendPrompt('Day-wise Sales')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Day-wise Sales</button>\n`;
-    resp += `  <button onclick="sendPrompt('Year-wise Sales')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year-wise Sales</button>\n`;
+    resp += `  <button onclick="sendPrompt('Sales by Year')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Sales by Year</button>\n`;
+    resp += `  <button onclick="sendPrompt('Sales by Month')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Sales by Month</button>\n`;
+    resp += `  <button onclick="sendPrompt('Sales by Date')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Sales by Date</button>\n`;
     resp += `</div>`;
     return resp;
   }
 
-  // 2a. Year-wise Sales
-  if (q.includes('year') && q.includes('sale')) {
-    let resp = `### 📅 Year-wise Sales Report\n\n`;
+  // Step 2A: Sales by Year
+  if (q === 'sales by year' || q === 'sale by year' || q === 'year-wise sales') {
+    let resp = `### 📅 Sales by Year\n\nPlease select the **Year** you would like to view:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.keys(salesBreakdown.byYear).forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Sales for Year ${yr}')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr} Sales</button>\n`;
+    });
+    resp += `</div>\n\n`;
+    resp += `#### 📊 Annual Sales Breakdown:\n`;
     Object.values(salesBreakdown.byYear).forEach(y => {
       resp += `- **Year ${y.year}:** ₹${y.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${y.invoiceCount} Invoices, ${y.totalItemsQty} items sold)\n`;
     });
-    resp += `\nSelect a year or explore Month-wise Sales:\n\n`;
+    return resp;
+  }
+
+  // Step 2B-1: Sales by Month -> Ask Year First
+  if (q === 'sales by month' || q === 'sale by month' || q === 'month-wise sales') {
+    let resp = `### 🗓️ Sales by Month\n\nPlease select the **Year** first:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
     Object.keys(salesBreakdown.byYear).forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Sales for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
+      resp += `  <button onclick="sendPrompt('Sales Months for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
     });
-    resp += `  <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ View Month-wise Sales</button>\n`;
     resp += `</div>`;
     return resp;
   }
 
-  // 2b. Month-wise Sales
-  if (q.includes('month') && q.includes('sale')) {
-    let resp = `### 🗓️ Month-wise Sales Report\n\n`;
-    resp += `Select a month to view its detailed revenue and invoice report:\n\n`;
+  // Step 2B-2: Sales Months for specific Year -> Show Month Buttons
+  if (q.includes('sales months for year')) {
+    const yr = q.replace('sales months for year', '').trim();
+    let resp = `### 🗓️ Sales by Month (Year ${yr})\n\nPlease select the **Month** for ${yr}:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    Object.values(salesBreakdown.byMonth).forEach(m => {
+    Object.values(salesBreakdown.byMonth).filter(m => m.month.startsWith(yr)).forEach(m => {
       const dateObj = new Date(`${m.month}-01`);
       const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
       resp += `  <button onclick="sendPrompt('Sales for ${monthLabel}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ ${monthLabel}</button>\n`;
     });
-    resp += `</div>\n\n`;
-    resp += `#### 📊 Overall Monthly Breakdown:\n`;
-    Object.values(salesBreakdown.byMonth).forEach(m => {
+    resp += `</div>`;
+    return resp;
+  }
+
+  // Step 2C-1: Sales by Date -> Ask Year First
+  if (q === 'sales by date' || q === 'sale by date' || q === 'day-wise sales') {
+    let resp = `### 📆 Sales by Date\n\nPlease select the **Year** first:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.keys(salesBreakdown.byYear).forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Sales Dates for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
+    });
+    resp += `</div>`;
+    return resp;
+  }
+
+  // Step 2C-2: Sales Dates for Year -> Ask Month First
+  if (q.includes('sales dates for year')) {
+    const yr = q.replace('sales dates for year', '').trim();
+    let resp = `### 📆 Sales by Date (Year ${yr})\n\nPlease select the **Month**:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.values(salesBreakdown.byMonth).filter(m => m.month.startsWith(yr)).forEach(m => {
       const dateObj = new Date(`${m.month}-01`);
       const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
-      resp += `- **${monthLabel} (${m.month}):** ₹${m.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${m.invoiceCount} Invoices | ${m.totalItemsQty} Items Dispatched\n`;
+      resp += `  <button onclick="sendPrompt('Sales Dates for ${monthLabel}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ ${monthLabel}</button>\n`;
     });
+    resp += `</div>`;
     return resp;
   }
 
-  // 2c. Day-wise Sales
-  if ((q.includes('day') || q.includes('date') || q.includes('daily')) && q.includes('sale')) {
-    let resp = `### 📆 Day-wise Sales Summary\n\n`;
-    resp += `Select a date to view daily sales records:\n\n`;
-    const topDates = Object.values(salesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  // Step 2C-3: Sales Dates for Month -> Show Date Buttons
+  if (q.includes('sales dates for')) {
+    const monthFilter = q.replace('sales dates for', '').trim();
+    let resp = `### 📆 Sales by Date (${monthFilter.toUpperCase()})\n\nPlease select the **Date**:\n\n`;
+    const datesInMonth = Object.values(salesBreakdown.byDate)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 8);
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    topDates.forEach(d => {
+    datesInMonth.forEach(d => {
       resp += `  <button onclick="sendPrompt('Sales for ${d.date}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 ${d.date}</button>\n`;
     });
-    resp += `</div>\n\n`;
-    resp += `#### 📋 Recent Daily Summaries:\n`;
-    topDates.forEach(d => {
-      resp += `- **Date ${d.date}:** ₹${d.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices, ${d.totalItemsQty} Qty)\n`;
-    });
+    resp += `</div>`;
     return resp;
   }
 
-  // Specific Sales Filter (e.g. "Sales for April 2026")
-  if (q.includes('sales for') || q.includes('sale for')) {
-    const filter = q.replace('sales for', '').replace('sale for', '').trim();
+  // Specific Sales Detail Filter
+  if (q.includes('sales for')) {
+    const filter = q.replace('sales for', '').trim();
     const matching = sales.filter(s => {
       const d = s.invoiceDate || s.supplierinvoicedate || '';
-      return d.toLowerCase().includes(filter) || JSON.stringify(s).toLowerCase().includes(filter);
+      return d.toLowerCase().includes(filter.toLowerCase()) || JSON.stringify(s).toLowerCase().includes(filter.toLowerCase());
     });
     if (matching.length > 0) {
       let totalAmt = 0;
@@ -643,77 +673,107 @@ function generateDeterministicFallback(query) {
     }
   }
 
-  // 3. Primary "Purchases" query
+  // ==========================================
+  // 📦 PURCHASES GUIDED WORKFLOW
+  // ==========================================
+
+  // Step 1: User asks for "Purchases"
   if (q === 'purchases' || q === 'purchase' || q === 'show purchases' || q === 'purchase report') {
-    let resp = `### 📦 Purchase Reports\n\n`;
-    resp += `Which Purchase report would you like to view? Please select an option below:\n\n`;
+    let resp = `### 📦 Purchase Reports\n\nPlease select how you would like to view your Purchases:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    resp += `  <button onclick="sendPrompt('Month-wise Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Month-wise Purchases</button>\n`;
-    resp += `  <button onclick="sendPrompt('Day-wise Purchases')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Day-wise Purchases</button>\n`;
-    resp += `  <button onclick="sendPrompt('Year-wise Purchases')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year-wise Purchases</button>\n`;
+    resp += `  <button onclick="sendPrompt('Purchase by Year')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Purchase by Year</button>\n`;
+    resp += `  <button onclick="sendPrompt('Purchase by Month')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Purchase by Month</button>\n`;
+    resp += `  <button onclick="sendPrompt('Purchase by Date')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Purchase by Date</button>\n`;
     resp += `</div>`;
     return resp;
   }
 
-  // 3a. Year-wise Purchases
-  if (q.includes('year') && q.includes('purchase')) {
-    let resp = `### 📅 Year-wise Purchases Report\n\n`;
+  // Step 2A: Purchase by Year
+  if (q === 'purchase by year' || q === 'purchases by year' || q === 'year-wise purchases') {
+    let resp = `### 📅 Purchase by Year\n\nPlease select the **Year** to view purchase expenses:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.keys(purchasesBreakdown.byYear).forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Purchases for Year ${yr}')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr} Purchases</button>\n`;
+    });
+    resp += `</div>\n\n`;
+    resp += `#### 📊 Annual Purchase Breakdown:\n`;
     Object.values(purchasesBreakdown.byYear).forEach(y => {
       resp += `- **Year ${y.year}:** ₹${y.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${y.invoiceCount} Invoices, ${y.totalItemsQty} items purchased)\n`;
     });
-    resp += `\nSelect a year or explore Month-wise Purchases:\n\n`;
+    return resp;
+  }
+
+  // Step 2B-1: Purchase by Month -> Ask Year First
+  if (q === 'purchase by month' || q === 'purchases by month' || q === 'month-wise purchases') {
+    let resp = `### 🗓️ Purchase by Month\n\nPlease select the **Year** first:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
     Object.keys(purchasesBreakdown.byYear).forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Purchases for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
+      resp += `  <button onclick="sendPrompt('Purchase Months for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
     });
-    resp += `  <button onclick="sendPrompt('Month-wise Purchases')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ View Month-wise Purchases</button>\n`;
     resp += `</div>`;
     return resp;
   }
 
-  // 3b. Month-wise Purchases
-  if (q.includes('month') && q.includes('purchase')) {
-    let resp = `### 🗓️ Month-wise Purchases Report\n\n`;
-    resp += `Select a month to view its detailed expense report:\n\n`;
+  // Step 2B-2: Purchase Months for specific Year -> Show Month Buttons
+  if (q.includes('purchase months for year')) {
+    const yr = q.replace('purchase months for year', '').trim();
+    let resp = `### 🗓️ Purchase by Month (Year ${yr})\n\nPlease select the **Month** for ${yr}:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    Object.values(purchasesBreakdown.byMonth).forEach(m => {
+    Object.values(purchasesBreakdown.byMonth).filter(m => m.month.startsWith(yr)).forEach(m => {
       const dateObj = new Date(`${m.month}-01`);
       const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
       resp += `  <button onclick="sendPrompt('Purchases for ${monthLabel}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ ${monthLabel}</button>\n`;
     });
-    resp += `</div>\n\n`;
-    resp += `#### 📊 Overall Monthly Breakdown:\n`;
-    Object.values(purchasesBreakdown.byMonth).forEach(m => {
+    resp += `</div>`;
+    return resp;
+  }
+
+  // Step 2C-1: Purchase by Date -> Ask Year First
+  if (q === 'purchase by date' || q === 'purchases by date' || q === 'day-wise purchases') {
+    let resp = `### 📆 Purchase by Date\n\nPlease select the **Year** first:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.keys(purchasesBreakdown.byYear).forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Purchase Dates for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
+    });
+    resp += `</div>`;
+    return resp;
+  }
+
+  // Step 2C-2: Purchase Dates for Year -> Ask Month First
+  if (q.includes('purchase dates for year')) {
+    const yr = q.replace('purchase dates for year', '').trim();
+    let resp = `### 📆 Purchase by Date (Year ${yr})\n\nPlease select the **Month**:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.values(purchasesBreakdown.byMonth).filter(m => m.month.startsWith(yr)).forEach(m => {
       const dateObj = new Date(`${m.month}-01`);
       const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
-      resp += `- **${monthLabel} (${m.month}):** ₹${m.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${m.invoiceCount} Invoices | ${m.totalItemsQty} Items Purchased\n`;
+      resp += `  <button onclick="sendPrompt('Purchase Dates for ${monthLabel}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ ${monthLabel}</button>\n`;
     });
+    resp += `</div>`;
     return resp;
   }
 
-  // 3c. Day-wise Purchases
-  if ((q.includes('day') || q.includes('date') || q.includes('daily')) && q.includes('purchase')) {
-    let resp = `### 📆 Day-wise Purchases Summary\n\n`;
-    resp += `Select a date to view daily purchase records:\n\n`;
-    const topDates = Object.values(purchasesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+  // Step 2C-3: Purchase Dates for Month -> Show Date Buttons
+  if (q.includes('purchase dates for')) {
+    const monthFilter = q.replace('purchase dates for', '').trim();
+    let resp = `### 📆 Purchase by Date (${monthFilter.toUpperCase()})\n\nPlease select the **Date**:\n\n`;
+    const datesInMonth = Object.values(purchasesBreakdown.byDate)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 8);
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    topDates.forEach(d => {
+    datesInMonth.forEach(d => {
       resp += `  <button onclick="sendPrompt('Purchases for ${d.date}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 ${d.date}</button>\n`;
     });
-    resp += `</div>\n\n`;
-    resp += `#### 📋 Recent Daily Summaries:\n`;
-    topDates.forEach(d => {
-      resp += `- **Date ${d.date}:** ₹${d.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices, ${d.totalItemsQty} Qty)\n`;
-    });
+    resp += `</div>`;
     return resp;
   }
 
-  // Specific Purchase Filter (e.g. "Purchases for April 2026")
+  // Specific Purchases Detail Filter
   if (q.includes('purchases for') || q.includes('purchase for')) {
     const filter = q.replace('purchases for', '').replace('purchase for', '').trim();
     const matching = purchases.filter(p => {
       const d = p.invoiceDate || p.supplierinvoicedate || '';
-      return d.toLowerCase().includes(filter) || JSON.stringify(p).toLowerCase().includes(filter);
+      return d.toLowerCase().includes(filter.toLowerCase()) || JSON.stringify(p).toLowerCase().includes(filter.toLowerCase());
     });
     if (matching.length > 0) {
       let totalAmt = 0;
