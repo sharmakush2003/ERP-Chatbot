@@ -738,7 +738,7 @@
     function parseMarkdown(text) {
       if (!text) return '';
       let html = text
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/<(?!(\/?(div|button|span|p|strong|em|code|table|tr|th|td|br|h[1-6])\b))/gi, '&lt;')
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
         .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
