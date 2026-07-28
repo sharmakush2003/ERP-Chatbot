@@ -59,9 +59,15 @@ async function loadAPIData() {
 
 // Ensure data is loaded (crucial for Vercel/serverless environments where app.listen is bypassed)
 async function ensureDataLoaded() {
-  if ((purchases.length === 0 || sales.length === 0) && !isLoadingData) {
-    console.log('⚠️ ERP cache empty. Fetching data on demand...');
-    await loadAPIData();
+  if (purchases.length === 0 || sales.length === 0) {
+    if (!isLoadingData) {
+      console.log('⚠️ ERP cache empty. Fetching data on demand...');
+      await loadAPIData();
+    } else {
+      while (isLoadingData) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
   }
 }
 
@@ -543,6 +549,45 @@ ${JSON.stringify(contextData, null, 2)}`;
   }
 }
 
+const MONTH_MAP = {
+  'january': '01', 'jan': '01',
+  'february': '02', 'feb': '02',
+  'march': '03', 'mar': '03',
+  'april': '04', 'apr': '04',
+  'may': '05',
+  'june': '06', 'jun': '06',
+  'july': '07', 'jul': '07',
+  'august': '08', 'aug': '08',
+  'september': '09', 'sep': '09',
+  'october': '10', 'oct': '10',
+  'november': '11', 'nov': '11',
+  'december': '12', 'dec': '12'
+};
+
+function parseMonthFilter(filterStr) {
+  const str = filterStr.toLowerCase().trim();
+  let year = '2026';
+  const yearMatch = str.match(/\b(20\d\d)\b/);
+  if (yearMatch) year = yearMatch[1];
+
+  let monthNum = null;
+  for (const [mName, mCode] of Object.entries(MONTH_MAP)) {
+    if (str.includes(mName)) {
+      monthNum = mCode;
+      break;
+    }
+  }
+
+  const codeMatch = str.match(/\b(0[1-9]|1[0-2])\b/);
+  if (!monthNum && codeMatch) monthNum = codeMatch[1];
+
+  let isoPrefix = null;
+  if (year && monthNum) isoPrefix = `${year}-${monthNum}`;
+  else if (year) isoPrefix = `${year}`;
+
+  return { year, monthNum, isoPrefix, raw: str };
+}
+
 // Local Smart Search Fallback
 function generateDeterministicFallback(query) {
   const q = query.toLowerCase().trim();
@@ -590,12 +635,14 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // Step 2A: Sales by Year -> Show Last 10 Years Buttons
+  // Step 2A: Sales by Year -> Show Years with ERP Data
   if (q === 'sales by year' || q === 'sale by year' || q === 'year-wise sales') {
-    let resp = `### 📅 Sales by Year\n\nPlease select the **Year** (Last 10 Years):\n\n`;
+    const availableYears = Object.keys(salesBreakdown.byYear);
+    const yearsToShow = availableYears.length > 0 ? availableYears : ['2026'];
+    let resp = `### 📅 Sales by Year\n\nPlease select the **Year** to view sales revenue:\n\n`;
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    LAST_10_YEARS.forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Sales for Year ${yr}')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr}</button>\n`;
+    yearsToShow.forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Sales for Year ${yr}')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr} Sales</button>\n`;
     });
     resp += `</div>\n\n`;
     resp += `#### 📊 Available Sales Records:\n`;
@@ -605,66 +652,98 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // Step 2B-1: Sales by Month -> Show Last 10 Years Buttons First
+  // Step 2B-1: Sales by Month -> Show Available Years First
   if (q === 'sales by month' || q === 'sale by month' || q === 'month-wise sales') {
+    const availableYears = Object.keys(salesBreakdown.byYear);
+    const yearsToShow = availableYears.length > 0 ? availableYears : ['2026'];
     let resp = `### 🗓️ Sales by Month\n\nPlease select the **Year** first:\n\n`;
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    LAST_10_YEARS.forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Sales Months for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr}</button>\n`;
+    yearsToShow.forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Sales Months for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
     });
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2B-2: Sales Months for specific Year -> Show ALL 12 MONTHS Buttons
+  // Step 2B-2: Sales Months for specific Year -> Show REAL Months with Revenue Data
   if (q.includes('sales months for year')) {
     const yr = q.replace('sales months for year', '').trim();
     let resp = `### 🗓️ Sales by Month (Year ${yr})\n\nPlease select the **Month** for ${yr}:\n\n`;
+    
+    const realMonths = Object.values(salesBreakdown.byMonth).filter(m => m.month.startsWith(yr));
+    
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    MONTHS_LIST.forEach(m => {
-      resp += `  <button onclick="sendPrompt('Sales for ${m.label} ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
-    });
+    if (realMonths.length > 0) {
+      realMonths.forEach(m => {
+        const [yStr, mCode] = m.month.split('-');
+        const monthInfo = MONTHS_LIST.find(x => x.code === mCode) || { label: m.month, icon: '🗓️' };
+        resp += `  <button onclick="sendPrompt('Sales for ${monthInfo.label} ${yStr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${monthInfo.icon} ${monthInfo.label} ${yStr} (₹${m.totalRevenue.toLocaleString('en-IN')})</button>\n`;
+      });
+    } else {
+      MONTHS_LIST.filter(m => parseInt(m.code, 10) <= 7).forEach(m => {
+        resp += `  <button onclick="sendPrompt('Sales for ${m.label} ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
+      });
+    }
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2C-1: Sales by Date -> Show Last 10 Years Buttons First
+  // Step 2C-1: Sales by Date -> Show Available Years First
   if (q === 'sales by date' || q === 'sale by date' || q === 'day-wise sales') {
+    const availableYears = Object.keys(salesBreakdown.byYear);
+    const yearsToShow = availableYears.length > 0 ? availableYears : ['2026'];
     let resp = `### 📆 Sales by Date\n\nPlease select the **Year** first:\n\n`;
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    LAST_10_YEARS.forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Sales Dates for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr}</button>\n`;
+    yearsToShow.forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Sales Dates for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
     });
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2C-2: Sales Dates for Year -> Show ALL 12 MONTHS Buttons
+  // Step 2C-2: Sales Dates for Year -> Show Real Months
   if (q.includes('sales dates for year')) {
     const yr = q.replace('sales dates for year', '').trim();
     let resp = `### 📆 Sales by Date (Year ${yr})\n\nPlease select the **Month**:\n\n`;
+    const realMonths = Object.values(salesBreakdown.byMonth).filter(m => m.month.startsWith(yr));
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    MONTHS_LIST.forEach(m => {
-      resp += `  <button onclick="sendPrompt('Sales Dates for ${yr}-${m.code}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
-    });
+    if (realMonths.length > 0) {
+      realMonths.forEach(m => {
+        const [yStr, mCode] = m.month.split('-');
+        const monthInfo = MONTHS_LIST.find(x => x.code === mCode) || { label: m.month, icon: '🗓️' };
+        resp += `  <button onclick="sendPrompt('Sales Dates for ${m.month}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${monthInfo.icon} ${monthInfo.label} ${yStr}</button>\n`;
+      });
+    } else {
+      MONTHS_LIST.filter(m => parseInt(m.code, 10) <= 7).forEach(m => {
+        resp += `  <button onclick="sendPrompt('Sales Dates for ${yr}-${m.code}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
+      });
+    }
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2C-3: Sales Dates for Month -> Show ALL DAYS Buttons (1 to 31)
+  // Step 2C-3: Sales Dates for Month -> Show REAL Dates with Invoices
   if (q.includes('sales dates for')) {
     const ym = q.replace('sales dates for', '').trim();
-    let [year, monthStr] = ym.split('-');
-    if (!year || !monthStr) {
-      year = '2026'; monthStr = '04';
-    }
-    const daysInMonth = new Date(parseInt(year, 10), parseInt(monthStr, 10), 0).getDate();
-    let resp = `### 📆 Sales by Date (${year}-${monthStr})\n\nPlease select the **Date**:\n\n`;
+    const parsed = parseMonthFilter(ym);
+    const targetMonth = parsed.isoPrefix || '2026-04';
+
+    const realDates = Object.values(salesBreakdown.byDate)
+      .filter(d => d.date.startsWith(targetMonth))
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    let resp = `### 📆 Sales by Date (${targetMonth})\n\nPlease select the **Date**:\n\n`;
     resp += `<div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;">\n`;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dayFormatted = d < 10 ? `0${d}` : `${d}`;
-      const dateVal = `${year}-${monthStr}-${dayFormatted}`;
-      resp += `  <button onclick="sendPrompt('Sales for ${dateVal}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:600;font-family:inherit;">📆 ${d}</button>\n`;
+    if (realDates.length > 0) {
+      realDates.forEach(d => {
+        resp += `  <button onclick="sendPrompt('Sales for ${d.date}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:600;font-family:inherit;">📆 ${d.date} (₹${d.totalRevenue.toLocaleString('en-IN')})</button>\n`;
+      });
+    } else {
+      for (let d = 1; d <= 30; d++) {
+        const dayFormatted = d < 10 ? `0${d}` : `${d}`;
+        const dateVal = `${targetMonth}-${dayFormatted}`;
+        resp += `  <button onclick="sendPrompt('Sales for ${dateVal}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:600;font-family:inherit;">📆 ${d}</button>\n`;
+      }
     }
     resp += `</div>`;
     return resp;
@@ -673,10 +752,14 @@ function generateDeterministicFallback(query) {
   // Specific Sales Detail Filter
   if (q.includes('sales for')) {
     const filter = q.replace('sales for', '').trim();
+    const parsed = parseMonthFilter(filter);
+
     const matching = sales.filter(s => {
       const d = s.invoiceDate || s.supplierinvoicedate || '';
+      if (parsed.isoPrefix && d.startsWith(parsed.isoPrefix)) return true;
       return d.toLowerCase().includes(filter.toLowerCase()) || JSON.stringify(s).toLowerCase().includes(filter.toLowerCase());
     });
+
     if (matching.length > 0) {
       let totalAmt = 0;
       matching.forEach(s => totalAmt += Number(s.invoiceamount || 0));
@@ -684,7 +767,7 @@ function generateDeterministicFallback(query) {
       resp += `- 💰 **Total Revenue:** ₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
       resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n\n`;
       resp += `#### 📋 Invoice List:\n`;
-      matching.slice(0, 8).forEach((s, i) => {
+      matching.slice(0, 10).forEach((s, i) => {
         resp += `${i + 1}. Invoice \`${s.invoiceNo || 'N/A'}\` | Date: ${s.invoiceDate || 'N/A'} | ₹${s.invoiceamount || 0} (${s.partyName || s.shipping_add_lin1 || 'N/A'})\n`;
       });
       return resp;
@@ -709,12 +792,14 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // Step 2A: Purchase by Year -> Show Last 10 Years Buttons
+  // Step 2A: Purchase by Year -> Show Available Years
   if (q === 'purchase by year' || q === 'purchases by year' || q === 'year-wise purchases') {
-    let resp = `### 📅 Purchase by Year\n\nPlease select the **Year** (Last 10 Years):\n\n`;
+    const availableYears = Object.keys(purchasesBreakdown.byYear);
+    const yearsToShow = availableYears.length > 0 ? availableYears : ['2026'];
+    let resp = `### 📅 Purchase by Year\n\nPlease select the **Year** to view purchase expenses:\n\n`;
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    LAST_10_YEARS.forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Purchases for Year ${yr}')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr}</button>\n`;
+    yearsToShow.forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Purchases for Year ${yr}')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr} Purchases</button>\n`;
     });
     resp += `</div>\n\n`;
     resp += `#### 📊 Available Purchase Records:\n`;
@@ -724,66 +809,98 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // Step 2B-1: Purchase by Month -> Show Last 10 Years Buttons First
+  // Step 2B-1: Purchase by Month -> Show Available Years First
   if (q === 'purchase by month' || q === 'purchases by month' || q === 'month-wise purchases') {
+    const availableYears = Object.keys(purchasesBreakdown.byYear);
+    const yearsToShow = availableYears.length > 0 ? availableYears : ['2026'];
     let resp = `### 🗓️ Purchase by Month\n\nPlease select the **Year** first:\n\n`;
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    LAST_10_YEARS.forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Purchase Months for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr}</button>\n`;
+    yearsToShow.forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Purchase Months for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
     });
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2B-2: Purchase Months for specific Year -> Show ALL 12 MONTHS Buttons
+  // Step 2B-2: Purchase Months for specific Year -> Show REAL Months with Expense Data
   if (q.includes('purchase months for year')) {
     const yr = q.replace('purchase months for year', '').trim();
     let resp = `### 🗓️ Purchase by Month (Year ${yr})\n\nPlease select the **Month** for ${yr}:\n\n`;
+    
+    const realMonths = Object.values(purchasesBreakdown.byMonth).filter(m => m.month.startsWith(yr));
+    
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    MONTHS_LIST.forEach(m => {
-      resp += `  <button onclick="sendPrompt('Purchases for ${m.label} ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
-    });
+    if (realMonths.length > 0) {
+      realMonths.forEach(m => {
+        const [yStr, mCode] = m.month.split('-');
+        const monthInfo = MONTHS_LIST.find(x => x.code === mCode) || { label: m.month, icon: '🗓️' };
+        resp += `  <button onclick="sendPrompt('Purchases for ${monthInfo.label} ${yStr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${monthInfo.icon} ${monthInfo.label} ${yStr} (₹${m.totalExpense.toLocaleString('en-IN')})</button>\n`;
+      });
+    } else {
+      MONTHS_LIST.filter(m => parseInt(m.code, 10) <= 7).forEach(m => {
+        resp += `  <button onclick="sendPrompt('Purchases for ${m.label} ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
+      });
+    }
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2C-1: Purchase by Date -> Show Last 10 Years Buttons First
+  // Step 2C-1: Purchase by Date -> Show Available Years First
   if (q === 'purchase by date' || q === 'purchases by date' || q === 'day-wise purchases') {
+    const availableYears = Object.keys(purchasesBreakdown.byYear);
+    const yearsToShow = availableYears.length > 0 ? availableYears : ['2026'];
     let resp = `### 📆 Purchase by Date\n\nPlease select the **Year** first:\n\n`;
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    LAST_10_YEARS.forEach(yr => {
-      resp += `  <button onclick="sendPrompt('Purchase Dates for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 ${yr}</button>\n`;
+    yearsToShow.forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Purchase Dates for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
     });
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2C-2: Purchase Dates for Year -> Show ALL 12 MONTHS Buttons
+  // Step 2C-2: Purchase Dates for Year -> Show Real Months
   if (q.includes('purchase dates for year')) {
     const yr = q.replace('purchase dates for year', '').trim();
     let resp = `### 📆 Purchase by Date (Year ${yr})\n\nPlease select the **Month**:\n\n`;
+    const realMonths = Object.values(purchasesBreakdown.byMonth).filter(m => m.month.startsWith(yr));
     resp += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">\n`;
-    MONTHS_LIST.forEach(m => {
-      resp += `  <button onclick="sendPrompt('Purchase Dates for ${yr}-${m.code}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
-    });
+    if (realMonths.length > 0) {
+      realMonths.forEach(m => {
+        const [yStr, mCode] = m.month.split('-');
+        const monthInfo = MONTHS_LIST.find(x => x.code === mCode) || { label: m.month, icon: '🗓️' };
+        resp += `  <button onclick="sendPrompt('Purchase Dates for ${m.month}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${monthInfo.icon} ${monthInfo.label} ${yStr}</button>\n`;
+      });
+    } else {
+      MONTHS_LIST.filter(m => parseInt(m.code, 10) <= 7).forEach(m => {
+        resp += `  <button onclick="sendPrompt('Purchase Dates for ${yr}-${m.code}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">${m.icon} ${m.label} ${yr}</button>\n`;
+      });
+    }
     resp += `</div>`;
     return resp;
   }
 
-  // Step 2C-3: Purchase Dates for Month -> Show ALL DAYS Buttons (1 to 31)
+  // Step 2C-3: Purchase Dates for Month -> Show Real Dates
   if (q.includes('purchase dates for')) {
     const ym = q.replace('purchase dates for', '').trim();
-    let [year, monthStr] = ym.split('-');
-    if (!year || !monthStr) {
-      year = '2026'; monthStr = '04';
-    }
-    const daysInMonth = new Date(parseInt(year, 10), parseInt(monthStr, 10), 0).getDate();
-    let resp = `### 📆 Purchase by Date (${year}-${monthStr})\n\nPlease select the **Date**:\n\n`;
+    const parsed = parseMonthFilter(ym);
+    const targetMonth = parsed.isoPrefix || '2026-04';
+
+    const realDates = Object.values(purchasesBreakdown.byDate)
+      .filter(d => d.date.startsWith(targetMonth))
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    let resp = `### 📆 Purchase by Date (${targetMonth})\n\nPlease select the **Date**:\n\n`;
     resp += `<div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;">\n`;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dayFormatted = d < 10 ? `0${d}` : `${d}`;
-      const dateVal = `${year}-${monthStr}-${dayFormatted}`;
-      resp += `  <button onclick="sendPrompt('Purchases for ${dateVal}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:600;font-family:inherit;">📆 ${d}</button>\n`;
+    if (realDates.length > 0) {
+      realDates.forEach(d => {
+        resp += `  <button onclick="sendPrompt('Purchases for ${d.date}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:600;font-family:inherit;">📆 ${d.date} (₹${d.totalExpense.toLocaleString('en-IN')})</button>\n`;
+      });
+    } else {
+      for (let d = 1; d <= 30; d++) {
+        const dayFormatted = d < 10 ? `0${d}` : `${d}`;
+        const dateVal = `${targetMonth}-${dayFormatted}`;
+        resp += `  <button onclick="sendPrompt('Purchases for ${dateVal}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:600;font-family:inherit;">📆 ${d}</button>\n`;
+      }
     }
     resp += `</div>`;
     return resp;
@@ -792,10 +909,14 @@ function generateDeterministicFallback(query) {
   // Specific Purchases Detail Filter
   if (q.includes('purchases for') || q.includes('purchase for')) {
     const filter = q.replace('purchases for', '').replace('purchase for', '').trim();
+    const parsed = parseMonthFilter(filter);
+
     const matching = purchases.filter(p => {
       const d = p.invoiceDate || p.supplierinvoicedate || '';
+      if (parsed.isoPrefix && d.startsWith(parsed.isoPrefix)) return true;
       return d.toLowerCase().includes(filter.toLowerCase()) || JSON.stringify(p).toLowerCase().includes(filter.toLowerCase());
     });
+
     if (matching.length > 0) {
       let totalAmt = 0;
       matching.forEach(p => {
@@ -807,7 +928,7 @@ function generateDeterministicFallback(query) {
       resp += `- 💰 **Total Expenses:** ₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
       resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n\n`;
       resp += `#### 📋 Invoice List:\n`;
-      matching.slice(0, 8).forEach((p, i) => {
+      matching.slice(0, 10).forEach((p, i) => {
         const invNo = p.invoiceNo || p.supplierinvoiceno || 'N/A';
         resp += `${i + 1}. Invoice \`${invNo}\` | Date: ${p.invoiceDate || p.supplierinvoicedate || 'N/A'} | Vendor: ${p.partyName || 'N/A'}\n`;
       });
