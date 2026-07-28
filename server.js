@@ -626,7 +626,9 @@ function generateDeterministicFallback(query) {
 
   // Step 1: User asks for "Sales"
   if (q === 'sales' || q === 'sale' || q === 'show sales' || q === 'sales report') {
-    let resp = `### 🛒 Sales Reports\n\nPlease select how you would like to view your Sales:\n\n`;
+    let resp = `### 🛒 Sales Reports\n\n`;
+    resp += `ℹ️ *Note: Connected to real-time ERP REST API (Available Data: Year 2026)*\n\n`;
+    resp += `Please select how you would like to view your Sales:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
     resp += `  <button onclick="sendPrompt('Sales by Year')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Sales by Year</button>\n`;
     resp += `  <button onclick="sendPrompt('Sales by Month')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Sales by Month</button>\n`;
@@ -749,7 +751,7 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // Specific Sales Detail Filter
+  // Specific Sales Detail Filter -> Summary First
   if (q.includes('sales for')) {
     const filter = q.replace('sales for', '').trim();
     const parsed = parseMonthFilter(filter);
@@ -762,14 +764,17 @@ function generateDeterministicFallback(query) {
 
     if (matching.length > 0) {
       let totalAmt = 0;
-      matching.forEach(s => totalAmt += Number(s.invoiceamount || 0));
-      let resp = `### 🛒 Sales Report for "${filter.toUpperCase()}"\n\n`;
-      resp += `- 💰 **Total Revenue:** ₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
-      resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n\n`;
-      resp += `#### 📋 Invoice List:\n`;
-      matching.slice(0, 10).forEach((s, i) => {
-        resp += `${i + 1}. Invoice \`${s.invoiceNo || 'N/A'}\` | Date: ${s.invoiceDate || 'N/A'} | ₹${s.invoiceamount || 0} (${s.partyName || s.shipping_add_lin1 || 'N/A'})\n`;
+      let totalItems = 0;
+      matching.forEach(s => {
+        totalAmt += Number(s.invoiceamount || 0);
+        totalItems += (s.items || []).length;
       });
+      let resp = `### 🛒 Sales Summary for "${filter.toUpperCase()}"\n\n`;
+      resp += `- 💰 **Total Revenue:** ₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
+      resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n`;
+      resp += `- 📦 **Line Items Sold:** ${totalItems} Line Items\n\n`;
+      const sampleInv = matching[0]?.invoiceNo || 'GEHOHR001VPO414';
+      resp += `💡 *Tip: Type or search any specific Invoice Number (e.g. \`${sampleInv}\`) or Customer Name to inspect itemized voucher details.*`;
       return resp;
     } else {
       return `ℹ️ No sales records found for **"${filter.toUpperCase()}"** (₹0.00 Revenue, 0 Invoices).`;
@@ -783,7 +788,9 @@ function generateDeterministicFallback(query) {
 
   // Step 1: User asks for "Purchases"
   if (q === 'purchases' || q === 'purchase' || q === 'show purchases' || q === 'purchase report') {
-    let resp = `### 📦 Purchase Reports\n\nPlease select how you would like to view your Purchases:\n\n`;
+    let resp = `### 📦 Purchase Reports\n\n`;
+    resp += `ℹ️ *Note: Connected to real-time ERP REST API (Available Data: Year 2026)*\n\n`;
+    resp += `Please select how you would like to view your Purchases:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
     resp += `  <button onclick="sendPrompt('Purchase by Year')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Purchase by Year</button>\n`;
     resp += `  <button onclick="sendPrompt('Purchase by Month')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Purchase by Month</button>\n`;
@@ -906,7 +913,7 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // Specific Purchases Detail Filter
+  // Specific Purchases Detail Filter -> Summary First
   if (q.includes('purchases for') || q.includes('purchase for')) {
     const filter = q.replace('purchases for', '').replace('purchase for', '').trim();
     const parsed = parseMonthFilter(filter);
@@ -919,19 +926,21 @@ function generateDeterministicFallback(query) {
 
     if (matching.length > 0) {
       let totalAmt = 0;
+      let totalItems = 0;
       matching.forEach(p => {
         let pAmt = Number(p.invoiceamount || 0);
-        (p.items || []).forEach(i => pAmt += Math.abs(Number(i.itemAmount || 0)));
+        (p.items || []).forEach(i => {
+          pAmt += Math.abs(Number(i.itemAmount || 0));
+          totalItems += 1;
+        });
         totalAmt += pAmt;
       });
-      let resp = `### 📦 Purchases Report for "${filter.toUpperCase()}"\n\n`;
+      let resp = `### 📦 Purchases Summary for "${filter.toUpperCase()}"\n\n`;
       resp += `- 💰 **Total Expenses:** ₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
-      resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n\n`;
-      resp += `#### 📋 Invoice List:\n`;
-      matching.slice(0, 10).forEach((p, i) => {
-        const invNo = p.invoiceNo || p.supplierinvoiceno || 'N/A';
-        resp += `${i + 1}. Invoice \`${invNo}\` | Date: ${p.invoiceDate || p.supplierinvoicedate || 'N/A'} | Vendor: ${p.partyName || 'N/A'}\n`;
-      });
+      resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n`;
+      resp += `- 📦 **Line Items Purchased:** ${totalItems} Line Items\n\n`;
+      const sampleInv = matching[0]?.supplierinvoiceno || matching[0]?.invoiceNo || 'GEHOHR001VPO414';
+      resp += `💡 *Tip: Type or search any specific Supplier Invoice Number (e.g. \`${sampleInv}\`) or Vendor Name to inspect itemized voucher details.*`;
       return resp;
     } else {
       return `ℹ️ No purchase records found for **"${filter.toUpperCase()}"** (₹0.00 Expense, 0 Invoices).`;
