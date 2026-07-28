@@ -101,6 +101,195 @@ function getErpSummaryStats() {
   };
 }
 
+// Sales Breakdown (Year, Month, Date)
+function getSalesBreakdown() {
+  const byYear = {};
+  const byMonth = {};
+  const byDate = {};
+
+  sales.forEach(s => {
+    const rawDate = s.invoiceDate || s.supplierinvoicedate || '';
+    if (!rawDate) return;
+    const year = rawDate.substring(0, 4);
+    const month = rawDate.substring(0, 7);
+    const date = rawDate.substring(0, 10);
+    const amt = Number(s.invoiceamount || 0);
+    let itemsQty = 0;
+    (s.items || []).forEach(i => { itemsQty += Number(i.itemQty || i.qty || 1); });
+
+    if (!byYear[year]) byYear[year] = { year, totalRevenue: 0, invoiceCount: 0, totalItemsQty: 0 };
+    byYear[year].totalRevenue += amt;
+    byYear[year].invoiceCount += 1;
+    byYear[year].totalItemsQty += itemsQty;
+
+    if (!byMonth[month]) byMonth[month] = { month, totalRevenue: 0, invoiceCount: 0, totalItemsQty: 0 };
+    byMonth[month].totalRevenue += amt;
+    byMonth[month].invoiceCount += 1;
+    byMonth[month].totalItemsQty += itemsQty;
+
+    if (!byDate[date]) byDate[date] = { date, totalRevenue: 0, invoiceCount: 0, totalItemsQty: 0 };
+    byDate[date].totalRevenue += amt;
+    byDate[date].invoiceCount += 1;
+    byDate[date].totalItemsQty += itemsQty;
+  });
+
+  return { byYear, byMonth, byDate };
+}
+
+// Purchases Breakdown (Year, Month, Date)
+function getPurchasesBreakdown() {
+  const byYear = {};
+  const byMonth = {};
+  const byDate = {};
+
+  purchases.forEach(p => {
+    const rawDate = p.invoiceDate || p.supplierinvoicedate || '';
+    if (!rawDate) return;
+    const year = rawDate.substring(0, 4);
+    const month = rawDate.substring(0, 7);
+    const date = rawDate.substring(0, 10);
+    
+    let pAmt = Number(p.invoiceamount || 0);
+    let itemsQty = 0;
+    (p.items || []).forEach(i => {
+      pAmt += Math.abs(Number(i.itemAmount || 0));
+      itemsQty += Number(i.itemQty || i.qty || 1);
+    });
+
+    if (!byYear[year]) byYear[year] = { year, totalExpense: 0, invoiceCount: 0, totalItemsQty: 0 };
+    byYear[year].totalExpense += pAmt;
+    byYear[year].invoiceCount += 1;
+    byYear[year].totalItemsQty += itemsQty;
+
+    if (!byMonth[month]) byMonth[month] = { month, totalExpense: 0, invoiceCount: 0, totalItemsQty: 0 };
+    byMonth[month].totalExpense += pAmt;
+    byMonth[month].invoiceCount += 1;
+    byMonth[month].totalItemsQty += itemsQty;
+
+    if (!byDate[date]) byDate[date] = { date, totalExpense: 0, invoiceCount: 0, totalItemsQty: 0 };
+    byDate[date].totalExpense += pAmt;
+    byDate[date].invoiceCount += 1;
+    byDate[date].totalItemsQty += itemsQty;
+  });
+
+  return { byYear, byMonth, byDate };
+}
+
+// Dispatch Summary (Sales represent outward dispatch)
+function getDispatchSummary() {
+  const monthDispatch = {};
+  const dateDispatch = {};
+  let grandTotalDispatchQty = 0;
+  let grandTotalDispatchVal = 0;
+
+  sales.forEach(s => {
+    const rawDate = s.invoiceDate || s.supplierinvoicedate || '';
+    if (!rawDate) return;
+    const month = rawDate.substring(0, 7);
+    const date = rawDate.substring(0, 10);
+    const invAmt = Number(s.invoiceamount || 0);
+
+    let sQty = 0;
+    (s.items || []).forEach(i => { sQty += Number(i.itemQty || i.qty || 1); });
+
+    grandTotalDispatchQty += sQty;
+    grandTotalDispatchVal += invAmt;
+
+    if (!monthDispatch[month]) monthDispatch[month] = { month, dispatchQty: 0, dispatchVal: 0, invoiceCount: 0 };
+    monthDispatch[month].dispatchQty += sQty;
+    monthDispatch[month].dispatchVal += invAmt;
+    monthDispatch[month].invoiceCount += 1;
+
+    if (!dateDispatch[date]) dateDispatch[date] = { date, dispatchQty: 0, dispatchVal: 0, invoiceCount: 0 };
+    dateDispatch[date].dispatchQty += sQty;
+    dateDispatch[date].dispatchVal += invAmt;
+    dateDispatch[date].invoiceCount += 1;
+  });
+
+  return { monthDispatch, dateDispatch, grandTotalDispatchQty, grandTotalDispatchVal };
+}
+
+// Inventory Summary & Product-Wise Details
+function getInventorySummary(productQuery = '') {
+  const itemMap = {};
+
+  purchases.forEach(p => {
+    (p.items || []).forEach(i => {
+      const name = (i.itemName || 'Unknown Item').trim();
+      if (!itemMap[name]) {
+        itemMap[name] = {
+          name,
+          category: i.itemgroup || 'General',
+          purchasedQty: 0,
+          purchasedVal: 0,
+          dispatchedQty: 0,
+          unitCost: 0
+        };
+      }
+      const qty = Number(i.itemQty || i.qty || 1);
+      const val = Math.abs(Number(i.itemAmount || 0));
+      itemMap[name].purchasedQty += qty;
+      itemMap[name].purchasedVal += val;
+    });
+  });
+
+  sales.forEach(s => {
+    (s.items || []).forEach(i => {
+      const name = (i.itemName || 'Unknown Item').trim();
+      if (!itemMap[name]) {
+        itemMap[name] = {
+          name,
+          category: i.itemgroup || 'General',
+          purchasedQty: 0,
+          purchasedVal: 0,
+          dispatchedQty: 0,
+          unitCost: 0
+        };
+      }
+      const qty = Number(i.itemQty || i.qty || 1);
+      itemMap[name].dispatchedQty += qty;
+    });
+  });
+
+  let totalUniqueProducts = 0;
+  let totalStockQty = 0;
+  let totalInventoryVal = 0;
+  let totalDispatchedQty = 0;
+
+  const productList = Object.values(itemMap).map(item => {
+    totalUniqueProducts += 1;
+    totalDispatchedQty += item.dispatchedQty;
+
+    if (item.purchasedQty > 0 && item.purchasedVal > 0) {
+      item.unitCost = item.purchasedVal / item.purchasedQty;
+    } else {
+      item.unitCost = 0;
+    }
+
+    item.netStockQty = Math.max(0, item.purchasedQty - item.dispatchedQty);
+    item.totalStockValue = item.purchasedVal > 0 ? item.purchasedVal : (item.dispatchedQty * item.unitCost);
+
+    totalStockQty += (item.purchasedQty > 0 ? item.netStockQty : item.dispatchedQty);
+    totalInventoryVal += item.totalStockValue;
+
+    return item;
+  });
+
+  let filteredProducts = productList;
+  if (productQuery && productQuery.trim() !== '') {
+    const q = productQuery.toLowerCase().trim();
+    filteredProducts = productList.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+  }
+
+  return {
+    totalUniqueProducts,
+    totalStockQty,
+    totalDispatchedQty,
+    totalInventoryVal,
+    products: filteredProducts.sort((a, b) => b.dispatchedQty - a.dispatchedQty)
+  };
+}
+
 // Compute Top Analytics (Customers, Suppliers, Items) for Business Intelligence Queries
 function getTopAnalytics() {
   const customerMap = {};
@@ -224,11 +413,13 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
   }
 
   const summary = getErpSummaryStats();
+  const salesBreakdown = getSalesBreakdown();
+  const purchasesBreakdown = getPurchasesBreakdown();
+  const dispatchSummary = getDispatchSummary();
+  const inventorySummary = getInventorySummary();
   const searchRes = searchRecords(userMessage, 10);
-
   const analytics = getTopAnalytics();
 
-  // Compact ERP Context string for LLM Grounding
   const contextData = {
     erpSummary: {
       totalSaleInvoices: summary.sales.totalInvoices,
@@ -237,6 +428,29 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
       totalPurchaseExpense: `₹${summary.purchases.totalAmount.toFixed(2)}`
     },
     topAnalytics: analytics,
+    salesBreakdown: {
+      byYear: salesBreakdown.byYear,
+      byMonth: salesBreakdown.byMonth,
+      topDates: Object.values(salesBreakdown.byDate).slice(0, 10)
+    },
+    purchasesBreakdown: {
+      byYear: purchasesBreakdown.byYear,
+      byMonth: purchasesBreakdown.byMonth,
+      topDates: Object.values(purchasesBreakdown.byDate).slice(0, 10)
+    },
+    dispatchSummary: {
+      grandTotalQty: dispatchSummary.grandTotalDispatchQty,
+      grandTotalVal: `₹${dispatchSummary.grandTotalDispatchVal.toFixed(2)}`,
+      byMonth: dispatchSummary.monthDispatch,
+      topDates: Object.values(dispatchSummary.dateDispatch).slice(0, 10)
+    },
+    inventorySummary: {
+      totalProducts: inventorySummary.totalUniqueProducts,
+      totalStockUnits: inventorySummary.totalStockQty,
+      totalDispatchedUnits: inventorySummary.totalDispatchedQty,
+      totalValuation: `₹${inventorySummary.totalInventoryVal.toFixed(2)}`,
+      topProducts: inventorySummary.products.slice(0, 10)
+    },
     matchingPurchaseRecords: searchRes.pMatches.map(p => ({
       invoiceNo: p.invoiceNo || p.supplierinvoiceno || 'N/A',
       date: p.invoiceDate || p.supplierinvoicedate || 'N/A',
@@ -259,18 +473,15 @@ async function askGroqLLM(userMessage, conversationHistory = []) {
 You answer user queries accurately using ONLY the real-time ERP API records provided below.
 
 STRICT ACCURACY RULES:
-1. Use ONLY data from 'matchingSaleRecords', 'matchingPurchaseRecords', 'erpSummary', and 'topAnalytics'. Do NOT hallucinate, invent, or assume any invoice numbers, party names, dates or amounts.
-2. If asked about Top Customers, Top Suppliers, or Top Selling Items, answer using the exact figures from 'topAnalytics'.
-3. If asked for a Business Summary, Executive Overview, or Status Today, provide a clean executive breakdown including Total Sales Revenue, Total Purchase Expenses, Top Customers, and Top Suppliers.
-4. If specific search arrays are empty and the user asked for specific invoice/party details, reply: "I couldn't find any matching records in the ERP database. Could you provide a different invoice number, date, or party name?"
-5. Whenever matching records exist, list them clearly: Invoice No, Date, Customer/Vendor Name, Items, and Amount.
-6. Financial summaries: use exact figures from 'erpSummary'. Never mention GST, CGST, SGST, IGST or any tax figures.
-7. GREETING RULE: For greetings ('Hi', 'Hello', 'Hey'), respond warmly without showing any data.
-8. GENERAL ENQUIRY RULE: For broad queries ('show sales', 'purchases', 'invoices'), do NOT dump lists. Ask for a specific filter:
-   - Sales: Invoice No (e.g. GEE/26-27/0009), Date (e.g. 2026-04-15), or Customer Name.
-   - Purchases: Supplier Invoice No (e.g. GEHOHR001VPO414), Date, or Vendor Name.
-9. Format responses with Markdown: bold headings, bullet points, code backticks for invoice numbers, emojis.
-10. Be concise, professional, executive-ready, and friendly.
+1. Use ONLY data from 'matchingSaleRecords', 'matchingPurchaseRecords', 'erpSummary', 'salesBreakdown', 'purchasesBreakdown', 'dispatchSummary', 'inventorySummary', and 'topAnalytics'. Do NOT hallucinate, invent, or assume any figures.
+2. If asked for Month-wise, Date-wise, or Year-wise Sales or Purchases, reply using the exact figures from 'salesBreakdown' or 'purchasesBreakdown'.
+3. If asked for Dispatch details (for the month or day), reply using exact figures from 'dispatchSummary'.
+4. If asked for Inventory totals or Product-wise Inventory, reply using exact figures from 'inventorySummary'.
+5. If asked about Top Customers, Top Suppliers, or Top Selling Items, answer using exact figures from 'topAnalytics'.
+6. Financial summaries: use exact figures provided. Never mention GST, CGST, SGST, IGST or tax rates unless explicitly requested.
+7. GREETING RULE: For greetings ('Hi', 'Hello', 'Hey'), respond warmly without showing raw data tables.
+8. Format responses cleanly with Markdown headings, bullet points, table formats where appropriate, code backticks for invoice numbers, and emojis.
+9. Be concise, professional, executive-ready, and friendly.
 
 REAL-TIME ERP API CONTEXT:
 ${JSON.stringify(contextData, null, 2)}`;
@@ -312,8 +523,12 @@ function generateDeterministicFallback(query) {
   const q = query.toLowerCase().trim();
   const summary = getErpSummaryStats();
   const analytics = getTopAnalytics();
+  const salesBreakdown = getSalesBreakdown();
+  const purchasesBreakdown = getPurchasesBreakdown();
+  const dispatchSummary = getDispatchSummary();
 
-  if (q.includes('summary') || q.includes('status') || q.includes('total') || q.includes('dashboard') || q.includes('executive') || (q.includes('sale') && q.includes('purchase'))) {
+  // 1. Executive Business Summary
+  if (q.includes('summary') || q.includes('status') || q.includes('dashboard') || q.includes('executive') || (q.includes('sale') && q.includes('purchase') && !q.includes('month') && !q.includes('date'))) {
     let resp = `### 💰 Executive ERP Business Summary\n\n`;
     resp += `- 🛒 **Total Sales Revenue:** ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices)\n`;
     resp += `- 📦 **Total Purchase Expenses:** ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices)\n\n`;
@@ -324,6 +539,123 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
+  // 2. Month-Wise / Date-Wise / Year Sales
+  if (q.includes('sale') && (q.includes('month') || q.includes('date') || q.includes('year') || q.includes('daily') || q.includes('monthly') || q.includes('yearly'))) {
+    let resp = `### 🛒 Sales Analytics Report\n\n`;
+    
+    resp += `#### 📅 Sales by Year:\n`;
+    Object.values(salesBreakdown.byYear).forEach(y => {
+      resp += `- **Year ${y.year}:** ₹${y.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${y.invoiceCount} Invoices, ${y.totalItemsQty} items sold)\n`;
+    });
+
+    resp += `\n#### 🗓️ Sales by Month:\n`;
+    Object.values(salesBreakdown.byMonth).forEach(m => {
+      const dateObj = new Date(`${m.month}-01`);
+      const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+      resp += `- **${monthLabel} (${m.month}):** ₹${m.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${m.invoiceCount} Invoices | ${m.totalItemsQty} Items Dispatched\n`;
+    });
+
+    const topDates = Object.values(salesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+    resp += `\n#### 📆 Daily Sales Summary (Recent Dates):\n`;
+    topDates.forEach(d => {
+      resp += `- **Date ${d.date}:** ₹${d.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices, ${d.totalItemsQty} Qty)\n`;
+    });
+
+    return resp;
+  }
+
+  // 3. Month-Wise / Date-Wise / Year Purchases
+  if (q.includes('purchase') && (q.includes('month') || q.includes('date') || q.includes('year') || q.includes('daily') || q.includes('monthly') || q.includes('yearly'))) {
+    let resp = `### 📦 Purchases Analytics Report\n\n`;
+    
+    resp += `#### 📅 Purchases by Year:\n`;
+    Object.values(purchasesBreakdown.byYear).forEach(y => {
+      resp += `- **Year ${y.year}:** ₹${y.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${y.invoiceCount} Invoices, ${y.totalItemsQty} items purchased)\n`;
+    });
+
+    resp += `\n#### 🗓️ Purchases by Month:\n`;
+    Object.values(purchasesBreakdown.byMonth).forEach(m => {
+      const dateObj = new Date(`${m.month}-01`);
+      const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+      resp += `- **${monthLabel} (${m.month}):** ₹${m.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${m.invoiceCount} Invoices | ${m.totalItemsQty} Items Purchased\n`;
+    });
+
+    const topDates = Object.values(purchasesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+    resp += `\n#### 📆 Daily Purchases Summary (Recent Dates):\n`;
+    topDates.forEach(d => {
+      resp += `- **Date ${d.date}:** ₹${d.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices, ${d.totalItemsQty} Qty)\n`;
+    });
+
+    return resp;
+  }
+
+  // 4. Dispatch Analytics (For Day / For Month)
+  if (q.includes('dispatch') || q.includes('shipment') || q.includes('dispatched')) {
+    let resp = `### 🚚 ERP Dispatch Summary & Outward Shipped Report\n\n`;
+    resp += `- 📊 **Grand Total Dispatched Items:** ${dispatchSummary.grandTotalDispatchQty.toLocaleString('en-IN')} units\n`;
+    resp += `- 💰 **Total Dispatch Revenue Value:** ₹${dispatchSummary.grandTotalDispatchVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n\n`;
+
+    if (q.includes('day') || q.includes('today') || q.includes('date')) {
+      resp += `#### 📆 Date-Wise Dispatch Details:\n`;
+      const sortedDates = Object.values(dispatchSummary.dateDispatch).sort((a, b) => b.date.localeCompare(a.date));
+      sortedDates.slice(0, 7).forEach(d => {
+        resp += `- **${d.date}:** ${d.dispatchQty} units dispatched | Value: ₹${d.dispatchVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices)\n`;
+      });
+    } else {
+      resp += `#### 🗓️ Month-Wise Dispatch Details:\n`;
+      Object.values(dispatchSummary.monthDispatch).forEach(m => {
+        const dateObj = new Date(`${m.month}-01`);
+        const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+        resp += `- **${monthLabel} (${m.month}):** ${m.dispatchQty.toLocaleString('en-IN')} units dispatched | Value: ₹${m.dispatchVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${m.invoiceCount} Sales Orders)\n`;
+      });
+    }
+
+    return resp;
+  }
+
+  // 5. Product Inventory & Total Valuation
+  if (q.includes('inventory') || q.includes('stock')) {
+    const stopWords = ['and', 'the', 'for', 'of', 'in', 'is', 'or', 'to', 'all', 'summary', 'report', 'detail', 'details', 'list', 'units', 'quantity', 'value', 'inventory', 'stock', 'total', 'show', 'item', 'items', 'product', 'products'];
+    const cleanedQuery = q.replace(/inventory/g, '').replace(/stock/g, '').replace(/total/g, '').replace(/value/g, '').replace(/quantity/g, '').replace(/show/g, '').replace(/for/g, '').replace(/of/g, '').replace(/and/g, '').trim();
+
+    const isProductSearch = cleanedQuery.length >= 3 && !stopWords.includes(cleanedQuery);
+
+    if (isProductSearch) {
+      const invData = getInventorySummary(cleanedQuery);
+      if (invData.products.length === 0) {
+        return `❌ No inventory records found matching product: **"${cleanedQuery}"**.\n\n*Tip: Try searching for keywords like "Rug", "Mat", "Runner", "Napkin", or "Placemat".*`;
+      }
+
+      let resp = `### 📦 Product Inventory Details for "${cleanedQuery}"\n\n`;
+      resp += `Found **${invData.products.length} matching product(s)**:\n\n`;
+
+      invData.products.forEach((p, idx) => {
+        resp += `**${idx + 1}. ${p.name}** (${p.category})\n`;
+        if (p.purchasedQty > 0) resp += `   - 📥 **Stock Inward (Purchased):** ${p.purchasedQty} units (Valuation: ₹${p.purchasedVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })})\n`;
+        resp += `   - 🚚 **Dispatched (Sold):** ${p.dispatchedQty} units\n`;
+        resp += `   - 📊 **Current Stock Qty:** ${p.netStockQty} units\n`;
+        if (p.unitCost > 0) resp += `   - 🏷️ **Estimated Unit Cost:** ₹${p.unitCost.toFixed(2)}\n`;
+        resp += `   - 💰 **Total Stock Valuation:** ₹${p.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n\n`;
+      });
+      return resp;
+    } else {
+      const invData = getInventorySummary();
+      let resp = `### 🏭 Overall ERP Inventory Summary\n\n`;
+      resp += `- 📦 **Total Unique Products:** ${invData.totalUniqueProducts}\n`;
+      resp += `- 📊 **Total Stock Quantity:** ${invData.totalStockQty.toLocaleString('en-IN')} units\n`;
+      resp += `- 🚚 **Total Dispatched Units:** ${invData.totalDispatchedQty.toLocaleString('en-IN')} units\n`;
+      resp += `- 💰 **Total Inventory Valuation:** ₹${invData.totalInventoryVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n\n`;
+
+      resp += `#### 🏆 Top Product Inventory Stock & Dispatches:\n`;
+      invData.products.slice(0, 7).forEach((p, idx) => {
+        resp += `${idx + 1}. **${p.name}:** Dispatched ${p.dispatchedQty} units | Stock: ${p.netStockQty} units | Valuation: ₹${p.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
+      });
+      resp += `\n*💡 Tip: Search specific product inventory by typing "inventory for Bath Rug" or "stock of Yoga Mat".*`;
+      return resp;
+    }
+  }
+
+  // 6. Top Customer / Supplier Analytics
   if (q.includes('top customer') || q.includes('best customer') || q.includes('customer analysis')) {
     let resp = `### 👥 Top Customers Analysis\n\n`;
     analytics.topCustomers.forEach((c, idx) => { resp += `${idx + 1}. ${c}\n`; });
@@ -350,8 +682,8 @@ function generateDeterministicFallback(query) {
 Please specify what sales information you need by providing one of the following:
 1. **Invoice Number** (e.g., \`GEE/26-27/0009\`)
 2. **Invoice Date** (e.g., \`2026-04-15\`)
-3. **Customer Name** (e.g., \`The Great Eastern Export\`)
-4. **GSTIN / PAN Number** or any unique customer identifier.`;
+3. **Month / Date Breakdown** (e.g., \`month-wise sales\`, \`date-wise sales\`, \`year sales\`)
+4. **Customer Name** (e.g., \`The Great Eastern Export\`)`;
   }
 
   if (isGeneralPurchaseQuery && !isGeneralSaleQuery) {
@@ -359,7 +691,8 @@ Please specify what sales information you need by providing one of the following
 Please specify what purchase information you need by providing one of the following:
 1. **Supplier Invoice Number** (e.g., \`GEHOHR001VPO414\`)
 2. **Invoice Date** (e.g., \`2026-04-15\`)
-3. **Vendor / Supplier Name** (e.g., \`WONDER WEAVE EXPORTS\`)`;
+3. **Month / Date Breakdown** (e.g., \`month purchases\`, \`date-wise purchases\`, \`year purchases\`)
+4. **Vendor / Supplier Name** (e.g., \`WONDER WEAVE EXPORTS\`)`;
   }
 
   const { pMatches, sMatches } = searchRecords(query, 5);
@@ -424,6 +757,39 @@ app.get('/api/summary', async (req, res) => {
   res.json({
     status: 'ok',
     data: getErpSummaryStats()
+  });
+});
+
+app.get('/api/analytics/sales', async (req, res) => {
+  await ensureDataLoaded();
+  res.json({
+    status: 'ok',
+    data: getSalesBreakdown()
+  });
+});
+
+app.get('/api/analytics/purchases', async (req, res) => {
+  await ensureDataLoaded();
+  res.json({
+    status: 'ok',
+    data: getPurchasesBreakdown()
+  });
+});
+
+app.get('/api/analytics/dispatch', async (req, res) => {
+  await ensureDataLoaded();
+  res.json({
+    status: 'ok',
+    data: getDispatchSummary()
+  });
+});
+
+app.get('/api/analytics/inventory', async (req, res) => {
+  await ensureDataLoaded();
+  const q = req.query.product || '';
+  res.json({
+    status: 'ok',
+    data: getInventorySummary(q)
   });
 });
 

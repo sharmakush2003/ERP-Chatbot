@@ -40,12 +40,15 @@ function showMainMenu() {
   console.log('  2. 🛒 Search Sale API (Sale Invoices / Customers)');
   console.log('  3. 🔍 Search Both APIs (All Enterprise Transactions)');
   console.log('  4. 💰 Total Sales & GST Collection Financial Dashboard');
-  console.log('  5. ℹ️  About Digify Soft Solutions (Leading SaaS Company)');
-  console.log('  6. 🔄 Refresh ERP Data from Cloud');
+  console.log('  5. 🗓️ Month-wise & Date-wise Sales/Purchase Analytics');
+  console.log('  6. 🚚 Dispatch Summary Report (Month & Day)');
+  console.log('  7. 🏭 Inventory Total & Product Stock Lookup');
+  console.log('  8. ℹ️  About Digify Soft Solutions (Leading SaaS Company)');
+  console.log('  9. 🔄 Refresh ERP Data from Cloud');
   console.log('  0. ❌ Exit System');
   console.log('\x1b[35m====================================================================\x1b[0m');
   
-  rl.question('Select an option (0-6): ', (answer) => {
+  rl.question('Select an option (0-9): ', (answer) => {
     const choice = answer.trim();
     if (choice === '1') {
       currentMode = 'purchase';
@@ -59,14 +62,20 @@ function showMainMenu() {
     } else if (choice === '4') {
       showSummaryStats();
     } else if (choice === '5') {
-      showAboutCompany();
+      showAnalyticsReport();
     } else if (choice === '6') {
+      showDispatchReport();
+    } else if (choice === '7') {
+      showInventoryReport();
+    } else if (choice === '8') {
+      showAboutCompany();
+    } else if (choice === '9') {
       loadAPIData().then(() => showMainMenu());
     } else if (choice === '0' || choice.toLowerCase() === 'exit') {
       console.log('👋 Thank you for using Digify Soft Solutions ERP AI System!');
       process.exit(0);
     } else {
-      console.log('\x1b[31mInvalid option! Please enter a number between 0 and 6.\x1b[0m');
+      console.log('\x1b[31mInvalid option! Please enter a number between 0 and 9.\x1b[0m');
       showMainMenu();
     }
   });
@@ -279,6 +288,144 @@ function showSummaryStats() {
 
   rl.question('Press Enter to return to main menu...', () => {
     showMainMenu();
+  });
+}
+
+function showAnalyticsReport() {
+  console.log('\n\x1b[35m====================================================================\x1b[0m');
+  console.log('\x1b[1m\x1b[33m   🗓️ DIGIFY SOFT ERP MONTH-WISE & DATE-WISE ANALYTICS REPORT    \x1b[0m');
+  console.log('\x1b[35m====================================================================\x1b[0m');
+
+  const sMonth = {};
+  sales.forEach(s => {
+    const d = s.invoiceDate || s.supplierinvoicedate || '';
+    if (!d) return;
+    const month = d.substring(0, 7);
+    if (!sMonth[month]) sMonth[month] = { revenue: 0, count: 0 };
+    sMonth[month].revenue += Number(s.invoiceamount || 0);
+    sMonth[month].count += 1;
+  });
+
+  console.log('\x1b[32m%s\x1b[0m', '🛒 --- MONTH-WISE SALES ---');
+  Object.entries(sMonth).forEach(([m, val]) => {
+    console.log(`  • ${m}: ₹${val.revenue.toLocaleString('en-IN')} (${val.count} Invoices)`);
+  });
+
+  const pMonth = {};
+  purchases.forEach(p => {
+    const d = p.invoiceDate || p.supplierinvoicedate || '';
+    if (!d) return;
+    const month = d.substring(0, 7);
+    if (!pMonth[month]) pMonth[month] = { expense: 0, count: 0 };
+    let amt = Number(p.invoiceamount || 0);
+    (p.items || []).forEach(i => amt += Math.abs(Number(i.itemAmount || 0)));
+    pMonth[month].expense += amt;
+    pMonth[month].count += 1;
+  });
+
+  console.log('\n\x1b[33m%s\x1b[0m', '📦 --- MONTH-WISE PURCHASES ---');
+  Object.entries(pMonth).forEach(([m, val]) => {
+    console.log(`  • ${m}: ₹${val.expense.toLocaleString('en-IN')} (${val.count} Invoices)`);
+  });
+
+  console.log('\x1b[35m====================================================================\x1b[0m\n');
+  rl.question('Press Enter to return to main menu...', () => { showMainMenu(); });
+}
+
+function showDispatchReport() {
+  console.log('\n\x1b[35m====================================================================\x1b[0m');
+  console.log('\x1b[1m\x1b[33m     🚚 DIGIFY SOFT ERP OUTWARD DISPATCH SUMMARY REPORT        \x1b[0m');
+  console.log('\x1b[35m====================================================================\x1b[0m');
+
+  let totalQty = 0, totalVal = 0;
+  const monthDispatch = {};
+
+  sales.forEach(s => {
+    const d = s.invoiceDate || s.supplierinvoicedate || '';
+    if (!d) return;
+    const month = d.substring(0, 7);
+    const amt = Number(s.invoiceamount || 0);
+    let qty = 0;
+    (s.items || []).forEach(i => qty += Number(i.itemQty || i.qty || 1));
+
+    totalQty += qty;
+    totalVal += amt;
+
+    if (!monthDispatch[month]) monthDispatch[month] = { qty: 0, val: 0, count: 0 };
+    monthDispatch[month].qty += qty;
+    monthDispatch[month].val += amt;
+    monthDispatch[month].count += 1;
+  });
+
+  console.log(`  • Grand Total Dispatched Units: \x1b[36m${totalQty.toLocaleString('en-IN')} units\x1b[0m`);
+  console.log(`  • Total Dispatch Value Revenue:  \x1b[36m₹${totalVal.toLocaleString('en-IN')}\x1b[0m\n`);
+
+  console.log('\x1b[32m%s\x1b[0m', '🗓️ --- MONTHLY DISPATCH BREAKDOWN ---');
+  Object.entries(monthDispatch).forEach(([m, val]) => {
+    console.log(`  • ${m}: ${val.qty.toLocaleString('en-IN')} units dispatched | Value: ₹${val.val.toLocaleString('en-IN')} (${val.count} Sales Orders)`);
+  });
+
+  console.log('\x1b[35m====================================================================\x1b[0m\n');
+  rl.question('Press Enter to return to main menu...', () => { showMainMenu(); });
+}
+
+function showInventoryReport() {
+  console.log('\n\x1b[35m====================================================================\x1b[0m');
+  console.log('\x1b[1m\x1b[33m      🏭 DIGIFY SOFT ERP TOTAL INVENTORY & STOCK LOOKUP         \x1b[0m');
+  console.log('\x1b[35m====================================================================\x1b[0m');
+
+  const itemMap = {};
+  purchases.forEach(p => {
+    (p.items || []).forEach(i => {
+      const name = i.itemName?.trim() || 'Unknown';
+      if (!itemMap[name]) itemMap[name] = { name, pur: 0, sale: 0, val: 0 };
+      itemMap[name].pur += Number(i.itemQty || i.qty || 1);
+      itemMap[name].val += Math.abs(Number(i.itemAmount || 0));
+    });
+  });
+
+  sales.forEach(s => {
+    (s.items || []).forEach(i => {
+      const name = i.itemName?.trim() || 'Unknown';
+      if (!itemMap[name]) itemMap[name] = { name, pur: 0, sale: 0, val: 0 };
+      itemMap[name].sale += Number(i.itemQty || i.qty || 1);
+    });
+  });
+
+  const products = Object.values(itemMap);
+  let totalStockVal = 0;
+  let totalDispatched = 0;
+
+  products.forEach(p => {
+    totalStockVal += p.val;
+    totalDispatched += p.sale;
+  });
+
+  console.log(`  • Total Tracked Products:   \x1b[36m${products.length}\x1b[0m`);
+  console.log(`  • Total Dispatched Units:   \x1b[36m${totalDispatched.toLocaleString('en-IN')} units\x1b[0m`);
+  console.log(`  • Total Inventory Valuation:\x1b[36m₹${totalStockVal.toLocaleString('en-IN')}\x1b[0m\n`);
+
+  console.log('\x1b[33m%s\x1b[0m', '📦 --- TOP PRODUCT STOCK & DISPATCHES ---');
+  products.sort((a, b) => b.sale - a.sale).slice(0, 7).forEach((p, idx) => {
+    console.log(`  ${idx + 1}. ${p.name}: Dispatched ${p.sale} units | Inward: ${p.pur} units | Stock Valuation: ₹${p.val.toLocaleString('en-IN')}`);
+  });
+
+  console.log('\x1b[35m====================================================================\x1b[0m\n');
+  rl.question('Type a product name to search stock or press Enter for main menu: ', (searchAns) => {
+    const query = searchAns.trim().toLowerCase();
+    if (!query) return showMainMenu();
+
+    const matches = products.filter(p => p.name.toLowerCase().includes(query));
+    if (matches.length === 0) {
+      console.log(`\x1b[31mNo inventory items found matching "${query}"\x1b[0m`);
+    } else {
+      console.log(`\n\x1b[32mFound ${matches.length} matching inventory item(s):\x1b[0m`);
+      matches.forEach((p, idx) => {
+        console.log(`  [${idx + 1}] ${p.name}`);
+        console.log(`      Dispatched: ${p.sale} units | Purchased: ${p.pur} units | Inventory Valuation: ₹${p.val.toLocaleString('en-IN')}`);
+      });
+    }
+    rl.question('\nPress Enter to return to main menu...', () => { showMainMenu(); });
   });
 }
 

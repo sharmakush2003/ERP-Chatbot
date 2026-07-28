@@ -66,20 +66,24 @@
             👋 **Welcome to Digify Soft ERP AI Assistant!**<br>
             I am connected directly to your ERP REST APIs.<br><br>
             *Ask me anything about:*
-            - 💰 **Total Sales & GST Collection Dashboard**
-            - 📦 **Search Purchase Invoices**
-            - 🛒 **Search Sale Invoices**
-            - 🔍 **Vendor / Customer / Item details**
+            - 💰 **Executive ERP Business Summary**
+            - 🛒 **Month-wise, Date-wise & Year Sales**
+            - 📦 **Month-wise, Date-wise & Year Purchases**
+            - 🚚 **Dispatch for the Month & Day**
+            - 🏭 **Inventory Total Value & Stock Quantity**
+            - 🔎 **Product Stock Lookup** *(e.g. "inventory for Bath Rug")*
           </div>
           <span class="digify-msg-time">Just now</span>
         </div>
       </div>
 
       <div class="digify-chips-container">
-        <button class="digify-chip" data-prompt="Show Financial Dashboard">💰 Financial Dashboard</button>
-        <button class="digify-chip" data-prompt="Show Purchase Invoices">📦 Purchase Records</button>
-        <button class="digify-chip" data-prompt="Show Sale Invoices">🛒 Sale Records</button>
-        <button class="digify-chip" data-prompt="About Digify Soft Solutions">🏆 About Company</button>
+        <button class="digify-chip" data-prompt="Executive Summary">💰 Executive Summary</button>
+        <button class="digify-chip" data-prompt="Month-wise Sales">🛒 Month Sales</button>
+        <button class="digify-chip" data-prompt="Month Purchases">📦 Month Purchases</button>
+        <button class="digify-chip" data-prompt="Dispatch for the Month">🚚 Dispatch Summary</button>
+        <button class="digify-chip" data-prompt="Total Inventory Summary">🏭 Inventory Total</button>
+        <button class="digify-chip" data-prompt="Inventory for Bath Rug">🔎 Product Inventory</button>
       </div>
 
       <div class="digify-chat-footer">

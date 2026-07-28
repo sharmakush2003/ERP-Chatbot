@@ -46,14 +46,108 @@ function processQuery(query) {
 
   if (q === 'help') {
     console.log('\n📌 Available Commands / Query Examples:');
-    console.log('  1. stats                  - Summary of total sales & purchase count');
-    console.log('  2. purchases              - Show latest purchase invoices');
-    console.log('  3. sales                  - Show latest sale invoices');
-    console.log('  4. party <name>           - Filter by supplier/customer name (e.g. party KESHAV)');
-    console.log('  5. item <name>            - Filter by item name (e.g. item rug)');
-    console.log('  6. search <keyword>       - Search keyword across all invoices & items');
-    console.log('  7. reload                 - Fetch fresh data from API');
-    console.log('  8. exit                   - Quit CLI\n');
+    console.log('  1. stats                      - Business Executive Summary & Counts');
+    console.log('  2. sales-month / sales-date   - Month-wise, Date-wise & Year Sales Analytics');
+    console.log('  3. purchases-month            - Month-wise, Date-wise & Year Purchases Analytics');
+    console.log('  4. dispatch                   - Month & Day Dispatch Summary');
+    console.log('  5. inventory                  - Total Inventory Stock & Valuation');
+    console.log('  6. product <name>             - Product-wise Stock & Inventory Lookup');
+    console.log('  7. party <name>               - Filter by supplier/customer name');
+    console.log('  8. search <keyword>           - Search keyword across all records');
+    console.log('  9. reload                     - Fetch fresh data from ERP API');
+    console.log(' 10. exit                       - Quit CLI\n');
+    return promptUser();
+  }
+
+  if (q.includes('sale') && (q.includes('month') || q.includes('date') || q.includes('year') || q.includes('daily') || q.includes('monthly'))) {
+    const byMonth = {};
+    state.sales.forEach(s => {
+      const d = s.invoiceDate || s.supplierinvoicedate || '';
+      if (!d) return;
+      const month = d.substring(0, 7);
+      if (!byMonth[month]) byMonth[month] = { revenue: 0, count: 0 };
+      byMonth[month].revenue += Number(s.invoiceamount || 0);
+      byMonth[month].count += 1;
+    });
+
+    console.log('\n🛒 === MONTH-WISE SALES REPORT ===');
+    Object.entries(byMonth).forEach(([m, val]) => {
+      console.log(`  • ${m}: ₹${val.revenue.toLocaleString('en-IN')} (${val.count} Invoices)`);
+    });
+    console.log('\n');
+    return promptUser();
+  }
+
+  if (q.includes('purchase') && (q.includes('month') || q.includes('date') || q.includes('year') || q.includes('daily') || q.includes('monthly'))) {
+    const byMonth = {};
+    state.purchases.forEach(p => {
+      const d = p.invoiceDate || p.supplierinvoicedate || '';
+      if (!d) return;
+      const month = d.substring(0, 7);
+      if (!byMonth[month]) byMonth[month] = { expense: 0, count: 0 };
+      let amt = Number(p.invoiceamount || 0);
+      (p.items || []).forEach(i => amt += Math.abs(Number(i.itemAmount || 0)));
+      byMonth[month].expense += amt;
+      byMonth[month].count += 1;
+    });
+
+    console.log('\n📦 === MONTH-WISE PURCHASES REPORT ===');
+    Object.entries(byMonth).forEach(([m, val]) => {
+      console.log(`  • ${m}: ₹${val.expense.toLocaleString('en-IN')} (${val.count} Invoices)`);
+    });
+    console.log('\n');
+    return promptUser();
+  }
+
+  if (q.includes('dispatch')) {
+    let totalQty = 0;
+    let totalVal = 0;
+    state.sales.forEach(s => {
+      totalVal += Number(s.invoiceamount || 0);
+      (s.items || []).forEach(i => totalQty += Number(i.itemQty || i.qty || 1));
+    });
+
+    console.log('\n🚚 === DISPATCH SUMMARY REPORT ===');
+    console.log(`Total Outward Dispatched Units: ${totalQty.toLocaleString('en-IN')} units`);
+    console.log(`Total Dispatch Revenue Value:   ₹${totalVal.toLocaleString('en-IN')}\n`);
+    return promptUser();
+  }
+
+  if (q.includes('inventory') || q.startsWith('product ')) {
+    const searchProd = q.replace(/^product\s+/, '').replace(/^inventory\s+/, '').replace(/stock/g, '').trim();
+    const itemMap = {};
+
+    state.purchases.forEach(p => {
+      (p.items || []).forEach(i => {
+        const name = i.itemName?.trim() || 'Unknown';
+        if (!itemMap[name]) itemMap[name] = { name, pur: 0, sale: 0 };
+        itemMap[name].pur += Number(i.itemQty || i.qty || 1);
+      });
+    });
+
+    state.sales.forEach(s => {
+      (s.items || []).forEach(i => {
+        const name = i.itemName?.trim() || 'Unknown';
+        if (!itemMap[name]) itemMap[name] = { name, pur: 0, sale: 0 };
+        itemMap[name].sale += Number(i.itemQty || i.qty || 1);
+      });
+    });
+
+    let items = Object.values(itemMap);
+    if (searchProd && searchProd !== 'inventory' && searchProd !== 'summary') {
+      items = items.filter(it => it.name.toLowerCase().includes(searchProd.toLowerCase()));
+      console.log(`\n📦 === PRODUCT INVENTORY LOOKUP FOR "${searchProd}" ===`);
+    } else {
+      console.log('\n🏭 === OVERALL INVENTORY STOCK SUMMARY ===');
+      console.log(`Total Tracked Products: ${items.length}`);
+    }
+
+    items.slice(0, 10).forEach((it, idx) => {
+      const netStock = Math.max(0, it.pur - it.sale);
+      console.log(`  ${idx + 1}. ${it.name}`);
+      console.log(`     Dispatched (Sold): ${it.sale} | Purchased: ${it.pur} | Net Stock: ${netStock}`);
+    });
+    console.log('\n');
     return promptUser();
   }
 
