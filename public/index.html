@@ -482,19 +482,34 @@
       <div>
         <div class="panel-title" style="margin-bottom:12px;">Quick Search Prompts</div>
         <div class="quick-prompts">
-          <button class="quick-prompt-btn" onclick="sendPrompt('Show Purchase Invoices')">
-            <span class="qp-icon">📦</span>
-            <span class="qp-text">Purchase Records</span>
-            <span class="qp-arrow">›</span>
-          </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Show Sale Invoices')">
-            <span class="qp-icon">🛒</span>
-            <span class="qp-text">Sale Records</span>
-            <span class="qp-arrow">›</span>
-          </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Total sales and purchases summary')">
+          <button class="quick-prompt-btn" onclick="sendPrompt('Executive Summary')">
             <span class="qp-icon">💰</span>
-            <span class="qp-text">Financial Summary</span>
+            <span class="qp-text">Executive Summary</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" onclick="sendPrompt('Month-wise Sales')">
+            <span class="qp-icon">🛒</span>
+            <span class="qp-text">Month Sales</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" onclick="sendPrompt('Month Purchases')">
+            <span class="qp-icon">📦</span>
+            <span class="qp-text">Month Purchases</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" onclick="sendPrompt('Dispatch for the Month')">
+            <span class="qp-icon">🚚</span>
+            <span class="qp-text">Dispatch Report</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" onclick="sendPrompt('Total Inventory Summary')">
+            <span class="qp-icon">🏭</span>
+            <span class="qp-text">Total Inventory Stock</span>
+            <span class="qp-arrow">›</span>
+          </button>
+          <button class="quick-prompt-btn" onclick="sendPrompt('Inventory for Bath Rug')">
+            <span class="qp-icon">🔎</span>
+            <span class="qp-text">Product Stock Lookup</span>
             <span class="qp-arrow">›</span>
           </button>
         </div>
@@ -519,11 +534,13 @@
         <div class="message ai">
           <div class="message-bubble">
             👋 <strong>Hi! I am the ERP AI Bot for Digify Soft.</strong><br><br>
-            I'm connected to your real-time ERP databases. I can instantly search through <strong>Sales Records</strong> and <strong>Purchase Records</strong>.<br><br>
+            I'm connected to your real-time ERP databases. I can instantly query <strong>Sales Analytics (Month/Date/Year)</strong>, <strong>Purchase Analytics</strong>, <strong>Outward Dispatches</strong>, and <strong>Inventory Stock & Valuation</strong>.<br><br>
             What would you like to enquire about today?
             <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-              <button onclick="sendPrompt('Show Purchase Invoices')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">📦 Purchase Records</button>
-              <button onclick="sendPrompt('Show Sale Invoices')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">🛒 Sale Records</button>
+              <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">🛒 Month Sales</button>
+              <button onclick="sendPrompt('Month Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">📦 Month Purchases</button>
+              <button onclick="sendPrompt('Dispatch for the Month')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.3)'" onmouseout="this.style.background='rgba(245,158,11,0.18)'">🚚 Dispatch Summary</button>
+              <button onclick="sendPrompt('Total Inventory Summary')" style="background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.3)'" onmouseout="this.style.background='rgba(59,130,246,0.18)'">🏭 Total Inventory</button>
             </div>
           </div>
           <span class="message-time">Just now</span>
