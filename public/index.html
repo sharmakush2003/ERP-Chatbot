@@ -514,19 +514,14 @@
       <div>
         <div class="panel-title" style="margin-bottom:10px;">Quick Search Prompts</div>
         <div class="quick-prompts">
-          <button class="quick-prompt-btn" onclick="sendPrompt('Executive Summary')">
-            <span class="qp-icon">💰</span>
-            <span class="qp-text">Executive Summary</span>
-            <span class="qp-arrow">›</span>
-          </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Month-wise Sales')">
+          <button class="quick-prompt-btn" onclick="sendPrompt('Sales')">
             <span class="qp-icon">🛒</span>
-            <span class="qp-text">Month-wise Sales</span>
+            <span class="qp-text">Sales</span>
             <span class="qp-arrow">›</span>
           </button>
-          <button class="quick-prompt-btn green" onclick="sendPrompt('Month Purchases')">
+          <button class="quick-prompt-btn green" onclick="sendPrompt('Purchases')">
             <span class="qp-icon">📦</span>
-            <span class="qp-text">Month Purchases</span>
+            <span class="qp-text">Purchases</span>
             <span class="qp-arrow">›</span>
           </button>
           <button class="quick-prompt-btn amber" onclick="sendPrompt('Dispatch for the Month')">
@@ -564,7 +559,7 @@
       <div class="chat-header">
         <div class="chat-header-title">
           <h1>ERP AI Assistant</h1>
-          <p>Connected to real-time Sales, Purchase, Dispatch & Inventory APIs</p>
+          <p>Connected to real-time Sales & Purchase APIs</p>
         </div>
         <div class="header-actions">
           <button class="icon-btn" onclick="copyChat()" title="Copy / Export Chat">📋</button>
@@ -578,22 +573,13 @@
           <div class="ai-label">🤖 Digify AI</div>
           <div class="message-bubble">
             👋 <strong>Hi! I am the ERP AI Bot for Digify Soft.</strong><br><br>
-            I'm connected to your real-time ERP databases. I can instantly query:<br><br>
-            🛒 <strong>Sales Analytics</strong> (Month / Date / Year)<br>
-            📦 <strong>Purchase Analytics</strong> (Month / Date / Year)<br>
-            🚚 <strong>Dispatch Reports</strong> (Monthly & Daily)<br>
-            🏭 <strong>Inventory Stock & Valuation</strong><br>
-            🏆 <strong>Top Customers, Vendors & Best-Sellers</strong><br>
-            ⚠️ <strong>Low Stock & Reorder Alerts</strong><br>
-            📈 <strong>Gross Profit & Margin Analysis</strong><br><br>
+            I'm connected to your real-time ERP databases. Select an enquiry option below:<br><br>
+            🛒 <strong>Sales Reports</strong> (Month-wise / Day-wise / Year-wise)<br>
+            📦 <strong>Purchase Reports</strong> (Month-wise / Day-wise / Year-wise)<br><br>
             What would you like to enquire about today?
-            <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
-              <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">🛒 Month Sales</button>
-              <button onclick="sendPrompt('Month Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">📦 Month Purchases</button>
-              <button onclick="sendPrompt('Dispatch for the Month')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.3)'" onmouseout="this.style.background='rgba(245,158,11,0.18)'">🚚 Dispatch</button>
-              <button onclick="sendPrompt('Total Inventory Summary')" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.35);color:#67e8f9;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(6,182,212,0.25)'" onmouseout="this.style.background='rgba(6,182,212,0.15)'">🏭 Inventory</button>
-              <button onclick="sendPrompt('Top Customers and Vendors')" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.35);color:#d8b4fe;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(168,85,247,0.25)'" onmouseout="this.style.background='rgba(168,85,247,0.15)'">🏆 Top Customers</button>
-              <button onclick="sendPrompt('Low Stock Alerts')" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.22)'" onmouseout="this.style.background='rgba(239,68,68,0.12)'">⚠️ Low Stock</button>
+            <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+              <button onclick="sendPrompt('Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">🛒 Sales</button>
+              <button onclick="sendPrompt('Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">📦 Purchases</button>
             </div>
           </div>
           <span class="message-time">Just now</span>

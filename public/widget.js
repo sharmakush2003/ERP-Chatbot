@@ -65,24 +65,17 @@
           <div class="digify-msg-content">
             👋 **Welcome to Digify Soft ERP AI!**<br>
             I'm connected directly to your ERP REST APIs.<br><br>
-            *I can instantly answer:*
-            - 🛒 **Month/Date/Year Sales Analytics**
-            - 📦 **Month/Date/Year Purchase Analytics**
-            - 🚚 **Dispatch Reports (Monthly & Daily)**
-            - 🏭 **Total Inventory Value & Stock Quantity**
-            - 🔎 **Product-wise Stock Lookup**
-            - 🏆 **Top Customers, Vendors & Best-Sellers**
-            - ⚠️ **Low Stock & Reorder Alerts**
-            - 📈 **Gross Profit & Margin Analysis**
+            *Select an enquiry option below:*
+            - 🛒 **Sales Reports** (Month / Day / Year)
+            - 📦 **Purchase Reports** (Month / Day / Year)
           </div>
           <span class="digify-msg-time">Just now</span>
         </div>
       </div>
 
       <div class="digify-chips-container">
-        <button class="digify-chip" data-prompt="Executive Summary">💰 Executive Summary</button>
-        <button class="digify-chip" data-prompt="Month-wise Sales">🛒 Month Sales</button>
-        <button class="digify-chip" data-prompt="Month Purchases">📦 Month Purchases</button>
+        <button class="digify-chip" data-prompt="Sales">🛒 Sales</button>
+        <button class="digify-chip" data-prompt="Purchases">📦 Purchases</button>
         <button class="digify-chip" data-prompt="Dispatch for the Month">🚚 Dispatch Report</button>
         <button class="digify-chip" data-prompt="Total Inventory Summary">🏭 Inventory Total</button>
         <button class="digify-chip" data-prompt="Inventory for Bath Rug">🔎 Product Lookup</button>

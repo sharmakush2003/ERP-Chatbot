@@ -552,74 +552,186 @@ function generateDeterministicFallback(query) {
   const purchasesBreakdown = getPurchasesBreakdown();
   const dispatchSummary = getDispatchSummary();
 
-  // 1. Executive Business Summary
-  if (q.includes('summary') || q.includes('status') || q.includes('dashboard') || q.includes('executive') || (q.includes('sale') && q.includes('purchase') && !q.includes('month') && !q.includes('date'))) {
-    const grossProfit = summary.sales.totalAmount - summary.purchases.totalAmount;
-    const grossMarginPct = summary.sales.totalAmount > 0
-      ? ((grossProfit / summary.sales.totalAmount) * 100).toFixed(2) : '0.00';
-    let resp = `### 💰 Executive ERP Business Summary\n\n`;
-    resp += `| Metric | Value |\n|---|---|\n`;
-    resp += `| 🛒 Total Sales Revenue | ₹${summary.sales.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.sales.totalInvoices} Invoices) |\n`;
-    resp += `| 📦 Total Purchase Expenses | ₹${summary.purchases.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${summary.purchases.totalInvoices} Invoices) |\n`;
-    resp += `| 💚 Gross Profit | ₹${grossProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })} |\n`;
-    resp += `| 📈 Gross Margin % | ${grossMarginPct}% |\n\n`;
-    resp += `#### 🏆 Top 5 Customers by Revenue:\n`;
-    analytics.topCustomers.forEach((c, i) => { resp += `${i+1}. **${c.name}** — ₹${c.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${c.invoiceCount} invoices)\n`; });
-    resp += `\n#### 🏭 Top 5 Suppliers by Purchase Value:\n`;
-    analytics.topSuppliers.forEach((s, i) => { resp += `${i+1}. **${s.name}** — ₹${s.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${s.invoiceCount} invoices)\n`; });
-    resp += `\n#### 📦 Top 5 Best-Selling Products:\n`;
-    analytics.topSaleItems.forEach((item, i) => { resp += `${i+1}. **${item.name}** — ${item.totalQty} units sold\n`; });
+  // 1. Executive Summary query -> Under Construction / Deleted per user request
+  if (q.includes('summary') || q.includes('executive')) {
+    return "🚧 **Building... Will take some time**";
+  }
+
+  // 2. Primary "Sales" query (exact or generic sales request)
+  if (q === 'sales' || q === 'sale' || q === 'show sales' || q === 'sales report') {
+    let resp = `### 🛒 Sales Reports\n\n`;
+    resp += `Which Sales report would you like to view? Please select an option below:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    resp += `  <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Month-wise Sales</button>\n`;
+    resp += `  <button onclick="sendPrompt('Day-wise Sales')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Day-wise Sales</button>\n`;
+    resp += `  <button onclick="sendPrompt('Year-wise Sales')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year-wise Sales</button>\n`;
+    resp += `</div>`;
     return resp;
   }
 
-  // 2. Month-Wise / Date-Wise / Year Sales
-  if (q.includes('sale') && (q.includes('month') || q.includes('date') || q.includes('year') || q.includes('daily') || q.includes('monthly') || q.includes('yearly'))) {
-    let resp = `### 🛒 Sales Analytics Report\n\n`;
-    
-    resp += `#### 📅 Sales by Year:\n`;
+  // 2a. Year-wise Sales
+  if (q.includes('year') && q.includes('sale')) {
+    let resp = `### 📅 Year-wise Sales Report\n\n`;
     Object.values(salesBreakdown.byYear).forEach(y => {
       resp += `- **Year ${y.year}:** ₹${y.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${y.invoiceCount} Invoices, ${y.totalItemsQty} items sold)\n`;
     });
+    resp += `\nSelect a year or explore Month-wise Sales:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.keys(salesBreakdown.byYear).forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Sales for Year ${yr}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
+    });
+    resp += `  <button onclick="sendPrompt('Month-wise Sales')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ View Month-wise Sales</button>\n`;
+    resp += `</div>`;
+    return resp;
+  }
 
-    resp += `\n#### 🗓️ Sales by Month:\n`;
+  // 2b. Month-wise Sales
+  if (q.includes('month') && q.includes('sale')) {
+    let resp = `### 🗓️ Month-wise Sales Report\n\n`;
+    resp += `Select a month to view its detailed revenue and invoice report:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.values(salesBreakdown.byMonth).forEach(m => {
+      const dateObj = new Date(`${m.month}-01`);
+      const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+      resp += `  <button onclick="sendPrompt('Sales for ${monthLabel}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ ${monthLabel}</button>\n`;
+    });
+    resp += `</div>\n\n`;
+    resp += `#### 📊 Overall Monthly Breakdown:\n`;
     Object.values(salesBreakdown.byMonth).forEach(m => {
       const dateObj = new Date(`${m.month}-01`);
       const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
       resp += `- **${monthLabel} (${m.month}):** ₹${m.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${m.invoiceCount} Invoices | ${m.totalItemsQty} Items Dispatched\n`;
     });
-
-    const topDates = Object.values(salesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
-    resp += `\n#### 📆 Daily Sales Summary (Recent Dates):\n`;
-    topDates.forEach(d => {
-      resp += `- **Date ${d.date}:** ₹${d.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices, ${d.totalItemsQty} Qty)\n`;
-    });
-
     return resp;
   }
 
-  // 3. Month-Wise / Date-Wise / Year Purchases
-  if (q.includes('purchase') && (q.includes('month') || q.includes('date') || q.includes('year') || q.includes('daily') || q.includes('monthly') || q.includes('yearly'))) {
-    let resp = `### 📦 Purchases Analytics Report\n\n`;
-    
-    resp += `#### 📅 Purchases by Year:\n`;
+  // 2c. Day-wise Sales
+  if ((q.includes('day') || q.includes('date') || q.includes('daily')) && q.includes('sale')) {
+    let resp = `### 📆 Day-wise Sales Summary\n\n`;
+    resp += `Select a date to view daily sales records:\n\n`;
+    const topDates = Object.values(salesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    topDates.forEach(d => {
+      resp += `  <button onclick="sendPrompt('Sales for ${d.date}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 ${d.date}</button>\n`;
+    });
+    resp += `</div>\n\n`;
+    resp += `#### 📋 Recent Daily Summaries:\n`;
+    topDates.forEach(d => {
+      resp += `- **Date ${d.date}:** ₹${d.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices, ${d.totalItemsQty} Qty)\n`;
+    });
+    return resp;
+  }
+
+  // Specific Sales Filter (e.g. "Sales for April 2026")
+  if (q.includes('sales for') || q.includes('sale for')) {
+    const filter = q.replace('sales for', '').replace('sale for', '').trim();
+    const matching = sales.filter(s => {
+      const d = s.invoiceDate || s.supplierinvoicedate || '';
+      return d.toLowerCase().includes(filter) || JSON.stringify(s).toLowerCase().includes(filter);
+    });
+    if (matching.length > 0) {
+      let totalAmt = 0;
+      matching.forEach(s => totalAmt += Number(s.invoiceamount || 0));
+      let resp = `### 🛒 Sales Report for "${filter.toUpperCase()}"\n\n`;
+      resp += `- 💰 **Total Revenue:** ₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
+      resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n\n`;
+      resp += `#### 📋 Invoice List:\n`;
+      matching.slice(0, 8).forEach((s, i) => {
+        resp += `${i + 1}. Invoice \`${s.invoiceNo || 'N/A'}\` | Date: ${s.invoiceDate || 'N/A'} | ₹${s.invoiceamount || 0} (${s.partyName || s.shipping_add_lin1 || 'N/A'})\n`;
+      });
+      return resp;
+    }
+  }
+
+  // 3. Primary "Purchases" query
+  if (q === 'purchases' || q === 'purchase' || q === 'show purchases' || q === 'purchase report') {
+    let resp = `### 📦 Purchase Reports\n\n`;
+    resp += `Which Purchase report would you like to view? Please select an option below:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    resp += `  <button onclick="sendPrompt('Month-wise Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Month-wise Purchases</button>\n`;
+    resp += `  <button onclick="sendPrompt('Day-wise Purchases')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Day-wise Purchases</button>\n`;
+    resp += `  <button onclick="sendPrompt('Year-wise Purchases')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year-wise Purchases</button>\n`;
+    resp += `</div>`;
+    return resp;
+  }
+
+  // 3a. Year-wise Purchases
+  if (q.includes('year') && q.includes('purchase')) {
+    let resp = `### 📅 Year-wise Purchases Report\n\n`;
     Object.values(purchasesBreakdown.byYear).forEach(y => {
       resp += `- **Year ${y.year}:** ₹${y.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${y.invoiceCount} Invoices, ${y.totalItemsQty} items purchased)\n`;
     });
+    resp += `\nSelect a year or explore Month-wise Purchases:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.keys(purchasesBreakdown.byYear).forEach(yr => {
+      resp += `  <button onclick="sendPrompt('Purchases for Year ${yr}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Year ${yr}</button>\n`;
+    });
+    resp += `  <button onclick="sendPrompt('Month-wise Purchases')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ View Month-wise Purchases</button>\n`;
+    resp += `</div>`;
+    return resp;
+  }
 
-    resp += `\n#### 🗓️ Purchases by Month:\n`;
+  // 3b. Month-wise Purchases
+  if (q.includes('month') && q.includes('purchase')) {
+    let resp = `### 🗓️ Month-wise Purchases Report\n\n`;
+    resp += `Select a month to view its detailed expense report:\n\n`;
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    Object.values(purchasesBreakdown.byMonth).forEach(m => {
+      const dateObj = new Date(`${m.month}-01`);
+      const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+      resp += `  <button onclick="sendPrompt('Purchases for ${monthLabel}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ ${monthLabel}</button>\n`;
+    });
+    resp += `</div>\n\n`;
+    resp += `#### 📊 Overall Monthly Breakdown:\n`;
     Object.values(purchasesBreakdown.byMonth).forEach(m => {
       const dateObj = new Date(`${m.month}-01`);
       const monthLabel = isNaN(dateObj) ? m.month : dateObj.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
       resp += `- **${monthLabel} (${m.month}):** ₹${m.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} | ${m.invoiceCount} Invoices | ${m.totalItemsQty} Items Purchased\n`;
     });
+    return resp;
+  }
 
-    const topDates = Object.values(purchasesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
-    resp += `\n#### 📆 Daily Purchases Summary (Recent Dates):\n`;
+  // 3c. Day-wise Purchases
+  if ((q.includes('day') || q.includes('date') || q.includes('daily')) && q.includes('purchase')) {
+    let resp = `### 📆 Day-wise Purchases Summary\n\n`;
+    resp += `Select a date to view daily purchase records:\n\n`;
+    const topDates = Object.values(purchasesBreakdown.byDate).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
+    resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
+    topDates.forEach(d => {
+      resp += `  <button onclick="sendPrompt('Purchases for ${d.date}')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 ${d.date}</button>\n`;
+    });
+    resp += `</div>\n\n`;
+    resp += `#### 📋 Recent Daily Summaries:\n`;
     topDates.forEach(d => {
       resp += `- **Date ${d.date}:** ₹${d.totalExpense.toLocaleString('en-IN', { maximumFractionDigits: 2 })} (${d.invoiceCount} Invoices, ${d.totalItemsQty} Qty)\n`;
     });
-
     return resp;
+  }
+
+  // Specific Purchase Filter (e.g. "Purchases for April 2026")
+  if (q.includes('purchases for') || q.includes('purchase for')) {
+    const filter = q.replace('purchases for', '').replace('purchase for', '').trim();
+    const matching = purchases.filter(p => {
+      const d = p.invoiceDate || p.supplierinvoicedate || '';
+      return d.toLowerCase().includes(filter) || JSON.stringify(p).toLowerCase().includes(filter);
+    });
+    if (matching.length > 0) {
+      let totalAmt = 0;
+      matching.forEach(p => {
+        let pAmt = Number(p.invoiceamount || 0);
+        (p.items || []).forEach(i => pAmt += Math.abs(Number(i.itemAmount || 0)));
+        totalAmt += pAmt;
+      });
+      let resp = `### 📦 Purchases Report for "${filter.toUpperCase()}"\n\n`;
+      resp += `- 💰 **Total Expenses:** ₹${totalAmt.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
+      resp += `- 📜 **Total Invoices:** ${matching.length} Invoices\n\n`;
+      resp += `#### 📋 Invoice List:\n`;
+      matching.slice(0, 8).forEach((p, i) => {
+        const invNo = p.invoiceNo || p.supplierinvoiceno || 'N/A';
+        resp += `${i + 1}. Invoice \`${invNo}\` | Date: ${p.invoiceDate || p.supplierinvoicedate || 'N/A'} | Vendor: ${p.partyName || 'N/A'}\n`;
+      });
+      return resp;
+    }
   }
 
   // 4. Dispatch Analytics (For Day / For Month)
@@ -914,6 +1026,11 @@ function checkUnderConstructionQuery(message) {
   if (!MOCK_UNDER_CONSTRUCTION) return null;
 
   const q = message.toLowerCase().trim();
+
+  // Executive Summary query (deleted per user instruction)
+  if (q.includes('summary') || q.includes('executive')) {
+    return "🚧 **Building... Will take some time**";
+  }
 
   // 1. Dispatch queries
   if (q.includes('dispatch') || q.includes('shipment') || q.includes('dispatched')) {
