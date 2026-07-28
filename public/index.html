@@ -133,11 +133,11 @@
     .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── KPI GRID (3 columns) ── */
+    /* ── KPI GRID (2x2) ── */
     .kpi-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
     .kpi-card {
       background: var(--surface-2);
@@ -495,29 +495,17 @@
             <div class="kpi-value" id="kpiPurchaseAmt">—</div>
             <div class="kpi-sub" id="kpiPurchaseInv">Loading...</div>
           </div>
-          <div class="kpi-card purple">
-            <div class="kpi-icon">📈</div>
-            <div class="kpi-label">Gross Margin</div>
-            <div class="kpi-value" id="kpiMargin">—</div>
-            <div class="kpi-sub">Profit %</div>
-          </div>
-          <div class="kpi-card cyan">
-            <div class="kpi-icon">🚚</div>
-            <div class="kpi-label">Dispatched</div>
-            <div class="kpi-value" id="kpiDispatch">—</div>
-            <div class="kpi-sub">Total Units</div>
-          </div>
           <div class="kpi-card amber">
-            <div class="kpi-icon">🏭</div>
-            <div class="kpi-label">Inventory Val</div>
-            <div class="kpi-value" id="kpiInventory">—</div>
-            <div class="kpi-sub" id="kpiInventorySub">Stock Value</div>
-          </div>
-          <div class="kpi-card">
             <div class="kpi-icon">📋</div>
             <div class="kpi-label">Avg. Sale</div>
             <div class="kpi-value" id="kpiAvgSale">—</div>
             <div class="kpi-sub">Per Invoice</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">📁</div>
+            <div class="kpi-label">Items Sold</div>
+            <div class="kpi-value" id="kpiSaleItems">—</div>
+            <div class="kpi-sub">Line Items</div>
           </div>
         </div>
       </div>
@@ -670,20 +658,12 @@
       const headerBadge = document.getElementById('headerBadge');
 
       try {
-        const [summaryRes, dispatchRes, inventoryRes] = await Promise.all([
-          fetch('/api/summary'),
-          fetch('/api/analytics/dispatch'),
-          fetch('/api/analytics/inventory')
-        ]);
-        const summaryJson   = await summaryRes.json();
-        const dispatchJson  = await dispatchRes.json();
-        const inventoryJson = await inventoryRes.json();
+        const summaryRes  = await fetch('/api/summary');
+        const summaryJson = await summaryRes.json();
 
         if (summaryJson.status !== 'ok') throw new Error('API Error');
 
         const { sales, purchases } = summaryJson.data;
-        const dispatch  = dispatchJson.data;
-        const inventory = inventoryJson.data;
 
         const fmt  = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
         const fmtK = (n) => {
@@ -699,22 +679,7 @@
 
         const avg = sales.totalInvoices > 0 ? (sales.totalAmount / sales.totalInvoices) : 0;
         document.getElementById('kpiAvgSale').textContent = fmtK(avg);
-
-        // Gross Margin
-        const grossProfit = sales.totalAmount - purchases.totalAmount;
-        const marginPct = sales.totalAmount > 0 ? ((grossProfit / sales.totalAmount) * 100).toFixed(1) : '0.0';
-        document.getElementById('kpiMargin').textContent = marginPct + '%';
-
-        // Dispatch
-        if (dispatch && dispatch.grandTotalDispatchQty !== undefined) {
-          document.getElementById('kpiDispatch').textContent = dispatch.grandTotalDispatchQty.toLocaleString('en-IN');
-        }
-
-        // Inventory
-        if (inventory && inventory.totalInventoryVal !== undefined) {
-          document.getElementById('kpiInventory').textContent = fmtK(inventory.totalInventoryVal);
-          document.getElementById('kpiInventorySub').textContent = `${inventory.totalUniqueProducts} Products`;
-        }
+        document.getElementById('kpiSaleItems').textContent = sales.totalItems.toLocaleString('en-IN');
 
         if (statusDot)   { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 8px #10b981'; }
         if (statusText)  statusText.textContent = 'ERP AI Connected';

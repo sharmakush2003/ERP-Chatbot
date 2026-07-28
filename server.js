@@ -907,6 +907,40 @@ app.post('/api/refresh', async (req, res) => {
   });
 });
 
+// Configuration: When true, returns 'Building... Will take some time' for features under construction
+const MOCK_UNDER_CONSTRUCTION = true;
+
+function checkUnderConstructionQuery(message) {
+  if (!MOCK_UNDER_CONSTRUCTION) return null;
+
+  const q = message.toLowerCase().trim();
+
+  // 1. Dispatch queries
+  if (q.includes('dispatch') || q.includes('shipment') || q.includes('dispatched')) {
+    return "🚧 **Building... Will take some time**";
+  }
+
+  // 2. Inventory & Stock queries
+  if (q.includes('inventory') || q.includes('stock')) {
+    return "🚧 **Building... Will take some time**";
+  }
+
+  // 3. Top Customers & Vendors / Suppliers queries
+  if (q.includes('top customer') || q.includes('best customer') || q.includes('customer analysis') || 
+      q.includes('top vendor') || q.includes('top supplier') || q.includes('supplier analysis') || 
+      q.includes('customers and vendor') || q.includes('customers & vendor') || q.includes('customers and supplier') ||
+      q.includes('best selling') || q.includes('top product') || q.includes('top item')) {
+    return "🚧 **Building... Will take some time**";
+  }
+
+  // 4. Low Stock Alerts queries
+  if (q.includes('low stock') || q.includes('stock alert') || q.includes('reorder') || q.includes('out of stock') || q.includes('low inventory')) {
+    return "🚧 **Building... Will take some time**";
+  }
+
+  return null;
+}
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -915,6 +949,16 @@ app.post('/api/chat', async (req, res) => {
     }
 
     await ensureDataLoaded();
+
+    // Check if query is for a feature currently under construction
+    const underConstructionReply = checkUnderConstructionQuery(message);
+    if (underConstructionReply) {
+      return res.json({
+        reply: underConstructionReply,
+        mode: 'placeholder',
+        timestamp: new Date().toISOString()
+      });
+    }
 
     let reply = null;
     let mode = 'deterministic';
