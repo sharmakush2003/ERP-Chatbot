@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digify Soft ERP AI — Intelligence Console</title>
   <meta name="description" content="Digify Soft ERP AI — Real-time Sales, Purchase, Stock & Inventory Intelligence Console powered by AI.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
   <style>
     :root {
-      --bg:           #f0f4f8;
-      --s1:           rgba(255,255,255,0.88);
-      --s2:           rgba(255,255,255,0.72);
-      --border:       rgba(0,0,0,0.08);
+      --bg:           #f4f6fa;
+      --s1:           rgba(255,255,255,0.92);
+      --s2:           rgba(255,255,255,0.78);
+      --border:       rgba(15,23,42,0.08);
       --border-hi:    rgba(99,102,241,0.35);
       --indigo:       #6366f1;
       --indigo-d:     #4f46e5;
@@ -38,11 +37,11 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     body {
-      font-family:'Plus Jakarta Sans',sans-serif;
+      font-family:'Outfit','Inter',-apple-system,BlinkMacSystemFont,sans-serif;
       background:var(--bg);
       background-image:
-        radial-gradient(ellipse 90% 60% at 5% -5%,  rgba(99,102,241,0.12) 0%,transparent 55%),
-        radial-gradient(ellipse 70% 50% at 95% 100%,rgba(16,185,129,0.09) 0%,transparent 55%),
+        radial-gradient(ellipse 90% 60% at 5% -5%,  rgba(99,102,241,0.11) 0%,transparent 55%),
+        radial-gradient(ellipse 70% 50% at 95% 100%,rgba(16,185,129,0.08) 0%,transparent 55%),
         radial-gradient(ellipse 50% 70% at 50% 50%,  rgba(168,85,247,0.04) 0%,transparent 65%),
         radial-gradient(ellipse 40% 40% at 80% 10%,  rgba(236,72,153,0.05) 0%,transparent 50%);
       color:var(--t1);
@@ -157,7 +156,7 @@
     .kpi-card.re:hover{border-color:rgba(239,68,68,0.28);box-shadow:0 8px 28px rgba(239,68,68,0.12);}
     .kpi-icon{font-size:17px;margin-bottom:7px;line-height:1;}
     .kpi-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:4px;}
-    .kpi-value{font-size:16px;font-weight:800;color:var(--t1);line-height:1.2;word-break:break-all;transition:var(--tx);}
+    .kpi-value{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:var(--t1);line-height:1.2;word-break:break-all;transition:var(--tx);letter-spacing:-0.5px;}
     .kpi-sub{font-size:10px;color:var(--t3);margin-top:3px;font-weight:500;}
     .refresh-btn {
       width:26px;height:26px;border-radius:7px;
@@ -245,11 +244,12 @@
       display:flex;align-items:center;justify-content:center;font-size:13px;
     }
     .ai-label {
+      font-family:'Outfit',sans-serif;
       font-size:10.5px;font-weight:700;color:var(--indigo-d);
       background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.28);
       padding:2px 8px;border-radius:100px;letter-spacing:0.4px;
     }
-    .message-bubble{padding:14px 17px;border-radius:18px;font-size:13.5px;line-height:1.72;}
+    .message-bubble{padding:14px 17px;border-radius:18px;font-size:13.5px;line-height:1.72;font-family:'Inter',sans-serif;}
     .message.user .message-bubble{
       background:linear-gradient(135deg,var(--indigo),var(--indigo-d));
       color:#fff;border-bottom-right-radius:4px;
@@ -260,11 +260,11 @@
       border:1px solid var(--border);border-bottom-left-radius:4px;
       box-shadow:0 2px 14px rgba(0,0,0,0.05);
     }
-    .message-bubble h3{font-size:14px;font-weight:700;margin:10px 0 6px;color:var(--indigo-d);}
-    .message-bubble h4{font-size:13px;font-weight:600;margin:8px 0 4px;color:var(--indigo);}
+    .message-bubble h3{font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:700;margin:10px 0 6px;color:var(--indigo-d);}
+    .message-bubble h4{font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:600;margin:8px 0 4px;color:var(--indigo);}
     .message-bubble strong{color:var(--t1);font-weight:700;}
     .message-bubble em{color:var(--t2);font-style:italic;}
-    .message-bubble code{background:rgba(99,102,241,0.15);padding:2px 7px;border-radius:5px;font-family:'Courier New',monospace;font-size:12px;color:var(--indigo-d);}
+    .message-bubble code{background:rgba(99,102,241,0.15);padding:2px 7px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--indigo-d);}
     .message-bubble table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,0,0.08);}
     .message-bubble th{background:rgba(99,102,241,0.1);color:var(--indigo-d);font-weight:700;padding:9px 13px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.7px;}
     .message-bubble td{padding:8px 13px;border-bottom:1px solid rgba(0,0,0,0.05);color:var(--t1);}
@@ -373,8 +373,6 @@
         <div class="status-dot" id="statusDot"></div>
         <span id="statusText">Connecting...</span>
       </div>
-      <button class="nav-icon-btn" onclick="toggleDisclaimerModal()" title="AI Notice">ℹ️</button>
-      <button class="nav-icon-btn" onclick="copyChat()" title="Export Chat">📋</button>
     </div>
   </nav>
 
@@ -468,8 +466,6 @@
         </div>
         <div class="chat-header-actions">
           <button class="ch-btn" onclick="clearChat()" title="Clear Chat">🗑️</button>
-          <button class="ch-btn" onclick="copyChat()" title="Export Chat">📋</button>
-          <button class="ch-btn" onclick="toggleDisclaimerModal()" title="AI Notice">ℹ️</button>
           <span class="header-status-pill" id="headerBadge">ERP AI Connected</span>
         </div>
       </div>
@@ -502,7 +498,6 @@
           <input type="text" class="chat-input" id="chatInput"
             placeholder="Ask anything — invoice number, customer name, vendor, month sales, inventory…"
             autocomplete="off">
-          <button class="mic-btn" id="micBtn" title="Voice Search">🎤</button>
           <button class="send-btn" id="sendBtn" onclick="sendUserMessage()">
             <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
           </button>
@@ -518,14 +513,12 @@
     const chatBody  = document.getElementById('chatBody');
     const chatInput = document.getElementById('chatInput');
     const sendBtn   = document.getElementById('sendBtn');
-    const micBtn    = document.getElementById('micBtn');
 
     document.addEventListener('DOMContentLoaded', () => {
       loadSummary();
       chatInput.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
       });
-      initVoice();
     });
 
     function toggleDisclaimerModal() {
@@ -602,21 +595,8 @@
       appendMessage('ai', '🔄 **Chat cleared.** Ask me anything about your ERP data!');
     }
 
-    // ── VOICE ────────────────────────────────────────────
-    function initVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) { micBtn.style.display = 'none'; return; }
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-IN'; recognition.continuous = false;
-      micBtn.addEventListener('click', () => {
-        if (micBtn.classList.contains('listening')) recognition.stop();
-        else recognition.start();
-      });
-      recognition.onstart = () => { micBtn.classList.add('listening'); chatInput.placeholder = '🎤 Listening... Speak now'; };
-      recognition.onresult = (e) => { chatInput.value = e.results[0][0].transcript; sendUserMessage(); };
-      recognition.onend = () => { micBtn.classList.remove('listening'); chatInput.placeholder = 'Ask anything — invoice number, customer name, vendor, month sales, inventory…'; };
-      recognition.onerror = () => recognition.stop();
-    }
+    // ── VOICE (DISABLED) ─────────────────────────────────
+    function initVoice() {}
 
     // ── COPY CHAT ────────────────────────────────────────
     function copyChat() {

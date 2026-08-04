@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 const { Groq } = require('groq-sdk');
@@ -8,15 +10,105 @@ const { Groq } = require('groq-sdk');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for embedding in PHP ERP & external sites
-app.use(cors());
-app.use(express.json());
+// ── SECURITY: Helmet (Security Headers) ─────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://fonts.gstatic.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'"],
+      imgSrc: ["'self'", "data:"],
+      frameSrc: ["'none'"],
+    }
+  },
+  frameguard: { action: 'deny' },
+  noSniff: true,
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  hidePoweredBy: true
+}));
+
+// ── SECURITY: CORS — Restricted to Known Origins ─────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://erp-chatbot-two.vercel.app',
+  process.env.ALLOWED_ORIGIN,   // Optional extra origin via env
+  'http://localhost:3000'
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow server-to-server requests (no Origin header)
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: Origin '${origin}' is not allowed`));
+  },
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'x-admin-token'],
+  credentials: false
+}));
+
+// ── SECURITY: Body Size Limit ────────────────────────────────────────────────
+app.use(express.json({ limit: '100kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── SECURITY: Rate Limiters ──────────────────────────────────────────────────
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' }
+});
+
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000,  // 1 minute
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Chat rate limit exceeded. Please wait before sending more messages.' }
+});
+
+app.use('/api/', apiLimiter);
+
+// ── SECURITY: Admin Token Middleware ─────────────────────────────────────────
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
+
+function requireAdminToken(req, res, next) {
+  if (!ADMIN_SECRET) {
+    return res.status(503).json({ error: 'Admin access not configured on this server.' });
+  }
+  const token = req.headers['x-admin-token'] || req.query.token;
+  if (!token || token !== ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized. Valid admin token required.' });
+  }
+  next();
+}
+
+// ── SECURITY: Prompt Injection Detection ─────────────────────────────────────
+const INJECTION_PATTERNS = [
+  /ignore (all )?previous instructions/i,
+  /you are now/i,
+  /reveal (your|the) system prompt/i,
+  /forget everything/i,
+  /disregard (all )?previous/i,
+  /act as (a )?different/i
+];
+
+function detectPromptInjection(text) {
+  return INJECTION_PATTERNS.some(pattern => pattern.test(text));
+}
+
 // ERP API Configuration
-const PURCHASE_API_URL = (process.env.PURCHASE_API_URL || 'https://thegreateasternexports.jbbs.in/API/purchase_api.php').trim();
-const SALE_API_URL = (process.env.SALE_API_URL || 'https://thegreateasternexports.jbbs.in/API/sale_api.php').trim();
-const STOCK_API_URL = (process.env.STOCK_API_URL || 'https://thegreateasternexports.jbbs.in/API/stock_api.php').trim();
+// ── SECURITY: No hardcoded fallback URLs — fail loudly if env vars are missing
+const PURCHASE_API_URL = process.env.PURCHASE_API_URL?.trim();
+const SALE_API_URL = process.env.SALE_API_URL?.trim();
+const STOCK_API_URL = process.env.STOCK_API_URL?.trim();
+
+if (!PURCHASE_API_URL || !SALE_API_URL || !STOCK_API_URL) {
+  console.error('❌ FATAL: ERP API URLs (PURCHASE_API_URL, SALE_API_URL, STOCK_API_URL) must be set in environment variables.');
+  if (process.env.NODE_ENV !== 'test') process.exit(1);
+}
 
 // Offline / Fallback ERP Data Cache
 const FALLBACK_DATA_PATH = path.join(__dirname, 'data', 'fallback_erp_data.json');
@@ -488,8 +580,10 @@ function searchRecords(query, maxResults = 10) {
   }
 
   // Text search in all fields
-  pMatches = purchases.filter(p => JSON.stringify(p).toLowerCase().includes(q)).slice(0, maxResults);
-  sMatches = sales.filter(s => JSON.stringify(s).toLowerCase().includes(q)).slice(0, maxResults);
+  // SECURITY: Cap search query at 100 chars to prevent expensive serialization DoS
+  const safeQ = q.substring(0, 100);
+  pMatches = purchases.filter(p => JSON.stringify(p).toLowerCase().includes(safeQ)).slice(0, maxResults);
+  sMatches = sales.filter(s => JSON.stringify(s).toLowerCase().includes(safeQ)).slice(0, maxResults);
 
   return { pMatches, sMatches };
 }
@@ -1263,7 +1357,19 @@ function getStockSummary(productQuery = '') {
 
 // REST API Endpoints
 
+// SECURITY: /api/status — minimal public response only
 app.get('/api/status', async (req, res) => {
+  await ensureDataLoaded();
+  // Return only non-sensitive health info
+  res.json({
+    status: 'ok',
+    system: 'Digify Soft ERP AI',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// SECURITY: /api/status/admin — full details behind admin token
+app.get('/api/status/admin', requireAdminToken, async (req, res) => {
   await ensureDataLoaded();
   res.json({
     status: 'ok',
@@ -1356,7 +1462,8 @@ app.get('/api/stock', async (req, res) => {
   });
 });
 
-app.post('/api/refresh', async (req, res) => {
+// SECURITY: /api/refresh — admin-only, rate limited
+app.post('/api/refresh', requireAdminToken, chatLimiter, async (req, res) => {
   await loadAPIData();
   res.json({
     status: 'ok',
@@ -1374,17 +1481,43 @@ function checkUnderConstructionQuery(message) {
   return null;
 }
 
-app.post('/api/chat', async (req, res) => {
+// SECURITY: /api/chat — rate limited, fully validated, injection protected
+app.post('/api/chat', chatLimiter, async (req, res) => {
   try {
     const { message, history } = req.body;
-    if (!message || message.trim() === '') {
-      return res.status(400).json({ error: 'Message cannot be empty' });
+
+    // --- Input validation ---
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Invalid message format.' });
     }
+
+    const sanitizedMessage = message.trim();
+
+    if (sanitizedMessage === '') {
+      return res.status(400).json({ error: 'Message cannot be empty.' });
+    }
+
+    // Max length — prevents context overflow & cost amplification attacks
+    if (sanitizedMessage.length > 500) {
+      return res.status(400).json({ error: 'Message too long. Maximum 500 characters allowed.' });
+    }
+
+    // Prompt injection detection
+    if (detectPromptInjection(sanitizedMessage)) {
+      return res.status(400).json({ error: 'Invalid query. Please ask about sales, purchases, or inventory.' });
+    }
+
+    // Validate history array — accept only valid role/content pairs, max 4 items
+    const safeHistory = Array.isArray(history)
+      ? history
+          .filter(h => h && typeof h.role === 'string' && typeof h.content === 'string')
+          .slice(-4)
+      : [];
 
     await ensureDataLoaded();
 
     // Check if query is for a feature currently under construction
-    const underConstructionReply = checkUnderConstructionQuery(message);
+    const underConstructionReply = checkUnderConstructionQuery(sanitizedMessage);
     if (underConstructionReply) {
       return res.json({
         reply: underConstructionReply,
@@ -1393,13 +1526,13 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    // 2. Check deterministic structured workflow first (e.g. Sales, Purchases, Year/Month/Date guided flows)
-    let reply = generateDeterministicFallback(message);
+    // Deterministic structured workflow first
+    let reply = generateDeterministicFallback(sanitizedMessage);
     let mode = 'deterministic';
 
-    // 3. Fall back to Groq LLM for open-ended conversational queries if available
+    // Fall back to Groq LLM for open-ended queries
     if (!reply && groqClient) {
-      reply = await askGroqLLM(message, history || []);
+      reply = await askGroqLLM(sanitizedMessage, safeHistory);
       if (reply) mode = 'groq-llm';
     }
 
@@ -1409,8 +1542,9 @@ app.post('/api/chat', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (err) {
+    // SECURITY: Never expose internal error details to client
     console.error('Chat API Error:', err);
-    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+    res.status(500).json({ error: 'An error occurred. Please try again.' });
   }
 });
 
