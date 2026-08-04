@@ -12,37 +12,20 @@ const PORT = process.env.PORT || 3000;
 
 // ── SECURITY: Helmet (Security Headers) ─────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://fonts.gstatic.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'"],
-      imgSrc: ["'self'", "data:"],
-      frameSrc: ["'none'"],
-    }
-  },
-  frameguard: { action: 'deny' },
-  noSniff: true,
-  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  contentSecurityPolicy: false,
+  frameguard: false,
   hidePoweredBy: true
 }));
 
-// ── SECURITY: CORS — Restricted to Known Origins ─────────────────────────────
-const ALLOWED_ORIGINS = [
-  'https://erp-chatbot-two.vercel.app',
-  process.env.ALLOWED_ORIGIN,   // Optional extra origin via env
-  'http://localhost:3000'
-].filter(Boolean);
+app.use((req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  res.removeHeader('X-Content-Security-Policy');
+  res.removeHeader('X-WebKit-CSP');
+  next();
+});
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow server-to-server requests (no Origin header)
-    if (!origin) return callback(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS: Origin '${origin}' is not allowed`));
-  },
+  origin: '*',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'x-admin-token'],
   credentials: false
@@ -55,7 +38,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ── SECURITY: Rate Limiters ──────────────────────────────────────────────────
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 200,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests. Please try again later.' }
@@ -63,7 +46,7 @@ const apiLimiter = rateLimit({
 
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000,  // 1 minute
-  max: 15,
+  max: 120,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Chat rate limit exceeded. Please wait before sending more messages.' }
@@ -1116,7 +1099,35 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // 5. Product Inventory & Total Valuation — Now powered by real Stock API
+  // 5. Low Stock Alerts (Must come BEFORE general stock search!)
+  if (q.includes('low stock') || q.includes('stock alert') || q.includes('reorder') || q.includes('out of stock') || q.includes('low inventory')) {
+    const stockData = getStockSummary();
+    const outOfStock = stock.filter(s => Number(s.qty || 0) === 0).slice(0, 10);
+    const lowStockItems = stock.filter(s => Number(s.qty || 0) > 0 && Number(s.qty || 0) <= 10).slice(0, 10);
+
+    let resp = `### ⚠️ Live Stock Alerts (from ERP Stock API)\n\n`;
+    resp += `- 🔴 **Out of Stock:** ${stockData.outOfStockCount} products\n`;
+    resp += `- 🟡 **Low Stock (≤10 units):** ${stockData.lowStockCount} products\n`;
+    resp += `- 📦 **Total Stock Items Tracked:** ${stockData.totalProducts.toLocaleString('en-IN')}\n\n`;
+
+    if (outOfStock.length > 0) {
+      resp += `#### 🔴 Out of Stock (Immediate Reorder Needed):\n`;
+      resp += `| Product | Code | Brand | Category |\n|---|---|---|---|\n`;
+      outOfStock.forEach(p => { resp += `| **${p.productname}** | \`${p.productcode}\` | ${p.brand || 'N/A'} | ${p.category || 'N/A'} |\n`; });
+      resp += `\n`;
+    }
+    if (lowStockItems.length > 0) {
+      resp += `#### 🟡 Low Stock (Reorder Soon):\n`;
+      resp += `| Product | Code | Color | Qty | UOM |\n|---|---|---|---|---|\n`;
+      lowStockItems.forEach(p => { resp += `| **${p.productname}** | \`${p.productcode}\` | ${p.productcolor || 'N/A'} | 🟡 ${p.qty} | ${p.uom || 'Pcs'} |\n`; });
+    }
+    if (stockData.outOfStockCount === 0 && stockData.lowStockCount === 0) {
+      resp += `✅ **All products are well-stocked!** No reorder alerts at this time.`;
+    }
+    return resp;
+  }
+
+  // 6. Product Inventory & Total Valuation
   if (q.includes('inventory') || q.includes('stock')) {
     const stopWords = ['and', 'the', 'for', 'of', 'in', 'is', 'or', 'to', 'all', 'summary', 'report', 'detail', 'details', 'list', 'units', 'quantity', 'value', 'inventory', 'stock', 'total', 'show', 'item', 'items', 'product', 'products', 'me'];
     const cleanedQuery = q
@@ -1129,7 +1140,7 @@ function generateDeterministicFallback(query) {
     if (isProductSearch) {
       const stockData = getStockSummary(cleanedQuery);
       if (stockData.filteredCount === 0) {
-        return `❌ No stock records found matching: **"${cleanedQuery}"**.\n\n*Tip: Try searching for "Bath Rug", "Basket", "Yoga Mat", "Taupe", or a brand like "HAUS".*`;
+        return null; // Return null so Groq LLM can process open-ended searches
       }
       let resp = `### 🏭 Stock Lookup: "${cleanedQuery}"\n\nFound **${stockData.filteredCount} matching product(s)**:\n\n`;
       resp += `| # | Product | Code | Color | Brand | Qty | Broken | Missing |\n|---|---|---|---|---|---|---|---|\n`;
@@ -1165,7 +1176,7 @@ function generateDeterministicFallback(query) {
     }
   }
 
-  // 6. Top Customer / Supplier / Product Analytics
+  // 7. Top Customer / Supplier / Product Analytics
   if (q.includes('top customer') || q.includes('best customer') || q.includes('customer analysis') || q.includes('top vendor') || q.includes('top supplier') || q.includes('supplier analysis') || q.includes('customers and vendor') || q.includes('customers & vendor') || q.includes('customers and supplier')) {
     const grossProfit = summary.sales.totalAmount - summary.purchases.totalAmount;
     const grossMarginPct = summary.sales.totalAmount > 0 ? ((grossProfit / summary.sales.totalAmount) * 100).toFixed(2) : '0.00';
@@ -1181,35 +1192,6 @@ function generateDeterministicFallback(query) {
     analytics.topSaleItems.forEach((item, idx) => { resp += `${idx + 1}. **${item.name}** — ${item.totalQty} units sold\n`; });
     return resp;
   }
-
-  // 7. Low Stock Alerts — powered by real Stock API
-  if (q.includes('low stock') || q.includes('stock alert') || q.includes('reorder') || q.includes('out of stock') || q.includes('low inventory')) {
-    const stockData = getStockSummary();
-    const outOfStock = stock.filter(s => Number(s.qty || 0) === 0).slice(0, 10);
-    const lowStockItems = stock.filter(s => Number(s.qty || 0) > 0 && Number(s.qty || 0) <= 10).slice(0, 10);
-
-    let resp = `### ⚠️ Live Stock Alerts (from ERP Stock API)\n\n`;
-    resp += `- 🔴 **Out of Stock:** ${stockData.outOfStockCount} products\n`;
-    resp += `- 🟡 **Low Stock (≤10 units):** ${stockData.lowStockCount} products\n`;
-    resp += `- 📦 **Total Stock Items Tracked:** ${stockData.totalProducts.toLocaleString('en-IN')}\n\n`;
-
-    if (outOfStock.length > 0) {
-      resp += `#### 🔴 Out of Stock (Immediate Reorder Needed):\n`;
-      resp += `| Product | Code | Brand | Category |\n|---|---|---|---|\n`;
-      outOfStock.forEach(p => { resp += `| **${p.productname}** | \`${p.productcode}\` | ${p.brand || 'N/A'} | ${p.category || 'N/A'} |\n`; });
-      resp += `\n`;
-    }
-    if (lowStockItems.length > 0) {
-      resp += `#### 🟡 Low Stock (Reorder Soon):\n`;
-      resp += `| Product | Code | Color | Qty | UOM |\n|---|---|---|---|---|\n`;
-      lowStockItems.forEach(p => { resp += `| **${p.productname}** | \`${p.productcode}\` | ${p.productcolor || 'N/A'} | 🟡 ${p.qty} | ${p.uom || 'Pcs'} |\n`; });
-    }
-    if (stockData.outOfStockCount === 0 && stockData.lowStockCount === 0) {
-      resp += `✅ **All products are well-stocked!** No reorder alerts at this time.`;
-    }
-    return resp;
-  }
-
 
   if (q.includes('best selling') || q.includes('top product') || q.includes('top item') || q.includes('product analysis')) {
     let resp = `### 📦 Top Selling Products\n\n`;
@@ -1256,7 +1238,7 @@ Please specify what purchase information you need by providing one of the follow
   const total = pMatches.length + sMatches.length;
 
   if (total === 0) {
-    return `❌ No matching ERP API records found for **"${query}"**.\n\n*Tip: Try searching by Supplier Invoice No (e.g. GEHOHR001VPO338), Party Name (e.g. KESHAV), or Item (e.g. Rug).*`;
+    return null; // Return null so Groq LLM can process conversational / open-ended queries
   }
 
   let text = `✅ Found **${total} ERP API record(s)** for **"${query}"**:\n\n`;
@@ -1528,6 +1510,22 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
     if (!reply && groqClient) {
       reply = await askGroqLLM(sanitizedMessage, safeHistory);
       if (reply) mode = 'groq-llm';
+    }
+
+    // Default friendly assistant fallback if neither deterministic nor Groq provided a response
+    if (!reply) {
+      reply = `I am your **Digify Soft ERP AI Assistant**. I am connected to your real-time ERP databases.\n\n` +
+        `Here is what you can ask me:\n` +
+        `- 🛒 **Sales Reports** (e.g. \`Sales\`, \`Sales by Month\`, \`Sales for 2026-04\`)\n` +
+        `- 📦 **Purchase Reports** (e.g. \`Purchases\`, \`Purchases for April\`, supplier invoice number)\n` +
+        `- 🏭 **Stock & Inventory** (e.g. \`Total Inventory Stock\`, \`Low Stock Alerts\`, \`Stock for Bath Rug\`)\n` +
+        `- 🚚 **Dispatch Analytics** (e.g. \`Dispatch Report\`, \`Top Customers and Vendors\`)\n\n` +
+        `<div style="display:flex;gap:9px;margin-top:14px;flex-wrap:wrap;">\n` +
+        `  <button data-prompt="Sales" onclick="sendPrompt('Sales')" style="background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;">🛒 Sales</button>\n` +
+        `  <button data-prompt="Purchases" onclick="sendPrompt('Purchases')" style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;">📦 Purchases</button>\n` +
+        `  <button data-prompt="Total Inventory Stock" onclick="sendPrompt('Total Inventory Stock')" style="background:#ecfeff;border:1px solid #a5f3fc;color:#0e7490;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;">🏭 Stock</button>\n` +
+        `</div>`;
+      mode = 'guide';
     }
 
     res.json({

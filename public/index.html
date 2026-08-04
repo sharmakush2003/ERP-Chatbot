@@ -327,23 +327,16 @@
 
     @keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 
+    #restriction-overlay{display:none!important;}
+
     @media(max-width:1024px){
-      .app-container{display:none!important;}
-      .top-nav{display:none!important;}
-      #restriction-overlay{display:flex!important;}
+      .app-container{flex-direction:column;overflow-y:auto;}
+      .sidebar{width:100%;max-height:300px;}
+      .chat-panel{min-height:450px;}
     }
   </style>
 </head>
 <body>
-
-  <!-- Desktop Restriction -->
-  <div id="restriction-overlay">
-    <div class="restriction-card">
-      <span class="restriction-icon">💻</span>
-      <h2>Desktop Screen Required</h2>
-      <p>The Digify Soft ERP AI Console is designed for desktop and laptop screens. Please open this page on a larger display for the best experience.</p>
-    </div>
-  </div>
 
   <!-- Disclaimer Modal -->
   <div id="disclaimerModal" class="modal-overlay">
@@ -429,26 +422,26 @@
       <div>
         <div class="section-label" style="margin-bottom:10px;">Quick Search Prompts</div>
         <div class="quick-prompts">
-          <button class="qp-btn" onclick="sendPrompt('Sales')">
+          <button class="qp-btn" data-prompt="Sales" onclick="sendPrompt('Sales')">
             <span class="qp-icon">🛒</span><span class="qp-text">Sales</span>
           </button>
-          <button class="qp-btn em" onclick="sendPrompt('Purchases')">
+          <button class="qp-btn em" data-prompt="Purchases" onclick="sendPrompt('Purchases')">
             <span class="qp-icon">📦</span><span class="qp-text">Purchases</span>
           </button>
-          <button class="qp-btn am" onclick="sendPrompt('Dispatch for the Month')">
+          <button class="qp-btn am" data-prompt="Dispatch for the Month" onclick="sendPrompt('Dispatch for the Month')">
             <span class="qp-icon">🚚</span><span class="qp-text">Dispatch Report</span>
           </button>
-          <button class="qp-btn cy" onclick="sendPrompt('Total Inventory Stock')">
+          <button class="qp-btn cy" data-prompt="Total Inventory Stock" onclick="sendPrompt('Total Inventory Stock')">
             <span class="qp-icon">🏭</span><span class="qp-text">Total Inventory Stock</span>
           </button>
-          <button class="qp-btn" onclick="sendPrompt('Inventory for Bath Rug')">
+          <button class="qp-btn" data-prompt="Inventory for Bath Rug" onclick="sendPrompt('Inventory for Bath Rug')">
             <span class="qp-icon">🔎</span><span class="qp-text">Product Stock Lookup</span>
           </button>
-          <button class="qp-btn pu" onclick="sendPrompt('Top Customers and Vendors')">
+          <button class="qp-btn pu" data-prompt="Top Customers and Vendors" onclick="sendPrompt('Top Customers and Vendors')">
             <span class="qp-icon">🏆</span><span class="qp-text">Top Customers &amp; Vendors</span>
           </button>
-          <button class="qp-btn re" onclick="sendPrompt('Low Stock Alerts')">
-            <span class="qp-icon">⚠️</span><span class="qp-text" style="color:#fca5a5;">Low Stock Alerts</span>
+          <button class="qp-btn re" data-prompt="Low Stock Alerts" onclick="sendPrompt('Low Stock Alerts')">
+            <span class="qp-icon">⚠️</span><span class="qp-text" style="color:#ef4444;">Low Stock Alerts</span>
           </button>
         </div>
       </div>
@@ -484,9 +477,9 @@
             🏭 <strong>Stock &amp; Inventory</strong> (1,092+ Products tracked in real-time)<br><br>
             What would you like to enquire about today?
             <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;">
-              <button onclick="sendPrompt('Sales')" style="background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(99,102,241,0.08);">🛒 Sales</button>
-              <button onclick="sendPrompt('Purchases')" style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(16,185,129,0.08);">📦 Purchases</button>
-              <button onclick="sendPrompt('Total Inventory Stock')" style="background:#ecfeff;border:1px solid #a5f3fc;color:#0e7490;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(6,182,212,0.08);">🏭 Stock</button>
+              <button data-prompt="Sales" onclick="sendPrompt('Sales')" style="background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(99,102,241,0.08);">🛒 Sales</button>
+              <button data-prompt="Purchases" onclick="sendPrompt('Purchases')" style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(16,185,129,0.08);">📦 Purchases</button>
+              <button data-prompt="Total Inventory Stock" onclick="sendPrompt('Total Inventory Stock')" style="background:#ecfeff;border:1px solid #a5f3fc;color:#0e7490;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(6,182,212,0.08);">🏭 Stock</button>
             </div>
           </div>
           <span class="message-time">Just now</span>
