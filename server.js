@@ -775,9 +775,9 @@ function generateDeterministicFallback(query) {
     resp += `ℹ️ *Note: Connected to real-time ERP REST API (Available Data: Year 2026)*\n\n`;
     resp += `Please select how you would like to view your Sales:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    resp += `  <button onclick="sendPrompt('Sales by Year')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Sales by Year</button>\n`;
-    resp += `  <button onclick="sendPrompt('Sales by Month')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Sales by Month</button>\n`;
-    resp += `  <button onclick="sendPrompt('Sales by Date')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Sales by Date</button>\n`;
+    resp += `  <button onclick="sendPrompt('Sales by Year')" style="background:#fffbeb;border:1px solid #fde68a;color:#b45309;padding:9px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;box-shadow:0 2px 6px rgba(245,158,11,0.08);">📅 Sales by Year</button>\n`;
+    resp += `  <button onclick="sendPrompt('Sales by Month')" style="background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;padding:9px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;box-shadow:0 2px 6px rgba(99,102,241,0.08);">🗓️ Sales by Month</button>\n`;
+    resp += `  <button onclick="sendPrompt('Sales by Date')" style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:9px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;box-shadow:0 2px 6px rgba(16,185,129,0.08);">📆 Sales by Date</button>\n`;
     resp += `</div>`;
     return resp;
   }
@@ -937,9 +937,9 @@ function generateDeterministicFallback(query) {
     resp += `ℹ️ *Note: Connected to real-time ERP REST API (Available Data: Year 2026)*\n\n`;
     resp += `Please select how you would like to view your Purchases:\n\n`;
     resp += `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">\n`;
-    resp += `  <button onclick="sendPrompt('Purchase by Year')" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fcd34d;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📅 Purchase by Year</button>\n`;
-    resp += `  <button onclick="sendPrompt('Purchase by Month')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">🗓️ Purchase by Month</button>\n`;
-    resp += `  <button onclick="sendPrompt('Purchase by Date')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">📆 Purchase by Date</button>\n`;
+    resp += `  <button onclick="sendPrompt('Purchase by Year')" style="background:#fffbeb;border:1px solid #fde68a;color:#b45309;padding:9px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;box-shadow:0 2px 6px rgba(245,158,11,0.08);">📅 Purchase by Year</button>\n`;
+    resp += `  <button onclick="sendPrompt('Purchase by Month')" style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:9px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;box-shadow:0 2px 6px rgba(16,185,129,0.08);">🗓️ Purchase by Month</button>\n`;
+    resp += `  <button onclick="sendPrompt('Purchase by Date')" style="background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;padding:9px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;box-shadow:0 2px 6px rgba(99,102,241,0.08);">📆 Purchase by Date</button>\n`;
     resp += `</div>`;
     return resp;
   }

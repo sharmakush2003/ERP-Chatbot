@@ -484,9 +484,9 @@
             🏭 <strong>Stock &amp; Inventory</strong> (1,092+ Products tracked in real-time)<br><br>
             What would you like to enquire about today?
             <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;">
-              <button onclick="sendPrompt('Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">🛒 Sales</button>
-              <button onclick="sendPrompt('Purchases')" style="background:rgba(16,185,129,0.14);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">📦 Purchases</button>
-              <button onclick="sendPrompt('Total Inventory Stock')" style="background:rgba(6,182,212,0.14);border:1px solid rgba(6,182,212,0.35);color:#67e8f9;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">🏭 Stock</button>
+              <button onclick="sendPrompt('Sales')" style="background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(99,102,241,0.08);">🛒 Sales</button>
+              <button onclick="sendPrompt('Purchases')" style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(16,185,129,0.08);">📦 Purchases</button>
+              <button onclick="sendPrompt('Total Inventory Stock')" style="background:#ecfeff;border:1px solid #a5f3fc;color:#0e7490;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;box-shadow:0 2px 6px rgba(6,182,212,0.08);">🏭 Stock</button>
             </div>
           </div>
           <span class="message-time">Just now</span>
@@ -624,9 +624,12 @@
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/`(.*?)`/g, '<code>$1</code>')
         .replace(/^- (.*$)/gim, '• $1<br>')
-        .replace(/^\d+\. (.*$)/gim, m => `<span style="color:#a5b4fc;font-weight:600;">${m.match(/^\d+/)[0]}.</span> ${m.replace(/^\d+\.\s*/,'')}<br>`)
-        .replace(/\n\n/g, '<br><br>')
-        .replace(/\n/g, '<br>');
+        .replace(/^\d+\. (.*$)/gim, m => `<span style="color:#4338ca;font-weight:600;">${m.match(/^\d+/)[0]}.</span> ${m.replace(/^\d+\.\s*/,'')}<br>`);
+
+      html = html.split(/(<div[\s\S]*?<\/div>|<table[\s\S]*?<\/table>)/gi).map((part, i) => {
+        if (i % 2 === 1) return part;
+        return part.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+      }).join('');
 
       html = html.replace(/(\|[^\n]+\|(\n|<br>)){2,}/g, (tableBlock) => {
         const rows = tableBlock.split(/\n|<br>/).filter(r => r.trim().startsWith('|') && r.trim().endsWith('|'));
@@ -656,7 +659,9 @@
         <div class="message-bubble">${sender === 'ai' ? parseMarkdown(text) : text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
         <span class="message-time">${timeStr()}</span>`;
       chatBody.appendChild(msg);
-      chatBody.scrollTop = chatBody.scrollHeight;
+      setTimeout(() => {
+        chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
+      }, 50);
     }
 
     function showTyping() {
@@ -667,14 +672,20 @@
           <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
         </div></div>`;
       chatBody.appendChild(d);
-      chatBody.scrollTop = chatBody.scrollHeight;
+      setTimeout(() => {
+        chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
+      }, 50);
     }
 
     function hideTyping() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
 
     function setWaiting(v) { isWaiting = v; sendBtn.disabled = v; chatInput.disabled = v; }
 
-    async function sendPrompt(text) { if (isWaiting) return; await handleSend(text); }
+    async function sendPrompt(text) {
+      if (isWaiting) return;
+      chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
+      await handleSend(text);
+    }
     async function sendUserMessage() { const t = chatInput.value.trim(); if (!t || isWaiting) return; chatInput.value = ''; await handleSend(t); }
 
     async function handleSend(text) {
