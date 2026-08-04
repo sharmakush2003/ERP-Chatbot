@@ -6,719 +6,944 @@
   <title>Digify Soft ERP AI — Intelligence Console</title>
   <meta name="description" content="Digify Soft ERP AI — Real-time Sales, Purchase, Stock & Inventory Intelligence Console powered by AI.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    /* ══════════════════════════════════════════
+       TOKENS
+    ══════════════════════════════════════════ */
     :root {
-      --bg:           #040712;
-      --s1:           rgba(15,23,42,0.75);
-      --s2:           rgba(15,23,42,0.45);
-      --border:       rgba(255,255,255,0.07);
-      --border-hi:    rgba(99,102,241,0.32);
-      --indigo:       #6366f1;
-      --indigo-d:     #4f46e5;
-      --indigo-glow:  rgba(99,102,241,0.18);
-      --emerald:      #10b981;
-      --emerald-glow: rgba(16,185,129,0.18);
-      --purple:       #a855f7;
-      --purple-glow:  rgba(168,85,247,0.16);
-      --amber:        #f59e0b;
-      --amber-glow:   rgba(245,158,11,0.16);
-      --pink:         #ec4899;
-      --pink-glow:    rgba(236,72,153,0.16);
-      --cyan:         #06b6d4;
-      --cyan-glow:    rgba(6,182,212,0.16);
-      --red:          #ef4444;
-      --t1: #f1f5f9;
-      --t2: #94a3b8;
-      --t3: #475569;
-      --r-sm: 12px;
-      --r-md: 18px;
-      --r-lg: 26px;
-      --tx: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      --bg:         #f0f4ff;
+      --bg2:        #e8eeff;
+      --panel:      rgba(255,255,255,0.92);
+      --glass:      rgba(99,102,241,0.05);
+      --glass-hi:   rgba(99,102,241,0.09);
+      --border:     rgba(0,0,0,0.08);
+      --border-hi:  rgba(99,102,241,0.4);
+      --border-em:  rgba(16,185,129,0.35);
+
+      /* Brand colors */
+      --vi:  #6366f1; --vi2: #4f46e5; --vi-d: #4338ca;
+      --em:  #10b981; --em2: #059669;
+      --am:  #f59e0b; --am2: #d97706;
+      --pu:  #a855f7; --pu2: #9333ea;
+      --cy:  #06b6d4; --cy2: #0891b2;
+      --re:  #ef4444; --re2: #dc2626;
+      --pk:  #ec4899; --pk2: #db2777;
+
+      /* Text */
+      --t1: #0f172a; --t2: #475569; --t3: #94a3b8; --t4: #cbd5e1;
+
+      /* Spacing */
+      --r1: 8px; --r2: 12px; --r3: 16px; --r4: 20px; --r5: 28px;
+
+      /* Transitions */
+      --ease: cubic-bezier(0.22,1,0.36,1);
+      --tx: all 0.22s var(--ease);
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family:'Plus Jakarta Sans',sans-serif;
-      background:var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
       background-image:
-        radial-gradient(ellipse 90% 60% at 5% -5%,  rgba(99,102,241,0.16) 0%,transparent 55%),
-        radial-gradient(ellipse 70% 50% at 95% 100%,rgba(16,185,129,0.11) 0%,transparent 55%),
-        radial-gradient(ellipse 50% 70% at 50% 50%,  rgba(168,85,247,0.05) 0%,transparent 65%),
-        radial-gradient(ellipse 40% 40% at 80% 10%,  rgba(236,72,153,0.07) 0%,transparent 50%);
-      color:var(--t1);
-      height:100vh;
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
+        radial-gradient(ellipse 90% 60% at 0% 0%,   rgba(99,102,241,0.10) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(16,185,129,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 60% at 50% 50%,  rgba(168,85,247,0.04) 0%, transparent 65%),
+        radial-gradient(ellipse 35% 40% at 85% 5%,   rgba(6,182,212,0.06)  0%, transparent 55%);
+      color: var(--t1);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+      line-height: 1.5;
     }
 
-    /* TOP NAV */
-    .top-nav {
-      display:flex;align-items:center;justify-content:space-between;
-      padding:0 26px;height:62px;
-      border-bottom:1px solid var(--border);
-      background:rgba(4,7,18,0.88);
-      backdrop-filter:blur(32px);
-      z-index:100;flex-shrink:0;position:relative;
+    /* ══ HEADER ═══════════════════════════════ */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 54px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.88);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(40px);
+      position: relative;
+      z-index: 50;
+      box-shadow: 0 1px 20px rgba(99,102,241,0.07);
     }
-    .top-nav::after {
-      content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
-      background:linear-gradient(90deg,transparent,rgba(99,102,241,0.5) 30%,rgba(16,185,129,0.35) 70%,transparent);
+    header::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.45) 25%, rgba(16,185,129,0.3) 75%, transparent 100%);
     }
-    .nav-brand{display:flex;align-items:center;gap:13px;}
-    .nav-logo {
-      width:40px;height:40px;
-      background:linear-gradient(135deg,var(--indigo) 0%,var(--purple) 55%,#3b82f6 100%);
-      border-radius:12px;
-      display:flex;align-items:center;justify-content:center;
-      font-size:19px;
-      box-shadow:0 0 24px rgba(99,102,241,0.5),0 4px 16px rgba(0,0,0,0.4);
-      position:relative;flex-shrink:0;
-    }
-    .nav-logo::before {
-      content:'';position:absolute;inset:-2px;border-radius:14px;
-      background:linear-gradient(135deg,var(--indigo),var(--purple),var(--emerald));
-      z-index:-1;opacity:0.6;
-      animation:rotateBorder 4s linear infinite;
-    }
-    @keyframes rotateBorder{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    .nav-brand-text{font-size:15.5px;font-weight:800;letter-spacing:-0.2px;color:var(--t1);}
-    .nav-brand-sub{font-size:10.5px;color:var(--t3);margin-top:1px;letter-spacing:1.5px;text-transform:uppercase;font-weight:500;}
-    .nav-right{display:flex;align-items:center;gap:10px;}
-    .status-pill {
-      display:flex;align-items:center;gap:7px;
-      padding:6px 14px;border-radius:100px;
-      border:1px solid rgba(16,185,129,0.3);
-      background:rgba(16,185,129,0.08);
-      font-size:11.5px;font-weight:600;color:var(--emerald);
-    }
-    .status-dot {
-      width:7px;height:7px;border-radius:50%;
-      background:var(--emerald);box-shadow:0 0 10px var(--emerald);
-      position:relative;
-    }
-    .status-dot::after {
-      content:'';position:absolute;inset:-3px;border-radius:50%;
-      background:rgba(16,185,129,0.35);
-      animation:pulseRing 2s ease-in-out infinite;
-    }
-    @keyframes pulseRing{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(1.7)}}
-    .nav-icon-btn {
-      width:34px;height:34px;border-radius:10px;
-      background:rgba(255,255,255,0.04);border:1px solid var(--border);
-      color:var(--t2);cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      font-size:15px;transition:var(--tx);
-    }
-    .nav-icon-btn:hover{background:var(--indigo-glow);border-color:var(--border-hi);color:#a5b4fc;transform:scale(1.05);}
 
-    /* LAYOUT */
-    .app-container{display:flex;flex:1;overflow:hidden;}
+    .hd-brand { display: flex; align-items: center; gap: 11px; }
+    .hd-logo {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed, #0ea5e9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0; position: relative;
+      box-shadow: 0 0 0 1px rgba(99,102,241,0.4), 0 0 20px rgba(99,102,241,0.25);
+    }
+    .hd-logo::before {
+      content: ''; position: absolute; inset: -2px; border-radius: 12px;
+      background: conic-gradient(from 0deg, #6366f1, #a855f7, #10b981, #06b6d4, #6366f1);
+      z-index: -1; opacity: 0; animation: conicSpin 3s linear infinite;
+      transition: opacity 0.3s;
+    }
+    .hd-logo:hover::before { opacity: 0.7; }
+    @keyframes conicSpin { to { transform: rotate(360deg); } }
 
-    /* SIDEBAR */
+    .hd-title { font-size: 14px; font-weight: 700; letter-spacing: -0.3px; color: var(--t1); }
+    .hd-sub   { font-size: 10px; color: var(--t3); letter-spacing: 1.2px; text-transform: uppercase; font-weight: 500; margin-top: 1px; }
+
+    .hd-center {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .hd-tab {
+      padding: 5px 14px; border-radius: 100px;
+      font-size: 11.5px; font-weight: 600;
+      cursor: pointer; transition: var(--tx);
+      border: none; font-family: inherit;
+    }
+    .hd-tab.active {
+      background: rgba(99,102,241,0.12);
+      color: var(--vi);
+      border: 1px solid rgba(99,102,241,0.3);
+    }
+    .hd-tab:not(.active) {
+      background: transparent; color: var(--t2);
+      border: 1px solid transparent;
+    }
+    .hd-tab:not(.active):hover { background: rgba(99,102,241,0.06); color: var(--vi); border-color: var(--border); }
+
+    .hd-right { display: flex; align-items: center; gap: 8px; }
+
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 100px;
+      border: 1px solid rgba(16,185,129,0.3);
+      background: rgba(16,185,129,0.07);
+      font-size: 11px; font-weight: 600; color: var(--em);
+      cursor: default;
+    }
+    .s-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--em); box-shadow: 0 0 8px var(--em);
+      animation: sdotPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes sdotPulse {
+      0%,100% { box-shadow: 0 0 8px var(--em); opacity: 1; }
+      50%      { box-shadow: 0 0 16px var(--em), 0 0 28px rgba(16,185,129,0.3); opacity: 0.8; }
+    }
+
+    .hd-btn {
+      width: 32px; height: 32px; border-radius: var(--r2);
+      background: var(--glass); border: 1px solid var(--border);
+      color: var(--t2); cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--tx); font-family: inherit;
+    }
+    .hd-btn:hover { background: rgba(99,102,241,0.15); border-color: var(--border-hi); color: var(--vi2); transform: scale(1.05); }
+
+    /* ══ LAYOUT ════════════════════════════════ */
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ══ SIDEBAR ═══════════════════════════════ */
     .sidebar {
-      width:310px;flex-shrink:0;
-      background:var(--s1);border-right:1px solid var(--border);
-      display:flex;flex-direction:column;
-      overflow-y:auto;overflow-x:hidden;
-      padding:16px 14px;gap:14px;
-      backdrop-filter:blur(28px);
+      width: 300px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      border-right: 1px solid var(--border);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(40px);
+      overflow-y: auto; overflow-x: hidden;
     }
-    .sidebar::-webkit-scrollbar{width:3px;}
-    .sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:10px;}
-    .section-label{
-      font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;
-      color:var(--t3);padding:0 4px;
-      display:flex;align-items:center;justify-content:space-between;
+    .sidebar::-webkit-scrollbar { width: 3px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.15); border-radius: 10px; }
+
+    /* KPI BENTO GRID */
+    .kpi-zone { padding: 14px 12px 10px; border-bottom: 1px solid var(--border); }
+    .kpi-top-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .zone-label {
+      font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--t3);
+    }
+    .ref-btn {
+      width: 24px; height: 24px; border-radius: 7px;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--t3); cursor: pointer; font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--tx); font-family: inherit;
+    }
+    .ref-btn:hover { background: rgba(99,102,241,0.15); border-color: var(--border-hi); color: var(--vi2); }
+    .ref-btn.spin { animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 6px;
     }
 
-    /* KPI */
-    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-    .kpi-card {
-      background:var(--s2);border:1px solid var(--border);
-      border-radius:var(--r-sm);padding:13px 11px 11px;
-      position:relative;overflow:hidden;transition:var(--tx);cursor:default;
+    /* Hero KPI (full width) */
+    .kpi-hero {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(79,70,229,0.08) 100%);
+      border: 1px solid rgba(99,102,241,0.22);
+      border-radius: var(--r3);
+      padding: 14px 14px 12px;
+      position: relative; overflow: hidden;
+      transition: var(--tx); cursor: default;
     }
-    .kpi-card::before {
-      content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
-      border-radius:2px 2px 0 0;background:var(--indigo);
+    .kpi-hero::before {
+      content: ''; position: absolute; top: 0; right: 0;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle at 100% 0%, rgba(99,102,241,0.15) 0%, transparent 70%);
     }
-    .kpi-card.em::before{background:var(--emerald);}
-    .kpi-card.am::before{background:var(--amber);}
-    .kpi-card.pu::before{background:var(--purple);}
-    .kpi-card.cy::before{background:var(--cyan);}
-    .kpi-card.re::before{background:var(--red);}
-    .kpi-card:hover{border-color:rgba(99,102,241,0.28);transform:translateY(-2px);box-shadow:0 8px 28px rgba(99,102,241,0.13);}
-    .kpi-card.em:hover{border-color:rgba(16,185,129,0.3);box-shadow:0 8px 28px rgba(16,185,129,0.12);}
-    .kpi-card.am:hover{border-color:rgba(245,158,11,0.3);box-shadow:0 8px 28px rgba(245,158,11,0.12);}
-    .kpi-card.pu:hover{border-color:rgba(168,85,247,0.3);box-shadow:0 8px 28px rgba(168,85,247,0.12);}
-    .kpi-card.cy:hover{border-color:rgba(6,182,212,0.3);box-shadow:0 8px 28px rgba(6,182,212,0.12);}
-    .kpi-card.re:hover{border-color:rgba(239,68,68,0.28);box-shadow:0 8px 28px rgba(239,68,68,0.12);}
-    .kpi-icon{font-size:17px;margin-bottom:7px;line-height:1;}
-    .kpi-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:4px;}
-    .kpi-value{font-size:16px;font-weight:800;color:var(--t1);line-height:1.2;word-break:break-all;transition:var(--tx);}
-    .kpi-sub{font-size:10px;color:var(--t3);margin-top:3px;font-weight:500;}
-    .refresh-btn {
-      width:26px;height:26px;border-radius:7px;
-      border:1px solid var(--border);background:transparent;
-      color:var(--t2);cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      font-size:13px;transition:var(--tx);font-family:inherit;
+    .kpi-hero:hover { border-color: rgba(99,102,241,0.4); box-shadow: 0 4px 24px rgba(99,102,241,0.12); }
+    .kpi-hero-value {
+      font-size: 26px; font-weight: 800; letter-spacing: -1px;
+      background: linear-gradient(135deg, #1e1b4b 0%, var(--vi) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1.1; margin-bottom: 4px;
     }
-    .refresh-btn:hover{background:var(--indigo-glow);border-color:var(--border-hi);color:#a5b4fc;}
-    .refresh-btn.spinning{animation:spin 0.7s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    .kpi-hero-label { font-size: 10px; font-weight: 600; color: var(--vi); text-transform: uppercase; letter-spacing: 1px; }
+    .kpi-hero-sub   { font-size: 11px; color: var(--t2); margin-top: 2px; }
+
+    /* Normal KPI */
+    .kpi {
+      background: rgba(255,255,255,0.75);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 11px 11px 9px;
+      position: relative; overflow: hidden;
+      transition: var(--tx); cursor: default;
+    }
+    .kpi::after {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 1.5px;
+      border-radius: 1px 1px 0 0;
+    }
+    .kpi.vi::after  { background: linear-gradient(90deg, var(--vi), var(--vi2)); }
+    .kpi.em::after  { background: linear-gradient(90deg, var(--em), var(--em2)); }
+    .kpi.am::after  { background: linear-gradient(90deg, var(--am), var(--am2)); }
+    .kpi.pu::after  { background: linear-gradient(90deg, var(--pu), var(--pu2)); }
+    .kpi.cy::after  { background: linear-gradient(90deg, var(--cy), var(--cy2)); }
+    .kpi.re::after  { background: linear-gradient(90deg, var(--re), var(--re2)); }
+
+    .kpi:hover { transform: translateY(-1px); }
+    .kpi.vi:hover { border-color: rgba(99,102,241,0.3); box-shadow: 0 4px 20px rgba(99,102,241,0.1); }
+    .kpi.em:hover { border-color: rgba(16,185,129,0.3); box-shadow: 0 4px 20px rgba(16,185,129,0.1); }
+    .kpi.am:hover { border-color: rgba(245,158,11,0.3); box-shadow: 0 4px 20px rgba(245,158,11,0.1); }
+    .kpi.pu:hover { border-color: rgba(168,85,247,0.3); box-shadow: 0 4px 20px rgba(168,85,247,0.1); }
+    .kpi.cy:hover { border-color: rgba(6,182,212,0.3);  box-shadow: 0 4px 20px rgba(6,182,212,0.1); }
+    .kpi.re:hover { border-color: rgba(239,68,68,0.28); box-shadow: 0 4px 20px rgba(239,68,68,0.1); }
+
+    .kpi-ico   { font-size: 15px; margin-bottom: 8px; display: block; }
+    .kpi-val   { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; color: var(--t1); line-height: 1.1; transition: var(--tx); }
+    .kpi-lbl   { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--t3); margin-top: 4px; }
+    .kpi-note  { font-size: 9.5px; color: var(--t2); margin-top: 2px; font-weight: 500; }
 
     /* QUICK PROMPTS */
-    .quick-prompts{display:flex;flex-direction:column;gap:5px;}
-    .qp-btn {
-      display:flex;align-items:center;gap:10px;
-      padding:9px 12px;
-      background:transparent;border:1px solid var(--border);
-      border-radius:var(--r-sm);
-      cursor:pointer;color:var(--t1);
-      font-size:12.5px;font-weight:500;font-family:inherit;
-      transition:var(--tx);text-align:left;position:relative;overflow:hidden;
+    .qp-zone { padding: 12px 12px 10px; flex: 1; }
+    .qp-list { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; }
+    .qp {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border-radius: var(--r2);
+      background: transparent; border: none;
+      cursor: pointer; color: var(--t1); font-family: inherit;
+      font-size: 12.5px; font-weight: 500;
+      transition: var(--tx); text-align: left;
+      position: relative; overflow: hidden;
     }
-    .qp-btn::after{content:'›';position:absolute;right:12px;color:var(--t3);font-size:16px;transition:var(--tx);}
-    .qp-btn:hover{border-color:var(--border-hi);background:var(--indigo-glow);}
-    .qp-btn:hover::after{right:8px;color:#a5b4fc;}
-    .qp-btn.em:hover{background:var(--emerald-glow);border-color:rgba(16,185,129,0.35);}
-    .qp-btn.am:hover{background:var(--amber-glow);border-color:rgba(245,158,11,0.35);}
-    .qp-btn.cy:hover{background:var(--cyan-glow);border-color:rgba(6,182,212,0.35);}
-    .qp-btn.pu:hover{background:var(--purple-glow);border-color:rgba(168,85,247,0.35);}
-    .qp-btn.re:hover{background:var(--pink-glow);border-color:rgba(239,68,68,0.3);}
-    .qp-icon{font-size:15px;flex-shrink:0;}
-    .qp-text{flex:1;}
+    .qp::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 0;
+      border-radius: 0 2px 2px 0; transition: width 0.2s var(--ease);
+    }
+    .qp:hover::before { width: 2px; }
+    .qp.vi::before { background: var(--vi); }
+    .qp.em::before { background: var(--em); }
+    .qp.am::before { background: var(--am); }
+    .qp.cy::before { background: var(--cy); }
+    .qp.pu::before { background: var(--pu); }
+    .qp.re::before { background: var(--re); }
 
-    /* CHAT PANEL */
-    .chat-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--s2);backdrop-filter:blur(12px);}
-    .chat-header {
-      padding:16px 26px;border-bottom:1px solid var(--border);
-      background:rgba(4,7,18,0.5);backdrop-filter:blur(20px);
-      display:flex;align-items:center;justify-content:space-between;
-      flex-shrink:0;gap:12px;
+    .qp:hover { background: var(--glass-hi); }
+    .qp.vi:hover { background: rgba(99,102,241,0.1); color: var(--vi2); }
+    .qp.em:hover { background: rgba(16,185,129,0.09); color: var(--em2); }
+    .qp.am:hover { background: rgba(245,158,11,0.09); color: var(--am2); }
+    .qp.cy:hover { background: rgba(6,182,212,0.09);  color: var(--cy2); }
+    .qp.pu:hover { background: rgba(168,85,247,0.09); color: var(--pu2); }
+    .qp.re:hover { background: rgba(239,68,68,0.09);  color: var(--re2); }
+
+    .qp-ico  { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+    .qp-txt  { flex: 1; }
+    .qp-arr  { font-size: 12px; color: var(--t3); transition: var(--tx); }
+    .qp:hover .qp-arr { transform: translateX(2px); color: inherit; }
+
+    /* ══ CHAT PANEL ════════════════════════════ */
+    .chat-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .chat-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; height: 54px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(20px);
+      flex-shrink: 0; gap: 14px;
     }
-    .chat-header-left{display:flex;align-items:center;gap:14px;}
-    .chat-ai-avatar {
-      width:38px;height:38px;border-radius:11px;
-      background:linear-gradient(135deg,var(--indigo),var(--purple));
-      display:flex;align-items:center;justify-content:center;
-      font-size:18px;box-shadow:0 0 16px rgba(99,102,241,0.4);flex-shrink:0;
+    .ct-left { display: flex; align-items: center; gap: 12px; }
+    .ct-avatar {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--vi-d), var(--pu));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 0 1px rgba(99,102,241,0.35), 0 4px 14px rgba(99,102,241,0.2);
     }
-    .chat-header h1 {
-      font-size:15.5px;font-weight:800;letter-spacing:-0.2px;
-      background:linear-gradient(90deg,#fff 0%,#c7d2fe 55%,#6ee7b7 100%);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    .ct-title { font-size: 14px; font-weight: 700; color: var(--t1); letter-spacing: -0.2px; }
+    .ct-sub   { font-size: 10.5px; color: var(--t2); margin-top: 1px; }
+
+    .ct-pills { display: flex; align-items: center; gap: 6px; }
+    .pill {
+      padding: 4px 10px; border-radius: 100px; font-size: 10.5px; font-weight: 600;
+      border: 1px solid;
     }
-    .chat-header p{font-size:11.5px;color:var(--t2);margin-top:1px;font-weight:400;}
-    .chat-header-actions{display:flex;align-items:center;gap:7px;}
-    .ch-btn {
-      background:rgba(255,255,255,0.04);border:1px solid var(--border);
-      color:var(--t2);width:33px;height:33px;border-radius:10px;
-      cursor:pointer;display:flex;align-items:center;justify-content:center;
-      font-size:14px;transition:var(--tx);
+    .pill.vi { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.3); color: var(--vi2); }
+    .pill.em { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.28); color: var(--em2); }
+    .pill.cy { background: rgba(6,182,212,0.10);  border-color: rgba(6,182,212,0.28);  color: var(--cy2); }
+
+    .ct-actions { display: flex; align-items: center; gap: 6px; }
+    .act-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 11px; border-radius: var(--r2);
+      background: var(--glass); border: 1px solid var(--border);
+      color: var(--t2); cursor: pointer; font-size: 11.5px; font-weight: 500;
+      font-family: inherit; transition: var(--tx);
     }
-    .ch-btn:hover{background:var(--indigo-glow);border-color:var(--border-hi);color:#a5b4fc;}
-    .header-status-pill {
-      padding:5px 13px;border-radius:100px;
-      font-size:11px;font-weight:700;
-      background:rgba(99,102,241,0.12);border:1px solid var(--border-hi);
-      color:#a5b4fc;letter-spacing:0.3px;
+    .act-btn:hover { background: rgba(99,102,241,0.12); border-color: var(--border-hi); color: var(--vi2); }
+    .act-btn.danger:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: var(--re2); }
+
+    /* CHAT MESSAGES */
+    .chat-body {
+      flex: 1; overflow-y: auto;
+      padding: 20px 22px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .chat-body::-webkit-scrollbar { width: 3px; }
+    .chat-body::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.18); border-radius: 10px; }
+
+    .msg { display: flex; flex-direction: column; max-width: 78%; animation: msgSlide 0.3s var(--ease) forwards; }
+    @keyframes msgSlide { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+    .msg.user { align-self: flex-end; }
+    .msg.ai   { align-self: flex-start; }
+
+    .msg-header { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+    .msg-av {
+      width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--vi-d), var(--pu));
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
+    }
+    .msg-name  { font-size: 11px; font-weight: 700; color: var(--vi2); }
+    .msg-ts    { font-size: 9.5px; color: var(--t3); font-family: 'JetBrains Mono', monospace; }
+
+    .bubble {
+      padding: 12px 15px; border-radius: 16px;
+      font-size: 13px; line-height: 1.72;
+    }
+    .msg.ai .bubble {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      color: var(--t1);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .msg.user .bubble {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border-bottom-right-radius: 4px;
+      color: #fff;
+      box-shadow: 0 6px 24px rgba(79,70,229,0.35);
+    }
+    .msg.user .msg-header { justify-content: flex-end; }
+    .msg.user .msg-name { color: rgba(165,180,252,0.8); }
+    .msg-footer { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .msg.ai   .msg-footer { margin-left: 0; }
+    .msg.user .msg-footer { justify-content: flex-end; }
+
+    /* Rich content */
+    .bubble h3  { font-size: 13.5px; font-weight: 700; color: var(--vi); margin: 10px 0 6px; }
+    .bubble h4  { font-size: 12.5px; font-weight: 600; color: var(--vi-d); margin: 8px 0 4px; }
+    .bubble strong { color: var(--t1); font-weight: 700; }
+    .bubble em  { color: var(--t2); font-style: italic; }
+    .bubble code {
+      background: rgba(99,102,241,0.16); padding: 1.5px 6px;
+      border-radius: 5px; font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px; color: var(--vi2);
+    }
+    .bubble table {
+      width: 100%; border-collapse: collapse;
+      margin: 10px 0; font-size: 12px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 10px; overflow: hidden;
+    }
+    .bubble th {
+      background: rgba(99,102,241,0.1); color: var(--vi-d); font-weight: 700;
+      padding: 8px 12px; text-align: left; font-size: 10.5px;
+      text-transform: uppercase; letter-spacing: 0.7px;
+    }
+    .bubble td {
+      padding: 7px 12px; border-bottom: 1px solid rgba(0,0,0,0.05);
+      color: var(--t1);
+    }
+    .bubble tr:nth-child(even) td { background: rgba(99,102,241,0.03); }
+    .bubble tr:last-child td { border-bottom: none; }
+
+    /* Typing */
+    .typing-wrap { display: flex; gap: 5px; padding: 8px 6px; align-items: center; }
+    .td {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--vi);
+      animation: tdBounce 1.3s ease-in-out infinite both;
+    }
+    .td:nth-child(1) { animation-delay: -0.32s; }
+    .td:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes tdBounce {
+      0%,80%,100% { transform: scale(0.5); opacity: 0.3; }
+      40%          { transform: scale(1.1); opacity: 1; }
     }
 
-    /* CHAT BODY */
-    .chat-body{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:16px;}
-    .chat-body::-webkit-scrollbar{width:4px;}
-    .chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:10px;}
-
-    /* MESSAGES */
-    .message{display:flex;flex-direction:column;max-width:80%;animation:msgIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards;}
-    @keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-    .message.user{align-self:flex-end;}
-    .message.ai{align-self:flex-start;}
-    .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
-    .ai-avatar-sm{
-      width:26px;height:26px;border-radius:8px;flex-shrink:0;
-      background:linear-gradient(135deg,var(--indigo),var(--purple));
-      display:flex;align-items:center;justify-content:center;font-size:13px;
+    /* ══ CHAT FOOTER ════════════════════════════ */
+    .chat-footer {
+      padding: 12px 18px 18px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
     }
-    .ai-label {
-      font-size:10.5px;font-weight:700;color:#a5b4fc;
-      background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.28);
-      padding:2px 8px;border-radius:100px;letter-spacing:0.4px;
+    .input-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: #ffffff;
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 100px;
+      padding: 5px 5px 5px 18px;
+      transition: var(--tx);
+      box-shadow: 0 2px 12px rgba(99,102,241,0.08);
     }
-    .message-bubble{padding:14px 17px;border-radius:18px;font-size:13.5px;line-height:1.72;}
-    .message.user .message-bubble{
-      background:linear-gradient(135deg,var(--indigo),var(--indigo-d));
-      color:#fff;border-bottom-right-radius:4px;
-      box-shadow:0 6px 24px rgba(99,102,241,0.38);
+    .input-pill:focus-within {
+      border-color: rgba(99,102,241,0.5);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1), 0 4px 20px rgba(99,102,241,0.12);
     }
-    .message.ai .message-bubble{
-      background:rgba(255,255,255,0.03);color:var(--t1);
-      border:1px solid var(--border);border-bottom-left-radius:4px;
-      box-shadow:0 2px 12px rgba(0,0,0,0.2);
+    #chatInput {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--t1); font-size: 13px; font-family: inherit;
+      padding: 8px 0;
     }
-    .message-bubble h3{font-size:14px;font-weight:700;margin:10px 0 6px;color:#a5b4fc;}
-    .message-bubble h4{font-size:13px;font-weight:600;margin:8px 0 4px;color:#c7d2fe;}
-    .message-bubble strong{color:#e2e8f0;font-weight:700;}
-    .message-bubble em{color:var(--t2);font-style:italic;}
-    .message-bubble code{background:rgba(99,102,241,0.18);padding:2px 7px;border-radius:5px;font-family:'Courier New',monospace;font-size:12px;color:#a5b4fc;}
-    .message-bubble table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);}
-    .message-bubble th{background:rgba(99,102,241,0.22);color:#c7d2fe;font-weight:700;padding:9px 13px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.7px;}
-    .message-bubble td{padding:8px 13px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--t1);}
-    .message-bubble tr:nth-child(even) td{background:rgba(255,255,255,0.025);}
-    .message-bubble tr:last-child td{border-bottom:none;}
-    .message-time{font-size:10px;color:var(--t3);margin-top:5px;font-weight:500;}
-    .message.ai .message-time{align-self:flex-start;margin-left:34px;}
-    .message.user .message-time{align-self:flex-end;}
+    #chatInput::placeholder { color: var(--t3); }
 
-    /* TYPING */
-    .typing-indicator{display:flex;gap:5px;padding:8px 14px;align-items:center;}
-    .typing-dot{width:7px;height:7px;border-radius:50%;background:var(--indigo);animation:typeBounce 1.2s infinite ease-in-out both;}
-    .typing-dot:nth-child(1){animation-delay:-0.32s;}
-    .typing-dot:nth-child(2){animation-delay:-0.16s;}
-    @keyframes typeBounce{0%,80%,100%{transform:scale(0.55);opacity:0.35}40%{transform:scale(1.1);opacity:1}}
-
-    /* FOOTER INPUT */
-    .chat-footer{padding:14px 22px 20px;border-top:1px solid var(--border);background:rgba(4,7,18,0.45);backdrop-filter:blur(16px);flex-shrink:0;}
-    .input-container {
-      display:flex;align-items:center;gap:8px;
-      background:rgba(255,255,255,0.03);
-      border:1px solid rgba(99,102,241,0.22);
-      border-radius:100px;padding:6px 7px 6px 18px;transition:var(--tx);
+    .mic-btn {
+      background: transparent; border: none;
+      color: var(--t3); cursor: pointer;
+      width: 34px; height: 34px; border-radius: 100px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--tx); font-size: 15px; flex-shrink: 0;
     }
-    .input-container:focus-within{border-color:rgba(99,102,241,0.5);background:rgba(255,255,255,0.05);box-shadow:0 0 0 3px rgba(99,102,241,0.1);}
-    .chat-input{flex:1;background:transparent;border:none;outline:none;color:var(--t1);font-size:13.5px;font-family:inherit;padding:9px 0;}
-    .chat-input::placeholder{color:var(--t3);}
-    .mic-btn{background:transparent;border:none;color:var(--t3);cursor:pointer;width:36px;height:36px;border-radius:100px;display:flex;align-items:center;justify-content:center;transition:var(--tx);font-size:16px;flex-shrink:0;}
-    .mic-btn:hover{background:rgba(16,185,129,0.15);color:var(--emerald);}
-    .mic-btn.listening{background:rgba(239,68,68,0.15);color:var(--red);animation:listenPulse 1.2s ease-in-out infinite;box-shadow:0 0 0 4px rgba(239,68,68,0.2);}
-    @keyframes listenPulse{0%,100%{box-shadow:0 0 0 4px rgba(239,68,68,0.2)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0.05)}}
-    .send-btn{background:linear-gradient(135deg,var(--indigo),var(--indigo-d));color:white;border:none;width:40px;height:40px;border-radius:100px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tx);flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.35);}
-    .send-btn:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(99,102,241,0.5);}
-    .send-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none;}
-    .send-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;fill:none;}
+    .mic-btn:hover { background: rgba(16,185,129,0.12); color: var(--em2); }
+    .mic-btn.listening {
+      background: rgba(239,68,68,0.13); color: var(--re2);
+      animation: listenGlow 1.2s ease-in-out infinite;
+    }
+    @keyframes listenGlow {
+      0%,100% { box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
+      50%      { box-shadow: 0 0 0 7px rgba(239,68,68,0.04); }
+    }
 
-    /* MODAL */
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;padding:20px;}
-    .modal-card{background:var(--s1);border:1px solid var(--border-hi);border-radius:var(--r-lg);padding:30px 26px;max-width:430px;width:100%;box-shadow:0 0 60px rgba(99,102,241,0.2),0 20px 60px rgba(0,0,0,0.5);animation:msgIn 0.3s ease;position:relative;}
-    .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:var(--tx);}
-    .modal-close:hover{background:rgba(239,68,68,0.15);color:var(--red);border-color:rgba(239,68,68,0.3);}
-    .modal-icon{font-size:28px;margin-bottom:14px;display:block;}
-    .modal-title{font-size:17px;font-weight:800;color:var(--t1);margin-bottom:10px;}
-    .modal-body{font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:12px;}
-    .modal-badge{font-size:11px;font-weight:700;color:#a5b4fc;background:rgba(99,102,241,0.12);border:1px solid var(--border-hi);padding:8px 14px;border-radius:10px;text-align:center;display:block;}
+    #sendBtn {
+      width: 38px; height: 38px; border-radius: 100px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--vi), var(--vi-d));
+      border: none; color: white; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--tx);
+      box-shadow: 0 3px 12px rgba(99,102,241,0.4);
+    }
+    #sendBtn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(99,102,241,0.55); }
+    #sendBtn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+    #sendBtn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.5; fill: none; }
 
-    /* RESTRICTION */
-    #restriction-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
-    .restriction-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:48px 36px;max-width:460px;backdrop-filter:blur(20px);animation:msgIn 0.5s ease forwards;}
-    .restriction-icon{font-size:56px;display:block;margin-bottom:18px;animation:floatIcon 3s ease-in-out infinite;}
-    @keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-    .restriction-card h2{font-size:22px;font-weight:800;margin-bottom:12px;background:linear-gradient(90deg,#fff,#a5b4fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-    .restriction-card p{font-size:14px;color:var(--t2);line-height:1.7;}
+    .footer-hint { font-size: 10px; color: var(--t3); margin-top: 8px; text-align: center; }
 
-    ::-webkit-scrollbar{width:4px;}
-    ::-webkit-scrollbar-track{background:transparent;}
-    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:10px;}
-    ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.14);}
+    /* ══ MODAL ════════════════════════════════ */
+    .modal-bg {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(12px);
+      z-index: 999; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal {
+      background: rgba(255,255,255,0.98);
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 22px; padding: 28px 24px; max-width: 420px; width: 100%;
+      box-shadow: 0 0 60px rgba(99,102,241,0.12), 0 40px 80px rgba(0,0,0,0.15);
+      animation: msgSlide 0.3s ease; position: relative;
+    }
+    .modal-x {
+      position: absolute; top: 14px; right: 14px;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      color: var(--t2); cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--tx);
+    }
+    .modal-x:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: var(--re2); }
 
-    @keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    /* ══ RESTRICTION ══════════════════════════ */
+    #restriction {
+      display: none; position: fixed; inset: 0;
+      background: var(--bg); z-index: 9999;
+      align-items: center; justify-content: center; padding: 24px; text-align: center;
+    }
+    .rst-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 24px; padding: 48px 36px; max-width: 440px;
+      animation: msgSlide 0.5s ease;
+    }
+    .rst-ico { font-size: 52px; display: block; margin-bottom: 18px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
+    .rst-card h2 { font-size: 21px; font-weight: 800; margin-bottom: 12px;
+      background: linear-gradient(90deg,#1e1b4b,#6366f1);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+    .rst-card p { font-size: 13.5px; color: var(--t2); line-height: 1.7; }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.2); border-radius: 10px; }
 
     @media(max-width:1024px){
-      .app-container{display:none!important;}
-      .top-nav{display:none!important;}
-      #restriction-overlay{display:flex!important;}
+      .layout{display:none!important;}
+      header{display:none!important;}
+      #restriction{display:flex!important;}
     }
   </style>
 </head>
 <body>
 
-  <!-- Desktop Restriction -->
-  <div id="restriction-overlay">
-    <div class="restriction-card">
-      <span class="restriction-icon">💻</span>
-      <h2>Desktop Screen Required</h2>
-      <p>The Digify Soft ERP AI Console is designed for desktop and laptop screens. Please open this page on a larger display for the best experience.</p>
+<!-- Restriction -->
+<div id="restriction">
+  <div class="rst-card">
+    <span class="rst-ico">💻</span>
+    <h2>Desktop Screen Required</h2>
+    <p>The Digify Soft ERP AI Console requires a desktop or laptop screen. Please open this on a wider display.</p>
+  </div>
+</div>
+
+<!-- Disclaimer Modal -->
+<div id="disclaimerModal" class="modal-bg">
+  <div class="modal">
+    <button class="modal-x" onclick="toggleModal()">✕</button>
+    <div style="font-size:26px;margin-bottom:14px;">ℹ️</div>
+    <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:10px;">AI Disclaimer</div>
+    <p style="font-size:12.5px;color:var(--t2);line-height:1.7;margin-bottom:12px;">
+      Digify Soft ERP AI is an artificial intelligence assistant. While highly accurate, responses may occasionally contain errors.<br><br>
+      Always cross-verify critical financial figures with your official ERP records.
+    </p>
+    <div style="font-size:11px;font-weight:700;color:var(--vi2);background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);padding:9px 14px;border-radius:10px;text-align:center;">
+      ⚙️ System Status: Active Testing Mode
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="hd-brand">
+    <div class="hd-logo">🤖</div>
+    <div>
+      <div class="hd-title">Digify Soft ERP AI</div>
+      <div class="hd-sub">Intelligence Console</div>
     </div>
   </div>
 
-  <!-- Disclaimer Modal -->
-  <div id="disclaimerModal" class="modal-overlay">
-    <div class="modal-card">
-      <button class="modal-close" onclick="toggleDisclaimerModal()">✕</button>
-      <span class="modal-icon">ℹ️</span>
-      <div class="modal-title">AI Disclaimer &amp; System Notice</div>
-      <p class="modal-body">
-        Digify Soft ERP AI is an artificial intelligence assistant. While highly accurate, AI-generated responses can occasionally contain errors and come with no guarantee.<br><br>
-        Please cross-verify critical financial data with your official ERP records before making any business decisions.
-      </p>
-      <span class="modal-badge">⚙️ Status: System in Active Testing Mode</span>
-    </div>
+  <div class="hd-center">
+    <button class="hd-tab active">💬 Chat</button>
+    <button class="hd-tab" onclick="sendPrompt('Sales')" style="cursor:pointer;">📊 Sales</button>
+    <button class="hd-tab" onclick="sendPrompt('Purchases')" style="cursor:pointer;">📦 Purchases</button>
+    <button class="hd-tab" onclick="sendPrompt('Total Inventory Stock')" style="cursor:pointer;">🏭 Stock</button>
   </div>
 
-  <!-- Top Navigation -->
-  <nav class="top-nav">
-    <div class="nav-brand">
-      <div class="nav-logo">🤖</div>
-      <div>
-        <div class="nav-brand-text">Digify Soft ERP AI</div>
-        <div class="nav-brand-sub">Intelligence Console</div>
-      </div>
+  <div class="hd-right">
+    <div class="status-badge">
+      <div class="s-dot" id="statusDot"></div>
+      <span id="statusText">Connecting...</span>
     </div>
-    <div class="nav-right">
-      <div class="status-pill">
-        <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">Connecting...</span>
-      </div>
-      <button class="nav-icon-btn" onclick="toggleDisclaimerModal()" title="AI Notice">ℹ️</button>
-      <button class="nav-icon-btn" onclick="copyChat()" title="Export Chat">📋</button>
-    </div>
-  </nav>
-
-  <!-- Main App -->
-  <div class="app-container" id="appContainer">
-
-    <!-- LEFT SIDEBAR -->
-    <div class="sidebar">
-      <div>
-        <div class="section-label" style="margin-bottom:10px;">
-          Financial Overview
-          <button class="refresh-btn" id="refreshBtn" onclick="refreshData()" title="Refresh">↻</button>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-icon">🛒</div>
-            <div class="kpi-label">Sales Revenue</div>
-            <div class="kpi-value" id="kpiSalesAmt">—</div>
-            <div class="kpi-sub" id="kpiSalesInv">Loading...</div>
-          </div>
-          <div class="kpi-card em">
-            <div class="kpi-icon">📦</div>
-            <div class="kpi-label">Purchases</div>
-            <div class="kpi-value" id="kpiPurchaseAmt">—</div>
-            <div class="kpi-sub" id="kpiPurchaseInv">Loading...</div>
-          </div>
-          <div class="kpi-card am">
-            <div class="kpi-icon">📋</div>
-            <div class="kpi-label">Avg. Sale</div>
-            <div class="kpi-value" id="kpiAvgSale">—</div>
-            <div class="kpi-sub">Per Invoice</div>
-          </div>
-          <div class="kpi-card pu">
-            <div class="kpi-icon">📁</div>
-            <div class="kpi-label">Items Sold</div>
-            <div class="kpi-value" id="kpiSaleItems">—</div>
-            <div class="kpi-sub">Line Items</div>
-          </div>
-          <div class="kpi-card cy">
-            <div class="kpi-icon">🏭</div>
-            <div class="kpi-label">Stock Products</div>
-            <div class="kpi-value" id="kpiStockProducts">—</div>
-            <div class="kpi-sub" id="kpiStockQty">Loading...</div>
-          </div>
-          <div class="kpi-card re">
-            <div class="kpi-icon">⚠️</div>
-            <div class="kpi-label">Low / OOS Stock</div>
-            <div class="kpi-value" id="kpiLowStock">—</div>
-            <div class="kpi-sub" id="kpiOutOfStock">Loading...</div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-label" style="margin-bottom:10px;">Quick Search Prompts</div>
-        <div class="quick-prompts">
-          <button class="qp-btn" onclick="sendPrompt('Sales')">
-            <span class="qp-icon">🛒</span><span class="qp-text">Sales</span>
-          </button>
-          <button class="qp-btn em" onclick="sendPrompt('Purchases')">
-            <span class="qp-icon">📦</span><span class="qp-text">Purchases</span>
-          </button>
-          <button class="qp-btn am" onclick="sendPrompt('Dispatch for the Month')">
-            <span class="qp-icon">🚚</span><span class="qp-text">Dispatch Report</span>
-          </button>
-          <button class="qp-btn cy" onclick="sendPrompt('Total Inventory Stock')">
-            <span class="qp-icon">🏭</span><span class="qp-text">Total Inventory Stock</span>
-          </button>
-          <button class="qp-btn" onclick="sendPrompt('Inventory for Bath Rug')">
-            <span class="qp-icon">🔎</span><span class="qp-text">Product Stock Lookup</span>
-          </button>
-          <button class="qp-btn pu" onclick="sendPrompt('Top Customers and Vendors')">
-            <span class="qp-icon">🏆</span><span class="qp-text">Top Customers &amp; Vendors</span>
-          </button>
-          <button class="qp-btn re" onclick="sendPrompt('Low Stock Alerts')">
-            <span class="qp-icon">⚠️</span><span class="qp-text" style="color:#fca5a5;">Low Stock Alerts</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT CHAT PANEL -->
-    <div class="chat-panel">
-      <div class="chat-header">
-        <div class="chat-header-left">
-          <div class="chat-ai-avatar">🤖</div>
-          <div>
-            <h1>ERP AI Assistant</h1>
-            <p>Connected to real-time Sales, Purchase &amp; Stock APIs</p>
-          </div>
-        </div>
-        <div class="chat-header-actions">
-          <button class="ch-btn" onclick="clearChat()" title="Clear Chat">🗑️</button>
-          <button class="ch-btn" onclick="copyChat()" title="Export Chat">📋</button>
-          <button class="ch-btn" onclick="toggleDisclaimerModal()" title="AI Notice">ℹ️</button>
-          <span class="header-status-pill" id="headerBadge">ERP AI Connected</span>
-        </div>
-      </div>
-
-      <div class="chat-body" id="chatBody">
-        <div class="message ai">
-          <div class="ai-header">
-            <div class="ai-avatar-sm">🤖</div>
-            <span class="ai-label">Digify AI</span>
-          </div>
-          <div class="message-bubble">
-            👋 <strong>Hi! I am the ERP AI Bot for Digify Soft.</strong><br><br>
-            I'm connected to your real-time ERP databases. Select an enquiry option below:<br><br>
-            🛒 <strong>Sales Reports</strong> (Month-wise / Day-wise / Year-wise)<br>
-            📦 <strong>Purchase Reports</strong> (Month-wise / Day-wise / Year-wise)<br>
-            🏭 <strong>Stock &amp; Inventory</strong> (1,092+ Products tracked in real-time)<br><br>
-            What would you like to enquire about today?
-            <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;">
-              <button onclick="sendPrompt('Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">🛒 Sales</button>
-              <button onclick="sendPrompt('Purchases')" style="background:rgba(16,185,129,0.14);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">📦 Purchases</button>
-              <button onclick="sendPrompt('Total Inventory Stock')" style="background:rgba(6,182,212,0.14);border:1px solid rgba(6,182,212,0.35);color:#67e8f9;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">🏭 Stock</button>
-            </div>
-          </div>
-          <span class="message-time">Just now</span>
-        </div>
-      </div>
-
-      <div class="chat-footer">
-        <div class="input-container">
-          <input type="text" class="chat-input" id="chatInput"
-            placeholder="Ask anything — invoice number, customer name, vendor, month sales, inventory…"
-            autocomplete="off">
-          <button class="mic-btn" id="micBtn" title="Voice Search">🎤</button>
-          <button class="send-btn" id="sendBtn" onclick="sendUserMessage()">
-            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
+    <button class="hd-btn" onclick="toggleModal()" title="AI Notice">ℹ️</button>
+    <button class="hd-btn" onclick="copyChat()" title="Export">📋</button>
   </div>
+</header>
 
-  <script>
-    let conversationHistory = [];
-    let isWaiting = false;
-    const chatBody  = document.getElementById('chatBody');
-    const chatInput = document.getElementById('chatInput');
-    const sendBtn   = document.getElementById('sendBtn');
-    const micBtn    = document.getElementById('micBtn');
+<!-- Layout -->
+<div class="layout">
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadSummary();
-      chatInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
-      });
-      initVoice();
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- KPI Zone -->
+    <div class="kpi-zone">
+      <div class="kpi-top-row">
+        <span class="zone-label">Live Financial Snapshot</span>
+        <button class="ref-btn" id="refreshBtn" onclick="refreshData()">↻</button>
+      </div>
+
+      <div class="kpi-grid">
+        <!-- Hero: Sales -->
+        <div class="kpi-hero">
+          <div class="kpi-hero-label">🛒 Total Sales Revenue</div>
+          <div class="kpi-hero-value" id="kpiSalesAmt">—</div>
+          <div class="kpi-hero-sub" id="kpiSalesInv">Loading...</div>
+        </div>
+
+        <!-- Purchases -->
+        <div class="kpi em">
+          <span class="kpi-ico">📦</span>
+          <div class="kpi-val" id="kpiPurchaseAmt">—</div>
+          <div class="kpi-lbl">Purchases</div>
+          <div class="kpi-note" id="kpiPurchaseInv">...</div>
+        </div>
+
+        <!-- Avg Sale -->
+        <div class="kpi am">
+          <span class="kpi-ico">📈</span>
+          <div class="kpi-val" id="kpiAvgSale">—</div>
+          <div class="kpi-lbl">Avg. Invoice</div>
+          <div class="kpi-note">Per Sale</div>
+        </div>
+
+        <!-- Items -->
+        <div class="kpi pu">
+          <span class="kpi-ico">📋</span>
+          <div class="kpi-val" id="kpiSaleItems">—</div>
+          <div class="kpi-lbl">Items Sold</div>
+          <div class="kpi-note">Line Items</div>
+        </div>
+
+        <!-- Stock -->
+        <div class="kpi cy">
+          <span class="kpi-ico">🏭</span>
+          <div class="kpi-val" id="kpiStockProducts">—</div>
+          <div class="kpi-lbl">Stock SKUs</div>
+          <div class="kpi-note" id="kpiStockQty">...</div>
+        </div>
+
+        <!-- Low Stock -->
+        <div class="kpi re">
+          <span class="kpi-ico">⚠️</span>
+          <div class="kpi-val" id="kpiLowStock">—</div>
+          <div class="kpi-lbl">Low / OOS</div>
+          <div class="kpi-note" id="kpiOutOfStock">...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Prompts Zone -->
+    <div class="qp-zone">
+      <span class="zone-label">Quick Actions</span>
+      <div class="qp-list">
+        <button class="qp vi" onclick="sendPrompt('Sales')">
+          <span class="qp-ico">🛒</span><span class="qp-txt">Sales Reports</span><span class="qp-arr">›</span>
+        </button>
+        <button class="qp em" onclick="sendPrompt('Purchases')">
+          <span class="qp-ico">📦</span><span class="qp-txt">Purchase Reports</span><span class="qp-arr">›</span>
+        </button>
+        <button class="qp am" onclick="sendPrompt('Dispatch for the Month')">
+          <span class="qp-ico">🚚</span><span class="qp-txt">Dispatch Report</span><span class="qp-arr">›</span>
+        </button>
+        <button class="qp cy" onclick="sendPrompt('Total Inventory Stock')">
+          <span class="qp-ico">🏭</span><span class="qp-txt">Total Inventory Stock</span><span class="qp-arr">›</span>
+        </button>
+        <button class="qp vi" onclick="sendPrompt('Inventory for Bath Rug')">
+          <span class="qp-ico">🔎</span><span class="qp-txt">Product Stock Lookup</span><span class="qp-arr">›</span>
+        </button>
+        <button class="qp pu" onclick="sendPrompt('Top Customers and Vendors')">
+          <span class="qp-ico">🏆</span><span class="qp-txt">Top Customers &amp; Vendors</span><span class="qp-arr">›</span>
+        </button>
+        <button class="qp em" onclick="sendPrompt('Gross Profit Margin')">
+          <span class="qp-ico">💹</span><span class="qp-txt">Profit &amp; Margin Analysis</span><span class="qp-arr">›</span>
+        </button>
+        <button class="qp re" onclick="sendPrompt('Low Stock Alerts')">
+          <span class="qp-ico">⚠️</span><span class="qp-txt" style="color:var(--re2);">Low Stock Alerts</span><span class="qp-arr">›</span>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- end sidebar -->
+
+  <!-- CHAT PANEL -->
+  <div class="chat-panel">
+
+    <!-- Chat Top Bar -->
+    <div class="chat-topbar">
+      <div class="ct-left">
+        <div class="ct-avatar">🤖</div>
+        <div>
+          <div class="ct-title">ERP AI Assistant</div>
+          <div class="ct-sub">Real-time · Sales · Purchase · Stock APIs</div>
+        </div>
+      </div>
+      <div class="ct-pills">
+        <span class="pill vi" id="headerBadge">ERP AI Connected</span>
+      </div>
+      <div class="ct-actions">
+        <button class="act-btn" onclick="copyChat()">📋 Export</button>
+        <button class="act-btn danger" onclick="clearChat()">🗑️ Clear</button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-body" id="chatBody">
+      <div class="msg ai">
+        <div class="msg-header">
+          <div class="msg-av">🤖</div>
+          <span class="msg-name">Digify AI</span>
+          <span class="msg-ts">Just now</span>
+        </div>
+        <div class="bubble">
+          👋 <strong>Hi! I am the ERP AI Bot for Digify Soft.</strong><br><br>
+          I'm connected to your real-time ERP databases — <em>Sales, Purchases, and Live Stock APIs.</em><br><br>
+          🛒 <strong>Sales Reports</strong> — Month / Day / Year breakdown<br>
+          📦 <strong>Purchase Reports</strong> — Month / Day / Year breakdown<br>
+          🏭 <strong>Stock &amp; Inventory</strong> — 1,092+ SKUs tracked live<br>
+          🏆 <strong>Top Customers &amp; Vendors</strong><br>
+          💹 <strong>Profit &amp; Margin Analysis</strong><br><br>
+          What would you like to enquire about today?
+          <div style="display:flex;gap:7px;margin-top:14px;flex-wrap:wrap;">
+            <button onclick="sendPrompt('Sales')" style="background:rgba(99,102,241,0.16);border:1px solid rgba(99,102,241,0.35);color:#818cf8;padding:7px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Inter',inherit;transition:all 0.2s;">🛒 Sales</button>
+            <button onclick="sendPrompt('Purchases')" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#34d399;padding:7px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Inter',inherit;transition:all 0.2s;">📦 Purchases</button>
+            <button onclick="sendPrompt('Total Inventory Stock')" style="background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.3);color:#22d3ee;padding:7px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Inter',inherit;transition:all 0.2s;">🏭 Stock</button>
+            <button onclick="sendPrompt('Low Stock Alerts')" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.28);color:#f87171;padding:7px 16px;border-radius:100px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Inter',inherit;transition:all 0.2s;">⚠️ Alerts</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="chat-footer">
+      <div class="input-pill">
+        <input type="text" id="chatInput"
+          placeholder="Ask about invoices, customers, vendors, stock, month-wise sales…"
+          autocomplete="off">
+        <button class="mic-btn" id="micBtn" title="Voice Search">🎤</button>
+        <button id="sendBtn" onclick="sendUserMessage()">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+      <div class="footer-hint">Press <strong>Enter</strong> to send · <strong>🎤</strong> for voice · ERP data refreshes every 10 min</div>
+    </div>
+
+  </div><!-- end chat panel -->
+
+</div><!-- end layout -->
+
+<script>
+  /* ── STATE ─────────────────────────────────────── */
+  let history = [];
+  let waiting = false;
+  const chatBody = document.getElementById('chatBody');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const micBtn  = document.getElementById('micBtn');
+
+  /* ── BOOT ──────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    loadSummary();
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
     });
+    initVoice();
+  });
 
-    function toggleDisclaimerModal() {
-      const modal = document.getElementById('disclaimerModal');
-      if (!modal) return;
-      modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
-    }
+  function toggleModal() {
+    const m = document.getElementById('disclaimerModal');
+    m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+  }
 
-    // ── KPI LOADER ──────────────────────────────────────
-    async function loadSummary() {
-      const statusDot   = document.getElementById('statusDot');
-      const statusText  = document.getElementById('statusText');
-      const headerBadge = document.getElementById('headerBadge');
-      try {
-        const [summaryRes, stockRes] = await Promise.all([
-          fetch('/api/summary'),
-          fetch('/api/stock')
-        ]);
-        const summaryJson = await summaryRes.json();
-        const stockJson   = await stockRes.json();
-        if (summaryJson.status !== 'ok') throw new Error('API Error');
-        const { sales, purchases } = summaryJson.data;
-        const fmtK = (n) => {
-          if (n >= 1e7) return '₹' + (n / 1e7).toFixed(2) + 'Cr';
-          if (n >= 1e5) return '₹' + (n / 1e5).toFixed(2) + 'L';
-          return '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        };
-        animateValue('kpiSalesAmt',    fmtK(sales.totalAmount));
-        animateValue('kpiPurchaseAmt', fmtK(purchases.totalAmount));
-        animateValue('kpiAvgSale',     fmtK(sales.totalInvoices > 0 ? sales.totalAmount / sales.totalInvoices : 0));
-        animateValue('kpiSaleItems',   sales.totalItems.toLocaleString('en-IN'));
-        document.getElementById('kpiSalesInv').textContent    = `${sales.totalInvoices} Invoices`;
-        document.getElementById('kpiPurchaseInv').textContent = `${purchases.totalInvoices} Invoices`;
-        if (stockJson.status === 'ok') {
-          const s = stockJson.data;
-          animateValue('kpiStockProducts', s.totalProducts.toLocaleString('en-IN'));
-          animateValue('kpiLowStock',      s.lowStockCount.toLocaleString('en-IN'));
-          document.getElementById('kpiStockQty').textContent   = `${s.totalQty.toLocaleString('en-IN')} units`;
-          document.getElementById('kpiOutOfStock').textContent = `${s.outOfStockCount} out of stock`;
-        }
-        if (statusDot)   { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 10px #10b981'; }
-        if (statusText)  statusText.textContent = 'ERP AI Connected';
-        if (headerBadge) { headerBadge.textContent = 'ERP AI Connected'; headerBadge.style.color = '#a5b4fc'; }
-      } catch (e) {
-        console.error('Summary load failed:', e);
-        if (statusDot)   { statusDot.style.background = '#ef4444'; statusDot.style.boxShadow = '0 0 6px #ef4444'; }
-        if (statusText)  statusText.textContent = 'ERP AI Disconnected';
-        if (headerBadge) { headerBadge.textContent = 'ERP AI Disconnected'; headerBadge.style.color = '#fca5a5'; }
+  /* ── KPI LOADER ────────────────────────────────── */
+  async function loadSummary() {
+    const dot    = document.getElementById('statusDot');
+    const txt    = document.getElementById('statusText');
+    const badge  = document.getElementById('headerBadge');
+    try {
+      const [sr, stk] = await Promise.all([fetch('/api/summary'), fetch('/api/stock')]);
+      const sj = await sr.json();
+      const skj = await stk.json();
+      if (sj.status !== 'ok') throw new Error();
+      const { sales, purchases } = sj.data;
+      const fmtK = n => n >= 1e7 ? '₹'+(n/1e7).toFixed(2)+'Cr' : n >= 1e5 ? '₹'+(n/1e5).toFixed(2)+'L' : '₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});
+      reveal('kpiSalesAmt',    fmtK(sales.totalAmount));
+      reveal('kpiPurchaseAmt', fmtK(purchases.totalAmount));
+      reveal('kpiAvgSale',     fmtK(sales.totalInvoices > 0 ? sales.totalAmount / sales.totalInvoices : 0));
+      reveal('kpiSaleItems',   sales.totalItems.toLocaleString('en-IN'));
+      document.getElementById('kpiSalesInv').textContent    = `${sales.totalInvoices} invoices`;
+      document.getElementById('kpiPurchaseInv').textContent = `${purchases.totalInvoices} invoices`;
+      if (skj.status === 'ok') {
+        const s = skj.data;
+        reveal('kpiStockProducts', s.totalProducts.toLocaleString('en-IN'));
+        reveal('kpiLowStock',      s.lowStockCount.toLocaleString('en-IN'));
+        document.getElementById('kpiStockQty').textContent   = `${s.totalQty.toLocaleString('en-IN')} units`;
+        document.getElementById('kpiOutOfStock').textContent = `${s.outOfStockCount} out of stock`;
       }
+      if (dot)   { dot.style.background = '#10b981'; dot.style.boxShadow = '0 0 10px #10b981'; }
+      if (txt)   txt.textContent = 'ERP AI Connected';
+      if (badge) { badge.textContent = 'ERP AI Connected'; badge.style.color = '#818cf8'; }
+    } catch {
+      if (dot)   { dot.style.background = '#ef4444'; dot.style.boxShadow = '0 0 6px #ef4444'; dot.style.animation = 'none'; }
+      if (txt)   txt.textContent = 'ERP AI Disconnected';
+      if (badge) { badge.textContent = 'ERP AI Disconnected'; badge.style.color = '#f87171'; }
     }
+  }
 
-    function animateValue(id, value) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.style.opacity = '0'; el.style.transform = 'translateY(6px)';
-      el.style.transition = 'all 0.4s cubic-bezier(0.16,1,0.3,1)';
-      setTimeout(() => { el.textContent = value; el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }, 120);
-    }
+  function reveal(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.cssText = 'opacity:0;transform:translateY(5px);transition:all 0.45s cubic-bezier(0.22,1,0.36,1);';
+    setTimeout(() => { el.textContent = value; el.style.cssText = 'opacity:1;transform:translateY(0);transition:all 0.45s cubic-bezier(0.22,1,0.36,1);'; }, 100);
+  }
 
-    // ── REFRESH ──────────────────────────────────────────
-    async function refreshData() {
-      const btn = document.getElementById('refreshBtn');
-      if (btn.classList.contains('spinning')) return;
-      btn.classList.add('spinning');
-      try { await fetch('/api/refresh', { method: 'POST' }); await loadSummary(); }
-      catch (e) { console.error('Refresh error:', e); }
-      finally { setTimeout(() => btn.classList.remove('spinning'), 600); }
-    }
+  /* ── REFRESH ───────────────────────────────────── */
+  async function refreshData() {
+    const btn = document.getElementById('refreshBtn');
+    if (btn.classList.contains('spin')) return;
+    btn.classList.add('spin');
+    try { await fetch('/api/refresh', { method:'POST' }); await loadSummary(); }
+    catch(e) { console.error(e); }
+    finally { setTimeout(() => btn.classList.remove('spin'), 700); }
+  }
 
-    // ── CLEAR CHAT ───────────────────────────────────────
-    function clearChat() {
-      conversationHistory = [];
-      chatBody.innerHTML = '';
-      appendMessage('ai', '🔄 **Chat cleared.** Ask me anything about your ERP data!');
-    }
+  /* ── CLEAR ─────────────────────────────────────── */
+  function clearChat() {
+    history = [];
+    chatBody.innerHTML = '';
+    addMsg('ai', '🔄 **Chat cleared.** Ready for your next query!');
+  }
 
-    // ── VOICE ────────────────────────────────────────────
-    function initVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) { micBtn.style.display = 'none'; return; }
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-IN'; recognition.continuous = false;
-      micBtn.addEventListener('click', () => {
-        if (micBtn.classList.contains('listening')) recognition.stop();
-        else recognition.start();
+  /* ── VOICE ─────────────────────────────────────── */
+  function initVoice() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { micBtn.style.display = 'none'; return; }
+    const rec = new SR(); rec.lang = 'en-IN';
+    micBtn.addEventListener('click', () => micBtn.classList.contains('listening') ? rec.stop() : rec.start());
+    rec.onstart  = () => { micBtn.classList.add('listening'); chatInput.placeholder = '🎤 Listening…'; };
+    rec.onresult = e  => { chatInput.value = e.results[0][0].transcript; sendUserMessage(); };
+    rec.onend    = () => { micBtn.classList.remove('listening'); chatInput.placeholder = 'Ask about invoices, customers, vendors, stock, month-wise sales…'; };
+    rec.onerror  = () => rec.stop();
+  }
+
+  /* ── COPY ──────────────────────────────────────── */
+  function copyChat() {
+    const msgs = chatBody.querySelectorAll('.msg');
+    let txt = '=== Digify ERP AI Chat Export ===\n\n';
+    msgs.forEach(m => {
+      const role = m.classList.contains('user') ? 'You' : 'ERP AI';
+      const b = m.querySelector('.bubble');
+      const ts = m.querySelector('.msg-ts');
+      if (b) txt += `[${role}] ${ts ? ts.textContent : ''}\n${b.innerText}\n\n`;
+    });
+    navigator.clipboard.writeText(txt).then(() => {
+      document.querySelectorAll('[onclick="copyChat()"]').forEach(b => {
+        const o = b.textContent; b.textContent = '✅ Copied!';
+        setTimeout(() => b.textContent = o, 2000);
       });
-      recognition.onstart = () => { micBtn.classList.add('listening'); chatInput.placeholder = '🎤 Listening... Speak now'; };
-      recognition.onresult = (e) => { chatInput.value = e.results[0][0].transcript; sendUserMessage(); };
-      recognition.onend = () => { micBtn.classList.remove('listening'); chatInput.placeholder = 'Ask anything — invoice number, customer name, vendor, month sales, inventory…'; };
-      recognition.onerror = () => recognition.stop();
-    }
+    });
+  }
 
-    // ── COPY CHAT ────────────────────────────────────────
-    function copyChat() {
-      const msgs = chatBody.querySelectorAll('.message');
-      let text = '=== Digify ERP AI Chat Export ===\n\n';
-      msgs.forEach(msg => {
-        const role = msg.classList.contains('user') ? 'You' : 'ERP AI';
-        const bubble = msg.querySelector('.message-bubble');
-        const time = msg.querySelector('.message-time');
-        if (bubble) text += `[${role}] ${time ? time.textContent : ''}\n${bubble.innerText}\n\n`;
+  /* ── MARKDOWN ──────────────────────────────────── */
+  function md(text) {
+    if (!text) return '';
+    let h = text
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      .replace(/^- (.*$)/gim, '• $1<br>')
+      .replace(/^\d+\. (.*$)/gim, m => {
+        const n = m.match(/^\d+/)[0];
+        return `<span style="color:var(--vi2);font-weight:700">${n}.</span> ${m.replace(/^\d+\.\s*/,'')}<br>`;
+      })
+      .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+
+    h = h.replace(/(\|[^\n]+\|(\n|<br>)){2,}/g, tb => {
+      const rows = tb.split(/\n|<br>/).filter(r => r.trim().startsWith('|') && r.trim().endsWith('|'));
+      if (rows.length < 2) return tb;
+      let t = '<table>';
+      rows.forEach((r, i) => {
+        if (/^\|[-| ]+\|$/.test(r.trim())) return;
+        const cells = r.trim().slice(1,-1).split('|').map(c=>c.trim());
+        const tag = i===0?'th':'td';
+        t += '<tr>' + cells.map(c=>`<${tag}>${c}</${tag}>`).join('') + '</tr>';
       });
-      navigator.clipboard.writeText(text).then(() => {
-        const btns = document.querySelectorAll('[title="Export Chat"]');
-        btns.forEach(b => { const orig = b.textContent; b.textContent = '✅'; setTimeout(() => b.textContent = orig, 2000); });
+      return t + '</table>';
+    });
+    return h;
+  }
+
+  function ts() { return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
+
+  function addMsg(sender, text) {
+    const el = document.createElement('div');
+    el.className = `msg ${sender}`;
+    const hdr = sender === 'ai'
+      ? `<div class="msg-header"><div class="msg-av">🤖</div><span class="msg-name">Digify AI</span><span class="msg-ts">${ts()}</span></div>`
+      : `<div class="msg-header" style="justify-content:flex-end;"><span class="msg-name" style="color:rgba(165,180,252,0.8);">You</span><span class="msg-ts">${ts()}</span></div>`;
+    const content = sender === 'ai'
+      ? md(text)
+      : text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    el.innerHTML = `${hdr}<div class="bubble">${content}</div>`;
+    chatBody.appendChild(el);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function showTyping() {
+    const el = document.createElement('div');
+    el.className = 'msg ai'; el.id = 'typing';
+    el.innerHTML = `
+      <div class="msg-header"><div class="msg-av">🤖</div><span class="msg-name">Digify AI</span></div>
+      <div class="bubble"><div class="typing-wrap"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;
+    chatBody.appendChild(el);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+  function hideTyping() { const el = document.getElementById('typing'); if(el) el.remove(); }
+
+  function setWait(v) { waiting=v; sendBtn.disabled=v; chatInput.disabled=v; }
+
+  async function sendPrompt(t) { if(waiting) return; await send(t); }
+  async function sendUserMessage() { const t=chatInput.value.trim(); if(!t||waiting) return; chatInput.value=''; await send(t); }
+
+  async function send(text) {
+    addMsg('user', text);
+    history.push({ role:'user', content:text });
+    setWait(true); showTyping();
+    try {
+      const res = await fetch('/api/chat', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ message:text, history })
       });
+      const d = await res.json();
+      hideTyping();
+      const reply = d.reply || '⚠️ Empty response.';
+      addMsg('ai', reply);
+      history.push({ role:'assistant', content:reply });
+    } catch {
+      hideTyping();
+      addMsg('ai', '❌ Network error — unable to reach the ERP server. Please check your connection.');
+    } finally {
+      setWait(false); chatInput.focus();
     }
-
-    // ── MARKDOWN ─────────────────────────────────────────
-    function parseMarkdown(text) {
-      if (!text) return '';
-      let html = text
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code>$1</code>')
-        .replace(/^- (.*$)/gim, '• $1<br>')
-        .replace(/^\d+\. (.*$)/gim, m => `<span style="color:#a5b4fc;font-weight:600;">${m.match(/^\d+/)[0]}.</span> ${m.replace(/^\d+\.\s*/,'')}<br>`)
-        .replace(/\n\n/g, '<br><br>')
-        .replace(/\n/g, '<br>');
-
-      html = html.replace(/(\|[^\n]+\|(\n|<br>)){2,}/g, (tableBlock) => {
-        const rows = tableBlock.split(/\n|<br>/).filter(r => r.trim().startsWith('|') && r.trim().endsWith('|'));
-        if (rows.length < 2) return tableBlock;
-        let t = '<table>';
-        rows.forEach((row, i) => {
-          if (/^\|[-| ]+\|$/.test(row.trim())) return;
-          const cells = row.trim().slice(1,-1).split('|').map(c=>c.trim());
-          const tag = i === 0 ? 'th' : 'td';
-          t += '<tr>' + cells.map(c=>`<${tag}>${c}</${tag}>`).join('') + '</tr>';
-        });
-        return t + '</table>';
-      });
-      return html;
-    }
-
-    function timeStr() { return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
-
-    function appendMessage(sender, text) {
-      const msg = document.createElement('div');
-      msg.className = `message ${sender}`;
-      const aiHeader = sender === 'ai'
-        ? `<div class="ai-header"><div class="ai-avatar-sm">🤖</div><span class="ai-label">Digify AI</span></div>`
-        : '';
-      msg.innerHTML = `
-        ${aiHeader}
-        <div class="message-bubble">${sender === 'ai' ? parseMarkdown(text) : text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-        <span class="message-time">${timeStr()}</span>`;
-      chatBody.appendChild(msg);
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function showTyping() {
-      const d = document.createElement('div');
-      d.className = 'message ai'; d.id = 'typingIndicator';
-      d.innerHTML = `<div class="ai-header"><div class="ai-avatar-sm">🤖</div><span class="ai-label">Digify AI</span></div>
-        <div class="message-bubble"><div class="typing-indicator">
-          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-        </div></div>`;
-      chatBody.appendChild(d);
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function hideTyping() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
-
-    function setWaiting(v) { isWaiting = v; sendBtn.disabled = v; chatInput.disabled = v; }
-
-    async function sendPrompt(text) { if (isWaiting) return; await handleSend(text); }
-    async function sendUserMessage() { const t = chatInput.value.trim(); if (!t || isWaiting) return; chatInput.value = ''; await handleSend(t); }
-
-    async function handleSend(text) {
-      appendMessage('user', text);
-      conversationHistory.push({ role:'user', content:text });
-      setWaiting(true);
-      showTyping();
-      try {
-        const res = await fetch('/api/chat', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ message:text, history:conversationHistory })
-        });
-        const data = await res.json();
-        hideTyping();
-        const reply = data.reply || '⚠️ Empty response from server.';
-        appendMessage('ai', reply);
-        conversationHistory.push({ role:'assistant', content:reply });
-      } catch (err) {
-        hideTyping();
-        appendMessage('ai', '❌ Network error — could not reach the ERP server. Please check your connection.');
-        console.error(err);
-      } finally {
-        setWaiting(false);
-        chatInput.focus();
-      }
-    }
-  </script>
+  }
+</script>
 </body>
 </html>
