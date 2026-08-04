@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { Groq } = require('groq-sdk');
 
 const app = express();
@@ -16,10 +17,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 const PURCHASE_API_URL = (process.env.PURCHASE_API_URL || 'https://thegreateasternexports.jbbs.in/API/purchase_api.php').trim();
 const SALE_API_URL = (process.env.SALE_API_URL || 'https://thegreateasternexports.jbbs.in/API/sale_api.php').trim();
 
-// In-Memory Data Store
-let purchases = [];
-let sales = [];
-let lastFetchedTime = null;
+// Offline / Fallback ERP Data Cache
+const FALLBACK_DATA_PATH = path.join(__dirname, 'data', 'fallback_erp_data.json');
+let fallbackPurchases = [];
+let fallbackSales = [];
+
+try {
+  if (fs.existsSync(FALLBACK_DATA_PATH)) {
+    const raw = fs.readFileSync(FALLBACK_DATA_PATH, 'utf-8');
+    const parsed = JSON.parse(raw);
+    fallbackPurchases = parsed.purchases || [];
+    fallbackSales = parsed.sales || [];
+    console.log(`📦 Fallback ERP Dataset loaded! Purchases: ${fallbackPurchases.length} | Sales: ${fallbackSales.length}`);
+  }
+} catch (err) {
+  console.warn('⚠️ Could not load fallback ERP dataset:', err.message);
+}
+
+// In-Memory Data Store (initialize with fallback dataset so Vercel/serverless has data immediately)
+let purchases = fallbackPurchases;
+let sales = fallbackSales;
+let lastFetchedTime = fallbackPurchases.length > 0 ? new Date().toISOString() : null;
 let isLoadingData = false;
 
 // Initialize Groq Client
@@ -39,19 +57,55 @@ if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim() !== '' && !proce
 async function loadAPIData() {
   isLoadingData = true;
   console.log('🔄 Fetching real-time data from ERP REST APIs...');
+
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Accept': 'application/json, text/plain, */*'
+  };
+
+  const fetchWithTimeout = async (url, timeoutMs = 8000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { headers, signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      const data = await res.json();
+      return data;
+    } catch (err) {
+      clearTimeout(timer);
+      console.error(`❌ Fetch Error for ${url}:`, err.message);
+      return null;
+    }
+  };
+
   try {
     const [pRes, sRes] = await Promise.all([
-      fetch(PURCHASE_API_URL).then(r => r.json()).catch((err) => { console.error('❌ Purchase API Fetch Error:', err.message); return { Vouchers: [] }; }),
-      fetch(SALE_API_URL).then(r => r.json()).catch((err) => { console.error('❌ Sale API Fetch Error:', err.message); return { Vouchers: [] }; })
+      fetchWithTimeout(PURCHASE_API_URL),
+      fetchWithTimeout(SALE_API_URL)
     ]);
 
-    purchases = pRes.Vouchers || pRes.data || [];
-    sales = sRes.Vouchers || sRes.data || [];
-    lastFetchedTime = new Date().toISOString();
+    const fetchedPurchases = pRes ? (pRes.Vouchers || pRes.data || []) : [];
+    const fetchedSales = sRes ? (sRes.Vouchers || sRes.data || []) : [];
 
+    if (fetchedPurchases.length > 0) {
+      purchases = fetchedPurchases;
+    } else if (purchases.length === 0) {
+      purchases = fallbackPurchases;
+    }
+
+    if (fetchedSales.length > 0) {
+      sales = fetchedSales;
+    } else if (sales.length === 0) {
+      sales = fallbackSales;
+    }
+
+    lastFetchedTime = new Date().toISOString();
     console.log(`✅ Digify ERP API Data Loaded! Purchases: ${purchases.length} | Sales: ${sales.length}`);
   } catch (err) {
     console.error('❌ Failed to fetch ERP APIs:', err.message);
+    if (purchases.length === 0) purchases = fallbackPurchases;
+    if (sales.length === 0) sales = fallbackSales;
   } finally {
     isLoadingData = false;
   }
@@ -60,8 +114,11 @@ async function loadAPIData() {
 // Ensure data is loaded (crucial for Vercel/serverless environments where app.listen is bypassed)
 async function ensureDataLoaded() {
   if (purchases.length === 0 || sales.length === 0) {
+    if (fallbackPurchases.length > 0 && purchases.length === 0) purchases = fallbackPurchases;
+    if (fallbackSales.length > 0 && sales.length === 0) sales = fallbackSales;
+
     if (!isLoadingData) {
-      console.log('⚠️ ERP cache empty. Fetching data on demand...');
+      console.log('⚠️ ERP cache empty. Fetching live data on demand...');
       await loadAPIData();
     } else {
       while (isLoadingData) {
