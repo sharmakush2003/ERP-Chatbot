@@ -4,421 +4,331 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digify Soft ERP AI — Intelligence Console</title>
-  <meta name="description" content="Digify Soft ERP AI — Real-time Sales, Purchase, Dispatch & Inventory Intelligence Console powered by AI.">
+  <meta name="description" content="Digify Soft ERP AI — Real-time Sales, Purchase, Stock & Inventory Intelligence Console powered by AI.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
   <style>
     :root {
-      --bg:           #060b18;
-      --surface-1:    rgba(13, 20, 45, 0.92);
-      --surface-2:    rgba(18, 28, 60, 0.55);
-      --surface-3:    rgba(25, 35, 70, 0.4);
-      --accent:       #6366f1;
-      --accent-light: #818cf8;
-      --accent-glow:  rgba(99,102,241,0.18);
-      --green:        #10b981;
-      --green-glow:   rgba(16,185,129,0.18);
-      --amber:        #f59e0b;
-      --amber-glow:   rgba(245,158,11,0.18);
-      --red:          #ef4444;
-      --cyan:         #06b6d4;
-      --cyan-glow:    rgba(6,182,212,0.18);
-      --purple:       #a855f7;
-      --purple-glow:  rgba(168,85,247,0.18);
+      --bg:           #040712;
+      --s1:           rgba(15,23,42,0.75);
+      --s2:           rgba(15,23,42,0.45);
       --border:       rgba(255,255,255,0.07);
-      --border-accent:rgba(99,102,241,0.35);
-      --text-1:       #f1f5f9;
-      --text-2:       #94a3b8;
-      --text-3:       #64748b;
-      --shadow-glow:  0 0 40px rgba(99,102,241,0.15);
-      --radius-sm:    10px;
-      --radius-md:    16px;
-      --radius-lg:    24px;
-      --transition:   all 0.25s cubic-bezier(0.4,0,0.2,1);
+      --border-hi:    rgba(99,102,241,0.32);
+      --indigo:       #6366f1;
+      --indigo-d:     #4f46e5;
+      --indigo-glow:  rgba(99,102,241,0.18);
+      --emerald:      #10b981;
+      --emerald-glow: rgba(16,185,129,0.18);
+      --purple:       #a855f7;
+      --purple-glow:  rgba(168,85,247,0.16);
+      --amber:        #f59e0b;
+      --amber-glow:   rgba(245,158,11,0.16);
+      --pink:         #ec4899;
+      --pink-glow:    rgba(236,72,153,0.16);
+      --cyan:         #06b6d4;
+      --cyan-glow:    rgba(6,182,212,0.16);
+      --red:          #ef4444;
+      --t1: #f1f5f9;
+      --t2: #94a3b8;
+      --t3: #475569;
+      --r-sm: 12px;
+      --r-md: 18px;
+      --r-lg: 26px;
+      --tx: all 0.25s cubic-bezier(0.4,0,0.2,1);
     }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     body {
-      font-family: 'Outfit', sans-serif;
-      background: var(--bg);
+      font-family:'Plus Jakarta Sans',sans-serif;
+      background:var(--bg);
       background-image:
-        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(99,102,241,0.14) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(16,185,129,0.09) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 60% at 50% 50%, rgba(168,85,247,0.04) 0%, transparent 70%);
-      color: var(--text-1);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+        radial-gradient(ellipse 90% 60% at 5% -5%,  rgba(99,102,241,0.16) 0%,transparent 55%),
+        radial-gradient(ellipse 70% 50% at 95% 100%,rgba(16,185,129,0.11) 0%,transparent 55%),
+        radial-gradient(ellipse 50% 70% at 50% 50%,  rgba(168,85,247,0.05) 0%,transparent 65%),
+        radial-gradient(ellipse 40% 40% at 80% 10%,  rgba(236,72,153,0.07) 0%,transparent 50%);
+      color:var(--t1);
+      height:100vh;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
     }
 
-    /* ── TOP NAV ── */
+    /* TOP NAV */
     .top-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      height: 60px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(6,11,24,0.85);
-      backdrop-filter: blur(24px);
-      z-index: 100;
-      flex-shrink: 0;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 26px;height:62px;
+      border-bottom:1px solid var(--border);
+      background:rgba(4,7,18,0.88);
+      backdrop-filter:blur(32px);
+      z-index:100;flex-shrink:0;position:relative;
     }
-    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .top-nav::after {
+      content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(99,102,241,0.5) 30%,rgba(16,185,129,0.35) 70%,transparent);
+    }
+    .nav-brand{display:flex;align-items:center;gap:13px;}
     .nav-logo {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #3b82f6 100%);
-      border-radius: 11px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.45);
+      width:40px;height:40px;
+      background:linear-gradient(135deg,var(--indigo) 0%,var(--purple) 55%,#3b82f6 100%);
+      border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:19px;
+      box-shadow:0 0 24px rgba(99,102,241,0.5),0 4px 16px rgba(0,0,0,0.4);
+      position:relative;flex-shrink:0;
     }
-    .nav-brand-text { font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
-    .nav-brand-sub  { font-size: 11px; color: var(--text-2); margin-top: 1px; letter-spacing: 1.2px; text-transform: uppercase; }
-    .nav-right { display: flex; align-items: center; gap: 10px; }
-    .status-badge {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--text-2);
-      padding: 5px 12px; border-radius: 20px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
+    .nav-logo::before {
+      content:'';position:absolute;inset:-2px;border-radius:14px;
+      background:linear-gradient(135deg,var(--indigo),var(--purple),var(--emerald));
+      z-index:-1;opacity:0.6;
+      animation:rotateBorder 4s linear infinite;
+    }
+    @keyframes rotateBorder{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .nav-brand-text{font-size:15.5px;font-weight:800;letter-spacing:-0.2px;color:var(--t1);}
+    .nav-brand-sub{font-size:10.5px;color:var(--t3);margin-top:1px;letter-spacing:1.5px;text-transform:uppercase;font-weight:500;}
+    .nav-right{display:flex;align-items:center;gap:10px;}
+    .status-pill {
+      display:flex;align-items:center;gap:7px;
+      padding:6px 14px;border-radius:100px;
+      border:1px solid rgba(16,185,129,0.3);
+      background:rgba(16,185,129,0.08);
+      font-size:11.5px;font-weight:600;color:var(--emerald);
     }
     .status-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
-      animation: pulse 2s infinite;
+      width:7px;height:7px;border-radius:50%;
+      background:var(--emerald);box-shadow:0 0 10px var(--emerald);
+      position:relative;
     }
-    @keyframes pulse { 0%,100%{opacity:1; transform:scale(1)} 50%{opacity:0.6; transform:scale(0.85)} }
+    .status-dot::after {
+      content:'';position:absolute;inset:-3px;border-radius:50%;
+      background:rgba(16,185,129,0.35);
+      animation:pulseRing 2s ease-in-out infinite;
+    }
+    @keyframes pulseRing{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(1.7)}}
+    .nav-icon-btn {
+      width:34px;height:34px;border-radius:10px;
+      background:rgba(255,255,255,0.04);border:1px solid var(--border);
+      color:var(--t2);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      font-size:15px;transition:var(--tx);
+    }
+    .nav-icon-btn:hover{background:var(--indigo-glow);border-color:var(--border-hi);color:#a5b4fc;transform:scale(1.05);}
 
-    /* ── MAIN LAYOUT ── */
-    .app-container { display: flex; flex: 1; overflow: hidden; }
+    /* LAYOUT */
+    .app-container{display:flex;flex:1;overflow:hidden;}
 
-    /* ── LEFT PANEL ── */
-    .dashboard-panel {
-      width: 370px;
-      flex-shrink: 0;
-      background: var(--surface-1);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 18px 16px;
-      gap: 16px;
-      backdrop-filter: blur(24px);
+    /* SIDEBAR */
+    .sidebar {
+      width:310px;flex-shrink:0;
+      background:var(--s1);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;
+      overflow-y:auto;overflow-x:hidden;
+      padding:16px 14px;gap:14px;
+      backdrop-filter:blur(28px);
     }
-    .dashboard-panel::-webkit-scrollbar { width: 4px; }
-    .dashboard-panel::-webkit-scrollbar-track { background: transparent; }
-    .dashboard-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
+    .sidebar::-webkit-scrollbar{width:3px;}
+    .sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:10px;}
+    .section-label{
+      font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;
+      color:var(--t3);padding:0 4px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
 
-    .panel-header {
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .panel-title {
-      font-size: 11px; font-weight: 700;
-      letter-spacing: 1.4px; text-transform: uppercase;
-      color: var(--text-3);
-    }
-    .refresh-btn {
-      width: 28px; height: 28px; border-radius: 8px;
-      border: 1px solid var(--border); background: transparent;
-      color: var(--text-2); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; transition: var(--transition); font-family: inherit;
-    }
-    .refresh-btn:hover { background: var(--accent-glow); border-color: var(--border-accent); color: var(--accent-light); }
-    .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── KPI GRID (2x2) ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+    /* KPI */
+    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
     .kpi-card {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 12px 10px;
-      position: relative; overflow: hidden;
-      transition: var(--transition);
-      animation: fadeInUp 0.5s ease forwards;
-      cursor: default;
-    }
-    .kpi-card:hover {
-      border-color: var(--border-accent);
-      box-shadow: var(--shadow-glow);
-      transform: translateY(-2px);
+      background:var(--s2);border:1px solid var(--border);
+      border-radius:var(--r-sm);padding:13px 11px 11px;
+      position:relative;overflow:hidden;transition:var(--tx);cursor:default;
     }
     .kpi-card::before {
-      content: ''; position: absolute;
-      top: 0; left: 0; right: 0; height: 2px;
-      background: var(--accent); opacity: 0.6;
+      content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
+      border-radius:2px 2px 0 0;background:var(--indigo);
     }
-    .kpi-card.green::before { background: var(--green); }
-    .kpi-card.amber::before { background: var(--amber); }
-    .kpi-card.cyan::before  { background: var(--cyan); }
-    .kpi-card.purple::before { background: var(--purple); }
-    .kpi-card.red::before   { background: var(--red); }
-    .kpi-icon { font-size: 18px; margin-bottom: 6px; }
-    .kpi-label {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.7px; color: var(--text-3); margin-bottom: 4px;
+    .kpi-card.em::before{background:var(--emerald);}
+    .kpi-card.am::before{background:var(--amber);}
+    .kpi-card.pu::before{background:var(--purple);}
+    .kpi-card.cy::before{background:var(--cyan);}
+    .kpi-card.re::before{background:var(--red);}
+    .kpi-card:hover{border-color:rgba(99,102,241,0.28);transform:translateY(-2px);box-shadow:0 8px 28px rgba(99,102,241,0.13);}
+    .kpi-card.em:hover{border-color:rgba(16,185,129,0.3);box-shadow:0 8px 28px rgba(16,185,129,0.12);}
+    .kpi-card.am:hover{border-color:rgba(245,158,11,0.3);box-shadow:0 8px 28px rgba(245,158,11,0.12);}
+    .kpi-card.pu:hover{border-color:rgba(168,85,247,0.3);box-shadow:0 8px 28px rgba(168,85,247,0.12);}
+    .kpi-card.cy:hover{border-color:rgba(6,182,212,0.3);box-shadow:0 8px 28px rgba(6,182,212,0.12);}
+    .kpi-card.re:hover{border-color:rgba(239,68,68,0.28);box-shadow:0 8px 28px rgba(239,68,68,0.12);}
+    .kpi-icon{font-size:17px;margin-bottom:7px;line-height:1;}
+    .kpi-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:4px;}
+    .kpi-value{font-size:16px;font-weight:800;color:var(--t1);line-height:1.2;word-break:break-all;transition:var(--tx);}
+    .kpi-sub{font-size:10px;color:var(--t3);margin-top:3px;font-weight:500;}
+    .refresh-btn {
+      width:26px;height:26px;border-radius:7px;
+      border:1px solid var(--border);background:transparent;
+      color:var(--t2);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;transition:var(--tx);font-family:inherit;
     }
-    .kpi-value {
-      font-size: 15px; font-weight: 800;
-      color: var(--text-1); line-height: 1.2;
-      word-break: break-all;
-    }
-    .kpi-sub { font-size: 10px; color: var(--text-3); margin-top: 3px; }
+    .refresh-btn:hover{background:var(--indigo-glow);border-color:var(--border-hi);color:#a5b4fc;}
+    .refresh-btn.spinning{animation:spin 0.7s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── QUICK PROMPTS ── */
-    .quick-prompts { display: flex; flex-direction: column; gap: 7px; }
-    .quick-prompt-btn {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      cursor: pointer; color: var(--text-1);
-      font-size: 12.5px; font-weight: 500;
-      font-family: inherit;
-      transition: var(--transition);
-      text-align: left;
+    /* QUICK PROMPTS */
+    .quick-prompts{display:flex;flex-direction:column;gap:5px;}
+    .qp-btn {
+      display:flex;align-items:center;gap:10px;
+      padding:9px 12px;
+      background:transparent;border:1px solid var(--border);
+      border-radius:var(--r-sm);
+      cursor:pointer;color:var(--t1);
+      font-size:12.5px;font-weight:500;font-family:inherit;
+      transition:var(--tx);text-align:left;position:relative;overflow:hidden;
     }
-    .quick-prompt-btn:hover {
-      background: var(--accent-glow);
-      border-color: var(--border-accent);
-      transform: translateX(4px);
-    }
-    .quick-prompt-btn.green:hover { background: var(--green-glow); border-color: rgba(16,185,129,0.4); }
-    .quick-prompt-btn.amber:hover { background: var(--amber-glow); border-color: rgba(245,158,11,0.4); }
-    .quick-prompt-btn.cyan:hover  { background: var(--cyan-glow);  border-color: rgba(6,182,212,0.4); }
-    .quick-prompt-btn.purple:hover{ background: var(--purple-glow); border-color: rgba(168,85,247,0.4); }
-    .qp-icon { font-size: 16px; flex-shrink: 0; }
-    .qp-text { flex: 1; }
-    .qp-arrow { font-size: 13px; color: var(--text-3); }
+    .qp-btn::after{content:'›';position:absolute;right:12px;color:var(--t3);font-size:16px;transition:var(--tx);}
+    .qp-btn:hover{border-color:var(--border-hi);background:var(--indigo-glow);}
+    .qp-btn:hover::after{right:8px;color:#a5b4fc;}
+    .qp-btn.em:hover{background:var(--emerald-glow);border-color:rgba(16,185,129,0.35);}
+    .qp-btn.am:hover{background:var(--amber-glow);border-color:rgba(245,158,11,0.35);}
+    .qp-btn.cy:hover{background:var(--cyan-glow);border-color:rgba(6,182,212,0.35);}
+    .qp-btn.pu:hover{background:var(--purple-glow);border-color:rgba(168,85,247,0.35);}
+    .qp-btn.re:hover{background:var(--pink-glow);border-color:rgba(239,68,68,0.3);}
+    .qp-icon{font-size:15px;flex-shrink:0;}
+    .qp-text{flex:1;}
 
-    /* ── RIGHT PANEL: CHAT ── */
-    .chat-panel {
-      flex: 1; display: flex; flex-direction: column;
-      overflow: hidden;
-      background: var(--surface-2);
-      backdrop-filter: blur(12px);
-    }
+    /* CHAT PANEL */
+    .chat-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--s2);backdrop-filter:blur(12px);}
     .chat-header {
-      padding: 18px 28px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(6,11,24,0.45);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-shrink: 0;
+      padding:16px 26px;border-bottom:1px solid var(--border);
+      background:rgba(4,7,18,0.5);backdrop-filter:blur(20px);
+      display:flex;align-items:center;justify-content:space-between;
+      flex-shrink:0;gap:12px;
     }
-    .chat-header-title h1 {
-      font-size: 17px; font-weight: 700;
-      background: linear-gradient(90deg, #fff 0%, #a5b4fc 60%, #6ee7b7 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    .chat-header-left{display:flex;align-items:center;gap:14px;}
+    .chat-ai-avatar {
+      width:38px;height:38px;border-radius:11px;
+      background:linear-gradient(135deg,var(--indigo),var(--purple));
+      display:flex;align-items:center;justify-content:center;
+      font-size:18px;box-shadow:0 0 16px rgba(99,102,241,0.4);flex-shrink:0;
     }
-    .chat-header-title p { font-size: 12px; color: var(--text-2); margin-top: 2px; }
-    .header-badge {
-      padding: 5px 12px; border-radius: 20px;
-      font-size: 11px; font-weight: 600;
-      background: rgba(99,102,241,0.12);
-      border: 1px solid var(--border-accent);
-      color: var(--accent-light);
+    .chat-header h1 {
+      font-size:15.5px;font-weight:800;letter-spacing:-0.2px;
+      background:linear-gradient(90deg,#fff 0%,#c7d2fe 55%,#6ee7b7 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
     }
-    .header-actions { display: flex; align-items: center; gap: 8px; }
-    .icon-btn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      color: var(--text-2);
-      width: 32px; height: 32px; border-radius: 9px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 13px; transition: var(--transition);
+    .chat-header p{font-size:11.5px;color:var(--t2);margin-top:1px;font-weight:400;}
+    .chat-header-actions{display:flex;align-items:center;gap:7px;}
+    .ch-btn {
+      background:rgba(255,255,255,0.04);border:1px solid var(--border);
+      color:var(--t2);width:33px;height:33px;border-radius:10px;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      font-size:14px;transition:var(--tx);
     }
-    .icon-btn:hover { background: var(--accent-glow); border-color: var(--border-accent); color: var(--accent-light); }
-
-    .chat-body {
-      flex: 1; overflow-y: auto;
-      padding: 24px 28px;
-      display: flex; flex-direction: column;
-      gap: 18px;
+    .ch-btn:hover{background:var(--indigo-glow);border-color:var(--border-hi);color:#a5b4fc;}
+    .header-status-pill {
+      padding:5px 13px;border-radius:100px;
+      font-size:11px;font-weight:700;
+      background:rgba(99,102,241,0.12);border:1px solid var(--border-hi);
+      color:#a5b4fc;letter-spacing:0.3px;
     }
 
-    /* ── MESSAGES ── */
-    .message {
-      display: flex; flex-direction: column;
-      max-width: 82%;
-      animation: fadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) forwards;
-    }
-    @keyframes fadeInUp {
-      from { opacity:0; transform:translateY(10px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-    .message.user { align-self: flex-end; }
-    .message.ai   { align-self: flex-start; }
+    /* CHAT BODY */
+    .chat-body{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:16px;}
+    .chat-body::-webkit-scrollbar{width:4px;}
+    .chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:10px;}
 
-    .message-bubble {
-      padding: 13px 17px;
-      border-radius: 18px;
-      font-size: 13.5px; line-height: 1.7;
+    /* MESSAGES */
+    .message{display:flex;flex-direction:column;max-width:80%;animation:msgIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards;}
+    @keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .message.user{align-self:flex-end;}
+    .message.ai{align-self:flex-start;}
+    .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+    .ai-avatar-sm{
+      width:26px;height:26px;border-radius:8px;flex-shrink:0;
+      background:linear-gradient(135deg,var(--indigo),var(--purple));
+      display:flex;align-items:center;justify-content:center;font-size:13px;
     }
-    .message.user .message-bubble {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #fff;
-      border-bottom-right-radius: 4px;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.35);
-    }
-    .message.ai .message-bubble {
-      background: rgba(255,255,255,0.035);
-      color: var(--text-1);
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 4px;
-    }
-    .message-bubble h3 { font-size: 14px; font-weight: 700; margin: 10px 0 5px; color: #a5b4fc; }
-    .message-bubble h4 { font-size: 13px; font-weight: 600; margin: 8px 0 4px; color: #c7d2fe; }
-    .message-bubble strong { color: #e2e8f0; }
-    .message-bubble em { color: var(--text-2); font-style: italic; }
-    .message-bubble code {
-      background: rgba(99,102,241,0.18);
-      padding: 1px 6px; border-radius: 4px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px; color: #a5b4fc;
-    }
-    /* ── MARKDOWN TABLE STYLES ── */
-    .message-bubble table {
-      width: 100%; border-collapse: collapse;
-      margin: 10px 0; font-size: 12.5px;
-      border-radius: 8px; overflow: hidden;
-    }
-    .message-bubble th {
-      background: rgba(99,102,241,0.22);
-      color: #c7d2fe; font-weight: 700;
-      padding: 8px 12px; text-align: left;
-      font-size: 11px; text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-    .message-bubble td {
-      padding: 7px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      color: var(--text-1);
-    }
-    .message-bubble tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
-    .message-bubble tr:last-child td { border-bottom: none; }
-
-    .message-time { font-size: 10px; color: var(--text-3); margin-top: 4px; }
-    .message.ai   .message-time { align-self: flex-start; }
-    .message.user .message-time { align-self: flex-end; }
-
-    /* ── AI BADGE ── */
     .ai-label {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 10px; font-weight: 700;
-      color: var(--accent-light);
-      background: rgba(99,102,241,0.12);
-      border: 1px solid var(--border-accent);
-      padding: 2px 8px; border-radius: 20px;
-      margin-bottom: 5px; align-self: flex-start;
-      letter-spacing: 0.5px;
+      font-size:10.5px;font-weight:700;color:#a5b4fc;
+      background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.28);
+      padding:2px 8px;border-radius:100px;letter-spacing:0.4px;
     }
+    .message-bubble{padding:14px 17px;border-radius:18px;font-size:13.5px;line-height:1.72;}
+    .message.user .message-bubble{
+      background:linear-gradient(135deg,var(--indigo),var(--indigo-d));
+      color:#fff;border-bottom-right-radius:4px;
+      box-shadow:0 6px 24px rgba(99,102,241,0.38);
+    }
+    .message.ai .message-bubble{
+      background:rgba(255,255,255,0.03);color:var(--t1);
+      border:1px solid var(--border);border-bottom-left-radius:4px;
+      box-shadow:0 2px 12px rgba(0,0,0,0.2);
+    }
+    .message-bubble h3{font-size:14px;font-weight:700;margin:10px 0 6px;color:#a5b4fc;}
+    .message-bubble h4{font-size:13px;font-weight:600;margin:8px 0 4px;color:#c7d2fe;}
+    .message-bubble strong{color:#e2e8f0;font-weight:700;}
+    .message-bubble em{color:var(--t2);font-style:italic;}
+    .message-bubble code{background:rgba(99,102,241,0.18);padding:2px 7px;border-radius:5px;font-family:'Courier New',monospace;font-size:12px;color:#a5b4fc;}
+    .message-bubble table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);}
+    .message-bubble th{background:rgba(99,102,241,0.22);color:#c7d2fe;font-weight:700;padding:9px 13px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.7px;}
+    .message-bubble td{padding:8px 13px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--t1);}
+    .message-bubble tr:nth-child(even) td{background:rgba(255,255,255,0.025);}
+    .message-bubble tr:last-child td{border-bottom:none;}
+    .message-time{font-size:10px;color:var(--t3);margin-top:5px;font-weight:500;}
+    .message.ai .message-time{align-self:flex-start;margin-left:34px;}
+    .message.user .message-time{align-self:flex-end;}
 
-    /* ── TYPING INDICATOR ── */
-    .typing-indicator { display: flex; gap: 5px; padding: 8px 12px; align-items: center; }
-    .typing-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--accent);
-      animation: typingBounce 1.2s infinite ease-in-out both;
-    }
-    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-    @keyframes typingBounce {
-      0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
-      40%          { transform: scale(1);   opacity: 1; }
-    }
+    /* TYPING */
+    .typing-indicator{display:flex;gap:5px;padding:8px 14px;align-items:center;}
+    .typing-dot{width:7px;height:7px;border-radius:50%;background:var(--indigo);animation:typeBounce 1.2s infinite ease-in-out both;}
+    .typing-dot:nth-child(1){animation-delay:-0.32s;}
+    .typing-dot:nth-child(2){animation-delay:-0.16s;}
+    @keyframes typeBounce{0%,80%,100%{transform:scale(0.55);opacity:0.35}40%{transform:scale(1.1);opacity:1}}
 
-    /* ── CHAT INPUT ── */
-    .chat-footer {
-      padding: 16px 28px 22px;
-      border-top: 1px solid var(--border);
-      background: rgba(6,11,24,0.4);
-      flex-shrink: 0;
+    /* FOOTER INPUT */
+    .chat-footer{padding:14px 22px 20px;border-top:1px solid var(--border);background:rgba(4,7,18,0.45);backdrop-filter:blur(16px);flex-shrink:0;}
+    .input-container {
+      display:flex;align-items:center;gap:8px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(99,102,241,0.22);
+      border-radius:100px;padding:6px 7px 6px 18px;transition:var(--tx);
     }
-    .input-wrapper {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 6px 8px;
-      transition: var(--transition);
-    }
-    .input-wrapper:focus-within {
-      border-color: var(--border-accent);
-      background: rgba(255,255,255,0.05);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
-    }
-    .chat-input {
-      flex: 1; background: transparent;
-      border: none; outline: none;
-      color: var(--text-1);
-      padding: 10px 10px;
-      font-size: 13.5px; font-family: inherit;
-    }
-    .chat-input::placeholder { color: var(--text-3); }
-    .mic-btn {
-      background: transparent; border: none;
-      color: var(--text-3); cursor: pointer;
-      width: 36px; height: 36px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      transition: var(--transition); font-size: 16px; flex-shrink: 0;
-    }
-    .mic-btn:hover { background: rgba(16,185,129,0.15); color: var(--green); }
-    .mic-btn.listening { background: rgba(239,68,68,0.15); color: var(--red); animation: pulse 1s infinite; }
-    .send-btn {
-      background: var(--accent); color: white; border: none;
-      width: 40px; height: 40px; border-radius: 11px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: var(--transition); flex-shrink: 0;
-    }
-    .send-btn:hover { background: #4f46e5; transform: scale(1.06); box-shadow: 0 4px 14px rgba(99,102,241,0.4); }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-    .send-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+    .input-container:focus-within{border-color:rgba(99,102,241,0.5);background:rgba(255,255,255,0.05);box-shadow:0 0 0 3px rgba(99,102,241,0.1);}
+    .chat-input{flex:1;background:transparent;border:none;outline:none;color:var(--t1);font-size:13.5px;font-family:inherit;padding:9px 0;}
+    .chat-input::placeholder{color:var(--t3);}
+    .mic-btn{background:transparent;border:none;color:var(--t3);cursor:pointer;width:36px;height:36px;border-radius:100px;display:flex;align-items:center;justify-content:center;transition:var(--tx);font-size:16px;flex-shrink:0;}
+    .mic-btn:hover{background:rgba(16,185,129,0.15);color:var(--emerald);}
+    .mic-btn.listening{background:rgba(239,68,68,0.15);color:var(--red);animation:listenPulse 1.2s ease-in-out infinite;box-shadow:0 0 0 4px rgba(239,68,68,0.2);}
+    @keyframes listenPulse{0%,100%{box-shadow:0 0 0 4px rgba(239,68,68,0.2)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0.05)}}
+    .send-btn{background:linear-gradient(135deg,var(--indigo),var(--indigo-d));color:white;border:none;width:40px;height:40px;border-radius:100px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tx);flex-shrink:0;box-shadow:0 4px 14px rgba(99,102,241,0.35);}
+    .send-btn:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(99,102,241,0.5);}
+    .send-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none;}
+    .send-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;fill:none;}
 
-    /* ── SCROLLBAR ── */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.09); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;padding:20px;}
+    .modal-card{background:var(--s1);border:1px solid var(--border-hi);border-radius:var(--r-lg);padding:30px 26px;max-width:430px;width:100%;box-shadow:0 0 60px rgba(99,102,241,0.2),0 20px 60px rgba(0,0,0,0.5);animation:msgIn 0.3s ease;position:relative;}
+    .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:var(--tx);}
+    .modal-close:hover{background:rgba(239,68,68,0.15);color:var(--red);border-color:rgba(239,68,68,0.3);}
+    .modal-icon{font-size:28px;margin-bottom:14px;display:block;}
+    .modal-title{font-size:17px;font-weight:800;color:var(--t1);margin-bottom:10px;}
+    .modal-body{font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:12px;}
+    .modal-badge{font-size:11px;font-weight:700;color:#a5b4fc;background:rgba(99,102,241,0.12);border:1px solid var(--border-hi);padding:8px 14px;border-radius:10px;text-align:center;display:block;}
 
-    /* ── RESTRICTION OVERLAY ── */
-    #restriction-overlay {
-      display: none; position: fixed; inset: 0;
-      background: var(--bg); z-index: 9999;
-      flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 24px; text-align: center;
-    }
-    .restriction-card {
-      background: var(--surface-1); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 48px 36px; max-width: 460px;
-      backdrop-filter: blur(20px); animation: fadeInUp 0.5s ease forwards;
-    }
-    .restriction-icon { font-size: 60px; display: block; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-    .restriction-card h2 {
-      font-size: 22px; font-weight: 800; margin-bottom: 12px;
-      background: linear-gradient(90deg,#fff,#a5b4fc);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-    }
-    .restriction-card p { font-size: 14px; color: var(--text-2); line-height: 1.7; }
+    /* RESTRICTION */
+    #restriction-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
+    .restriction-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:48px 36px;max-width:460px;backdrop-filter:blur(20px);animation:msgIn 0.5s ease forwards;}
+    .restriction-icon{font-size:56px;display:block;margin-bottom:18px;animation:floatIcon 3s ease-in-out infinite;}
+    @keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .restriction-card h2{font-size:22px;font-weight:800;margin-bottom:12px;background:linear-gradient(90deg,#fff,#a5b4fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .restriction-card p{font-size:14px;color:var(--t2);line-height:1.7;}
 
-    @media (max-width: 1024px) {
-      .app-container { display: none !important; }
-      .top-nav       { display: none !important; }
-      #restriction-overlay { display: flex !important; }
+    ::-webkit-scrollbar{width:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:10px;}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.14);}
+
+    @keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+    @media(max-width:1024px){
+      .app-container{display:none!important;}
+      .top-nav{display:none!important;}
+      #restriction-overlay{display:flex!important;}
     }
   </style>
 </head>
@@ -433,23 +343,17 @@
     </div>
   </div>
 
-  <!-- Disclaimer Info Popup Modal -->
-  <div id="disclaimerModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:var(--surface-1); border:1px solid var(--border-accent); border-radius:var(--radius-md); padding:28px 24px; max-width:440px; width:100%; box-shadow:var(--shadow-glow); position:relative; animation:fadeInUp 0.3s ease;">
-      <button onclick="toggleDisclaimerModal()" style="position:absolute; top:14px; right:14px; background:transparent; border:none; color:var(--text-2); font-size:18px; cursor:pointer; padding:4px;">✕</button>
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-        <span style="font-size:24px;">ℹ️</span>
-        <h3 style="font-size:16px; font-weight:700; color:var(--text-1);">AI Disclaimer & System Notice</h3>
-      </div>
-      <p style="font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:12px;">
-        Digify Soft ERP AI is an artificial intelligence assistant. While highly intelligent, AI-generated responses can occasionally contain errors and come with no guarantee.
+  <!-- Disclaimer Modal -->
+  <div id="disclaimerModal" class="modal-overlay">
+    <div class="modal-card">
+      <button class="modal-close" onclick="toggleDisclaimerModal()">✕</button>
+      <span class="modal-icon">ℹ️</span>
+      <div class="modal-title">AI Disclaimer &amp; System Notice</div>
+      <p class="modal-body">
+        Digify Soft ERP AI is an artificial intelligence assistant. While highly accurate, AI-generated responses can occasionally contain errors and come with no guarantee.<br><br>
+        Please cross-verify critical financial data with your official ERP records before making any business decisions.
       </p>
-      <p style="font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:16px;">
-        Please cross-verify critical financial data with your official ERP records.
-      </p>
-      <div style="font-size:11px; color:var(--accent-light); background:rgba(99,102,241,0.12); border:1px solid var(--border-accent); padding:8px 12px; border-radius:8px; text-align:center; font-weight:600;">
-        ⚙️ Status: System currently in Testing Mode
-      </div>
+      <span class="modal-badge">⚙️ Status: System in Active Testing Mode</span>
     </div>
   </div>
 
@@ -463,24 +367,24 @@
       </div>
     </div>
     <div class="nav-right">
-      <div class="status-badge" id="apiStatusBadge">
+      <div class="status-pill">
         <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">ERP AI Connected</span>
+        <span id="statusText">Connecting...</span>
       </div>
+      <button class="nav-icon-btn" onclick="toggleDisclaimerModal()" title="AI Notice">ℹ️</button>
+      <button class="nav-icon-btn" onclick="copyChat()" title="Export Chat">📋</button>
     </div>
   </nav>
 
   <!-- Main App -->
   <div class="app-container" id="appContainer">
 
-    <!-- LEFT: Dashboard Panel -->
-    <div class="dashboard-panel">
-
-      <!-- KPI Section -->
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
       <div>
-        <div class="panel-header" style="margin-bottom:10px;">
-          <div class="panel-title">Financial Overview</div>
-          <button class="refresh-btn" id="refreshBtn" onclick="refreshData()" title="Refresh Data">↻</button>
+        <div class="section-label" style="margin-bottom:10px;">
+          Financial Overview
+          <button class="refresh-btn" id="refreshBtn" onclick="refreshData()" title="Refresh">↻</button>
         </div>
         <div class="kpi-grid">
           <div class="kpi-card">
@@ -489,31 +393,31 @@
             <div class="kpi-value" id="kpiSalesAmt">—</div>
             <div class="kpi-sub" id="kpiSalesInv">Loading...</div>
           </div>
-          <div class="kpi-card green">
+          <div class="kpi-card em">
             <div class="kpi-icon">📦</div>
             <div class="kpi-label">Purchases</div>
             <div class="kpi-value" id="kpiPurchaseAmt">—</div>
             <div class="kpi-sub" id="kpiPurchaseInv">Loading...</div>
           </div>
-          <div class="kpi-card amber">
+          <div class="kpi-card am">
             <div class="kpi-icon">📋</div>
             <div class="kpi-label">Avg. Sale</div>
             <div class="kpi-value" id="kpiAvgSale">—</div>
             <div class="kpi-sub">Per Invoice</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card pu">
             <div class="kpi-icon">📁</div>
             <div class="kpi-label">Items Sold</div>
             <div class="kpi-value" id="kpiSaleItems">—</div>
             <div class="kpi-sub">Line Items</div>
           </div>
-          <div class="kpi-card cyan">
+          <div class="kpi-card cy">
             <div class="kpi-icon">🏭</div>
             <div class="kpi-label">Stock Products</div>
             <div class="kpi-value" id="kpiStockProducts">—</div>
             <div class="kpi-sub" id="kpiStockQty">Loading...</div>
           </div>
-          <div class="kpi-card red">
+          <div class="kpi-card re">
             <div class="kpi-icon">⚠️</div>
             <div class="kpi-label">Low / OOS Stock</div>
             <div class="kpi-value" id="kpiLowStock">—</div>
@@ -522,76 +426,69 @@
         </div>
       </div>
 
-      <!-- Quick Prompts -->
       <div>
-        <div class="panel-title" style="margin-bottom:10px;">Quick Search Prompts</div>
+        <div class="section-label" style="margin-bottom:10px;">Quick Search Prompts</div>
         <div class="quick-prompts">
-          <button class="quick-prompt-btn" onclick="sendPrompt('Sales')">
-            <span class="qp-icon">🛒</span>
-            <span class="qp-text">Sales</span>
-            <span class="qp-arrow">›</span>
+          <button class="qp-btn" onclick="sendPrompt('Sales')">
+            <span class="qp-icon">🛒</span><span class="qp-text">Sales</span>
           </button>
-          <button class="quick-prompt-btn green" onclick="sendPrompt('Purchases')">
-            <span class="qp-icon">📦</span>
-            <span class="qp-text">Purchases</span>
-            <span class="qp-arrow">›</span>
+          <button class="qp-btn em" onclick="sendPrompt('Purchases')">
+            <span class="qp-icon">📦</span><span class="qp-text">Purchases</span>
           </button>
-          <button class="quick-prompt-btn amber" onclick="sendPrompt('Dispatch for the Month')">
-            <span class="qp-icon">🚚</span>
-            <span class="qp-text">Dispatch Report</span>
-            <span class="qp-arrow">›</span>
+          <button class="qp-btn am" onclick="sendPrompt('Dispatch for the Month')">
+            <span class="qp-icon">🚚</span><span class="qp-text">Dispatch Report</span>
           </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Total Inventory Stock')">
-            <span class="qp-icon">🏭</span>
-            <span class="qp-text">Total Inventory Stock</span>
-            <span class="qp-arrow">›</span>
+          <button class="qp-btn cy" onclick="sendPrompt('Total Inventory Stock')">
+            <span class="qp-icon">🏭</span><span class="qp-text">Total Inventory Stock</span>
           </button>
-          <button class="quick-prompt-btn" onclick="sendPrompt('Inventory for Bath Rug')">
-            <span class="qp-icon">🔎</span>
-            <span class="qp-text">Product Stock Lookup</span>
-            <span class="qp-arrow">›</span>
+          <button class="qp-btn" onclick="sendPrompt('Inventory for Bath Rug')">
+            <span class="qp-icon">🔎</span><span class="qp-text">Product Stock Lookup</span>
           </button>
-          <button class="quick-prompt-btn purple" onclick="sendPrompt('Top Customers and Vendors')">
-            <span class="qp-icon">🏆</span>
-            <span class="qp-text">Top Customers & Vendors</span>
-            <span class="qp-arrow">›</span>
+          <button class="qp-btn pu" onclick="sendPrompt('Top Customers and Vendors')">
+            <span class="qp-icon">🏆</span><span class="qp-text">Top Customers &amp; Vendors</span>
           </button>
-          <button class="quick-prompt-btn" style="border-color:rgba(239,68,68,0.25);" onclick="sendPrompt('Low Stock Alerts')">
-            <span class="qp-icon">⚠️</span>
-            <span class="qp-text" style="color:#fca5a5;">Low Stock Alerts</span>
-            <span class="qp-arrow">›</span>
+          <button class="qp-btn re" onclick="sendPrompt('Low Stock Alerts')">
+            <span class="qp-icon">⚠️</span><span class="qp-text" style="color:#fca5a5;">Low Stock Alerts</span>
           </button>
         </div>
       </div>
-
     </div>
 
-    <!-- RIGHT: Chat Panel -->
+    <!-- RIGHT CHAT PANEL -->
     <div class="chat-panel">
       <div class="chat-header">
-        <div class="chat-header-title">
-          <h1>ERP AI Assistant</h1>
-          <p>Connected to real-time Sales & Purchase APIs</p>
+        <div class="chat-header-left">
+          <div class="chat-ai-avatar">🤖</div>
+          <div>
+            <h1>ERP AI Assistant</h1>
+            <p>Connected to real-time Sales, Purchase &amp; Stock APIs</p>
+          </div>
         </div>
-        <div class="header-actions">
-          <button class="icon-btn" onclick="copyChat()" title="Copy / Export Chat">📋</button>
-          <button class="icon-btn" onclick="toggleDisclaimerModal()" title="AI Notice & Disclaimer">ℹ️</button>
-          <span class="header-badge" id="headerBadge">ERP AI Connected</span>
+        <div class="chat-header-actions">
+          <button class="ch-btn" onclick="clearChat()" title="Clear Chat">🗑️</button>
+          <button class="ch-btn" onclick="copyChat()" title="Export Chat">📋</button>
+          <button class="ch-btn" onclick="toggleDisclaimerModal()" title="AI Notice">ℹ️</button>
+          <span class="header-status-pill" id="headerBadge">ERP AI Connected</span>
         </div>
       </div>
 
       <div class="chat-body" id="chatBody">
         <div class="message ai">
-          <div class="ai-label">🤖 Digify AI</div>
+          <div class="ai-header">
+            <div class="ai-avatar-sm">🤖</div>
+            <span class="ai-label">Digify AI</span>
+          </div>
           <div class="message-bubble">
             👋 <strong>Hi! I am the ERP AI Bot for Digify Soft.</strong><br><br>
             I'm connected to your real-time ERP databases. Select an enquiry option below:<br><br>
             🛒 <strong>Sales Reports</strong> (Month-wise / Day-wise / Year-wise)<br>
-            📦 <strong>Purchase Reports</strong> (Month-wise / Day-wise / Year-wise)<br><br>
+            📦 <strong>Purchase Reports</strong> (Month-wise / Day-wise / Year-wise)<br>
+            🏭 <strong>Stock &amp; Inventory</strong> (1,092+ Products tracked in real-time)<br><br>
             What would you like to enquire about today?
-            <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-              <button onclick="sendPrompt('Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:9px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.3)'" onmouseout="this.style.background='rgba(99,102,241,0.18)'">🛒 Sales</button>
-              <button onclick="sendPrompt('Purchases')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:9px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">📦 Purchases</button>
+            <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;">
+              <button onclick="sendPrompt('Sales')" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">🛒 Sales</button>
+              <button onclick="sendPrompt('Purchases')" style="background:rgba(16,185,129,0.14);border:1px solid rgba(16,185,129,0.35);color:#6ee7b7;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">📦 Purchases</button>
+              <button onclick="sendPrompt('Total Inventory Stock')" style="background:rgba(6,182,212,0.14);border:1px solid rgba(6,182,212,0.35);color:#67e8f9;padding:8px 17px;border-radius:100px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit;transition:all 0.2s;">🏭 Stock</button>
             </div>
           </div>
           <span class="message-time">Just now</span>
@@ -599,48 +496,34 @@
       </div>
 
       <div class="chat-footer">
-        <div class="input-wrapper">
+        <div class="input-container">
           <input type="text" class="chat-input" id="chatInput"
             placeholder="Ask anything — invoice number, customer name, vendor, month sales, inventory…"
             autocomplete="off">
           <button class="mic-btn" id="micBtn" title="Voice Search">🎤</button>
           <button class="send-btn" id="sendBtn" onclick="sendUserMessage()">
-            <svg viewBox="0 0 24 24">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
           </button>
         </div>
       </div>
     </div>
 
-  </div><!-- end .app-container -->
+  </div>
 
   <script>
-    // ── STATE ──────────────────────────────────────
     let conversationHistory = [];
     let isWaiting = false;
-
     const chatBody  = document.getElementById('chatBody');
     const chatInput = document.getElementById('chatInput');
     const sendBtn   = document.getElementById('sendBtn');
     const micBtn    = document.getElementById('micBtn');
 
-    // ── INIT ──────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
       loadSummary();
       chatInput.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
       });
       initVoice();
-      // Periodic disclaimer reminder every 5 minutes
-      setInterval(() => {
-        const modal = document.getElementById('disclaimerModal');
-        if (modal && modal.style.display !== 'flex') {
-          toggleDisclaimerModal();
-          setTimeout(() => { if (modal.style.display === 'flex') modal.style.display = 'none'; }, 4000);
-        }
-      }, 5 * 60 * 1000);
     });
 
     function toggleDisclaimerModal() {
@@ -649,12 +532,11 @@
       modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
     }
 
-    // ── KPI LOADER ────────────────────────────────
+    // ── KPI LOADER ──────────────────────────────────────
     async function loadSummary() {
       const statusDot   = document.getElementById('statusDot');
       const statusText  = document.getElementById('statusText');
       const headerBadge = document.getElementById('headerBadge');
-
       try {
         const [summaryRes, stockRes] = await Promise.all([
           fetch('/api/summary'),
@@ -662,37 +544,27 @@
         ]);
         const summaryJson = await summaryRes.json();
         const stockJson   = await stockRes.json();
-
         if (summaryJson.status !== 'ok') throw new Error('API Error');
-
         const { sales, purchases } = summaryJson.data;
-
-        const fmt  = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
         const fmtK = (n) => {
           if (n >= 1e7) return '₹' + (n / 1e7).toFixed(2) + 'Cr';
           if (n >= 1e5) return '₹' + (n / 1e5).toFixed(2) + 'L';
-          return fmt(n);
+          return '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
         };
-
-        document.getElementById('kpiSalesAmt').textContent    = fmtK(sales.totalAmount);
+        animateValue('kpiSalesAmt',    fmtK(sales.totalAmount));
+        animateValue('kpiPurchaseAmt', fmtK(purchases.totalAmount));
+        animateValue('kpiAvgSale',     fmtK(sales.totalInvoices > 0 ? sales.totalAmount / sales.totalInvoices : 0));
+        animateValue('kpiSaleItems',   sales.totalItems.toLocaleString('en-IN'));
         document.getElementById('kpiSalesInv').textContent    = `${sales.totalInvoices} Invoices`;
-        document.getElementById('kpiPurchaseAmt').textContent = fmtK(purchases.totalAmount);
         document.getElementById('kpiPurchaseInv').textContent = `${purchases.totalInvoices} Invoices`;
-
-        const avg = sales.totalInvoices > 0 ? (sales.totalAmount / sales.totalInvoices) : 0;
-        document.getElementById('kpiAvgSale').textContent = fmtK(avg);
-        document.getElementById('kpiSaleItems').textContent = sales.totalItems.toLocaleString('en-IN');
-
-        // Stock KPIs
         if (stockJson.status === 'ok') {
           const s = stockJson.data;
-          document.getElementById('kpiStockProducts').textContent = s.totalProducts.toLocaleString('en-IN');
-          document.getElementById('kpiStockQty').textContent = `${s.totalQty.toLocaleString('en-IN')} units`;
-          document.getElementById('kpiLowStock').textContent = s.lowStockCount;
+          animateValue('kpiStockProducts', s.totalProducts.toLocaleString('en-IN'));
+          animateValue('kpiLowStock',      s.lowStockCount.toLocaleString('en-IN'));
+          document.getElementById('kpiStockQty').textContent   = `${s.totalQty.toLocaleString('en-IN')} units`;
           document.getElementById('kpiOutOfStock').textContent = `${s.outOfStockCount} out of stock`;
         }
-
-        if (statusDot)   { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 8px #10b981'; }
+        if (statusDot)   { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 10px #10b981'; }
         if (statusText)  statusText.textContent = 'ERP AI Connected';
         if (headerBadge) { headerBadge.textContent = 'ERP AI Connected'; headerBadge.style.color = '#a5b4fc'; }
       } catch (e) {
@@ -703,46 +575,48 @@
       }
     }
 
-    // ── REFRESH ───────────────────────────────────
+    function animateValue(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.opacity = '0'; el.style.transform = 'translateY(6px)';
+      el.style.transition = 'all 0.4s cubic-bezier(0.16,1,0.3,1)';
+      setTimeout(() => { el.textContent = value; el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }, 120);
+    }
+
+    // ── REFRESH ──────────────────────────────────────────
     async function refreshData() {
       const btn = document.getElementById('refreshBtn');
       if (btn.classList.contains('spinning')) return;
       btn.classList.add('spinning');
-      try {
-        await fetch('/api/refresh', { method: 'POST' });
-        await loadSummary();
-      } catch (e) { console.error('Refresh error:', e); }
-      finally { setTimeout(() => btn.classList.remove('spinning'), 500); }
+      try { await fetch('/api/refresh', { method: 'POST' }); await loadSummary(); }
+      catch (e) { console.error('Refresh error:', e); }
+      finally { setTimeout(() => btn.classList.remove('spinning'), 600); }
     }
 
-    // ── VOICE / MIC ──────────────────────────────
+    // ── CLEAR CHAT ───────────────────────────────────────
+    function clearChat() {
+      conversationHistory = [];
+      chatBody.innerHTML = '';
+      appendMessage('ai', '🔄 **Chat cleared.** Ask me anything about your ERP data!');
+    }
+
+    // ── VOICE ────────────────────────────────────────────
     function initVoice() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) { micBtn.style.display = 'none'; return; }
       const recognition = new SpeechRecognition();
-      recognition.lang = 'en-IN';
-      recognition.continuous = false;
+      recognition.lang = 'en-IN'; recognition.continuous = false;
       micBtn.addEventListener('click', () => {
-        if (micBtn.classList.contains('listening')) { recognition.stop(); }
-        else { recognition.start(); }
+        if (micBtn.classList.contains('listening')) recognition.stop();
+        else recognition.start();
       });
-      recognition.onstart = () => {
-        micBtn.classList.add('listening');
-        chatInput.placeholder = '🎤 Listening... Speak now';
-      };
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        chatInput.value = transcript;
-        sendUserMessage();
-      };
-      recognition.onend = () => {
-        micBtn.classList.remove('listening');
-        chatInput.placeholder = 'Ask anything — invoice number, customer name, vendor, month sales, inventory…';
-      };
+      recognition.onstart = () => { micBtn.classList.add('listening'); chatInput.placeholder = '🎤 Listening... Speak now'; };
+      recognition.onresult = (e) => { chatInput.value = e.results[0][0].transcript; sendUserMessage(); };
+      recognition.onend = () => { micBtn.classList.remove('listening'); chatInput.placeholder = 'Ask anything — invoice number, customer name, vendor, month sales, inventory…'; };
       recognition.onerror = () => recognition.stop();
     }
 
-    // ── COPY/EXPORT CHAT ─────────────────────────
+    // ── COPY CHAT ────────────────────────────────────────
     function copyChat() {
       const msgs = chatBody.querySelectorAll('.message');
       let text = '=== Digify ERP AI Chat Export ===\n\n';
@@ -753,116 +627,89 @@
         if (bubble) text += `[${role}] ${time ? time.textContent : ''}\n${bubble.innerText}\n\n`;
       });
       navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('.icon-btn');
-        btn.textContent = '✅';
-        setTimeout(() => btn.textContent = '📋', 2000);
+        const btns = document.querySelectorAll('[title="Export Chat"]');
+        btns.forEach(b => { const orig = b.textContent; b.textContent = '✅'; setTimeout(() => b.textContent = orig, 2000); });
       });
     }
 
-    // ── MARKDOWN PARSER ───────────────────────────
+    // ── MARKDOWN ─────────────────────────────────────────
     function parseMarkdown(text) {
       if (!text) return '';
       let html = text
-        .replace(/<(?!(\/?(div|button|span|p|strong|em|code|table|tr|th|td|br|h[1-6])\b))/gi, '&lt;')
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
         .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/`(.*?)`/g, '<code>$1</code>')
         .replace(/^- (.*$)/gim, '• $1<br>')
-        .replace(/^\d+\. (.*$)/gim, (m, p) => `<span style="color:var(--accent-light);font-weight:600;">${m.match(/^\d+/)[0]}.</span> ${p}<br>`)
+        .replace(/^\d+\. (.*$)/gim, m => `<span style="color:#a5b4fc;font-weight:600;">${m.match(/^\d+/)[0]}.</span> ${m.replace(/^\d+\.\s*/,'')}<br>`)
         .replace(/\n\n/g, '<br><br>')
         .replace(/\n/g, '<br>');
 
-      // Render Markdown tables: |col|col| format
       html = html.replace(/(\|[^\n]+\|(\n|<br>)){2,}/g, (tableBlock) => {
         const rows = tableBlock.split(/\n|<br>/).filter(r => r.trim().startsWith('|') && r.trim().endsWith('|'));
         if (rows.length < 2) return tableBlock;
-        let tableHtml = '<table>';
+        let t = '<table>';
         rows.forEach((row, i) => {
-          if (/^\|[-| ]+\|$/.test(row.trim())) return; // skip separator row
-          const cells = row.trim().slice(1, -1).split('|').map(c => c.trim());
+          if (/^\|[-| ]+\|$/.test(row.trim())) return;
+          const cells = row.trim().slice(1,-1).split('|').map(c=>c.trim());
           const tag = i === 0 ? 'th' : 'td';
-          tableHtml += '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+          t += '<tr>' + cells.map(c=>`<${tag}>${c}</${tag}>`).join('') + '</tr>';
         });
-        tableHtml += '</table>';
-        return tableHtml;
+        return t + '</table>';
       });
-
       return html;
     }
 
-    function timeStr() {
-      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
+    function timeStr() { return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
 
     function appendMessage(sender, text) {
       const msg = document.createElement('div');
       msg.className = `message ${sender}`;
-      const aiLabel = sender === 'ai' ? '<div class="ai-label">🤖 Digify AI</div>' : '';
+      const aiHeader = sender === 'ai'
+        ? `<div class="ai-header"><div class="ai-avatar-sm">🤖</div><span class="ai-label">Digify AI</span></div>`
+        : '';
       msg.innerHTML = `
-        ${aiLabel}
-        <div class="message-bubble">${sender === 'ai' ? parseMarkdown(text) : escapeHtml(text)}</div>
-        <span class="message-time">${timeStr()}</span>
-      `;
+        ${aiHeader}
+        <div class="message-bubble">${sender === 'ai' ? parseMarkdown(text) : text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        <span class="message-time">${timeStr()}</span>`;
       chatBody.appendChild(msg);
       chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function escapeHtml(t) {
-      return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
     function showTyping() {
       const d = document.createElement('div');
       d.className = 'message ai'; d.id = 'typingIndicator';
-      d.innerHTML = `<div class="message-bubble"><div class="typing-indicator">
-        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-      </div></div>`;
+      d.innerHTML = `<div class="ai-header"><div class="ai-avatar-sm">🤖</div><span class="ai-label">Digify AI</span></div>
+        <div class="message-bubble"><div class="typing-indicator">
+          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+        </div></div>`;
       chatBody.appendChild(d);
       chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    function hideTyping() {
-      const el = document.getElementById('typingIndicator');
-      if (el) el.remove();
-    }
+    function hideTyping() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
 
-    function setWaiting(v) {
-      isWaiting = v;
-      sendBtn.disabled = v;
-      chatInput.disabled = v;
-    }
+    function setWaiting(v) { isWaiting = v; sendBtn.disabled = v; chatInput.disabled = v; }
 
-    async function sendPrompt(text) {
-      if (isWaiting) return;
-      await handleSend(text);
-    }
-
-    async function sendUserMessage() {
-      const text = chatInput.value.trim();
-      if (!text || isWaiting) return;
-      chatInput.value = '';
-      await handleSend(text);
-    }
+    async function sendPrompt(text) { if (isWaiting) return; await handleSend(text); }
+    async function sendUserMessage() { const t = chatInput.value.trim(); if (!t || isWaiting) return; chatInput.value = ''; await handleSend(t); }
 
     async function handleSend(text) {
       appendMessage('user', text);
-      conversationHistory.push({ role: 'user', content: text });
+      conversationHistory.push({ role:'user', content:text });
       setWaiting(true);
       showTyping();
-
       try {
         const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, history: conversationHistory })
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ message:text, history:conversationHistory })
         });
         const data = await res.json();
         hideTyping();
         const reply = data.reply || '⚠️ Empty response from server.';
         appendMessage('ai', reply);
-        conversationHistory.push({ role: 'assistant', content: reply });
+        conversationHistory.push({ role:'assistant', content:reply });
       } catch (err) {
         hideTyping();
         appendMessage('ai', '❌ Network error — could not reach the ERP server. Please check your connection.');
