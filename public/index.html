@@ -507,6 +507,18 @@
             <div class="kpi-value" id="kpiSaleItems">—</div>
             <div class="kpi-sub">Line Items</div>
           </div>
+          <div class="kpi-card cyan">
+            <div class="kpi-icon">🏭</div>
+            <div class="kpi-label">Stock Products</div>
+            <div class="kpi-value" id="kpiStockProducts">—</div>
+            <div class="kpi-sub" id="kpiStockQty">Loading...</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-icon">⚠️</div>
+            <div class="kpi-label">Low / OOS Stock</div>
+            <div class="kpi-value" id="kpiLowStock">—</div>
+            <div class="kpi-sub" id="kpiOutOfStock">Loading...</div>
+          </div>
         </div>
       </div>
 
@@ -529,7 +541,7 @@
             <span class="qp-text">Dispatch Report</span>
             <span class="qp-arrow">›</span>
           </button>
-          <button class="quick-prompt-btn cyan" onclick="sendPrompt('Total Inventory Summary')">
+          <button class="quick-prompt-btn" onclick="sendPrompt('Total Inventory Stock')">
             <span class="qp-icon">🏭</span>
             <span class="qp-text">Total Inventory Stock</span>
             <span class="qp-arrow">›</span>
@@ -644,8 +656,12 @@
       const headerBadge = document.getElementById('headerBadge');
 
       try {
-        const summaryRes  = await fetch('/api/summary');
+        const [summaryRes, stockRes] = await Promise.all([
+          fetch('/api/summary'),
+          fetch('/api/stock')
+        ]);
         const summaryJson = await summaryRes.json();
+        const stockJson   = await stockRes.json();
 
         if (summaryJson.status !== 'ok') throw new Error('API Error');
 
@@ -666,6 +682,15 @@
         const avg = sales.totalInvoices > 0 ? (sales.totalAmount / sales.totalInvoices) : 0;
         document.getElementById('kpiAvgSale').textContent = fmtK(avg);
         document.getElementById('kpiSaleItems').textContent = sales.totalItems.toLocaleString('en-IN');
+
+        // Stock KPIs
+        if (stockJson.status === 'ok') {
+          const s = stockJson.data;
+          document.getElementById('kpiStockProducts').textContent = s.totalProducts.toLocaleString('en-IN');
+          document.getElementById('kpiStockQty').textContent = `${s.totalQty.toLocaleString('en-IN')} units`;
+          document.getElementById('kpiLowStock').textContent = s.lowStockCount;
+          document.getElementById('kpiOutOfStock').textContent = `${s.outOfStockCount} out of stock`;
+        }
 
         if (statusDot)   { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 8px #10b981'; }
         if (statusText)  statusText.textContent = 'ERP AI Connected';

@@ -16,11 +16,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ERP API Configuration
 const PURCHASE_API_URL = (process.env.PURCHASE_API_URL || 'https://thegreateasternexports.jbbs.in/API/purchase_api.php').trim();
 const SALE_API_URL = (process.env.SALE_API_URL || 'https://thegreateasternexports.jbbs.in/API/sale_api.php').trim();
+const STOCK_API_URL = (process.env.STOCK_API_URL || 'https://thegreateasternexports.jbbs.in/API/stock_api.php').trim();
 
 // Offline / Fallback ERP Data Cache
 const FALLBACK_DATA_PATH = path.join(__dirname, 'data', 'fallback_erp_data.json');
 let fallbackPurchases = [];
 let fallbackSales = [];
+let fallbackStock = [];
 
 try {
   if (fs.existsSync(FALLBACK_DATA_PATH)) {
@@ -28,7 +30,8 @@ try {
     const parsed = JSON.parse(raw);
     fallbackPurchases = parsed.purchases || [];
     fallbackSales = parsed.sales || [];
-    console.log(`📦 Fallback ERP Dataset loaded! Purchases: ${fallbackPurchases.length} | Sales: ${fallbackSales.length}`);
+    fallbackStock = parsed.stock || [];
+    console.log(`📦 Fallback ERP Dataset loaded! Purchases: ${fallbackPurchases.length} | Sales: ${fallbackSales.length} | Stock Items: ${fallbackStock.length}`);
   }
 } catch (err) {
   console.warn('⚠️ Could not load fallback ERP dataset:', err.message);
@@ -37,6 +40,7 @@ try {
 // In-Memory Data Store (initialize with fallback dataset so Vercel/serverless has data immediately)
 let purchases = fallbackPurchases;
 let sales = fallbackSales;
+let stock = fallbackStock;
 let lastFetchedTime = fallbackPurchases.length > 0 ? new Date().toISOString() : null;
 let isLoadingData = false;
 
@@ -80,32 +84,27 @@ async function loadAPIData() {
   };
 
   try {
-    const [pRes, sRes] = await Promise.all([
+    const [pRes, sRes, stRes] = await Promise.all([
       fetchWithTimeout(PURCHASE_API_URL),
-      fetchWithTimeout(SALE_API_URL)
+      fetchWithTimeout(SALE_API_URL),
+      fetchWithTimeout(STOCK_API_URL)
     ]);
 
     const fetchedPurchases = pRes ? (pRes.Vouchers || pRes.data || []) : [];
     const fetchedSales = sRes ? (sRes.Vouchers || sRes.data || []) : [];
+    const fetchedStock = stRes ? (stRes.Stock || stRes.Vouchers || stRes.data || []) : [];
 
-    if (fetchedPurchases.length > 0) {
-      purchases = fetchedPurchases;
-    } else if (purchases.length === 0) {
-      purchases = fallbackPurchases;
-    }
-
-    if (fetchedSales.length > 0) {
-      sales = fetchedSales;
-    } else if (sales.length === 0) {
-      sales = fallbackSales;
-    }
+    if (fetchedPurchases.length > 0) { purchases = fetchedPurchases; } else if (purchases.length === 0) { purchases = fallbackPurchases; }
+    if (fetchedSales.length > 0) { sales = fetchedSales; } else if (sales.length === 0) { sales = fallbackSales; }
+    if (fetchedStock.length > 0) { stock = fetchedStock; } else if (stock.length === 0) { stock = fallbackStock; }
 
     lastFetchedTime = new Date().toISOString();
-    console.log(`✅ Digify ERP API Data Loaded! Purchases: ${purchases.length} | Sales: ${sales.length}`);
+    console.log(`✅ Digify ERP API Data Loaded! Purchases: ${purchases.length} | Sales: ${sales.length} | Stock: ${stock.length}`);
   } catch (err) {
     console.error('❌ Failed to fetch ERP APIs:', err.message);
     if (purchases.length === 0) purchases = fallbackPurchases;
     if (sales.length === 0) sales = fallbackSales;
+    if (stock.length === 0) stock = fallbackStock;
   } finally {
     isLoadingData = false;
   }
@@ -116,6 +115,7 @@ async function ensureDataLoaded() {
   if (purchases.length === 0 || sales.length === 0) {
     if (fallbackPurchases.length > 0 && purchases.length === 0) purchases = fallbackPurchases;
     if (fallbackSales.length > 0 && sales.length === 0) sales = fallbackSales;
+    if (fallbackStock.length > 0 && stock.length === 0) stock = fallbackStock;
 
     if (!isLoadingData) {
       console.log('⚠️ ERP cache empty. Fetching live data on demand...');
@@ -1028,44 +1028,51 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // 5. Product Inventory & Total Valuation
+  // 5. Product Inventory & Total Valuation — Now powered by real Stock API
   if (q.includes('inventory') || q.includes('stock')) {
-    const stopWords = ['and', 'the', 'for', 'of', 'in', 'is', 'or', 'to', 'all', 'summary', 'report', 'detail', 'details', 'list', 'units', 'quantity', 'value', 'inventory', 'stock', 'total', 'show', 'item', 'items', 'product', 'products'];
-    const cleanedQuery = q.replace(/inventory/g, '').replace(/stock/g, '').replace(/total/g, '').replace(/value/g, '').replace(/quantity/g, '').replace(/show/g, '').replace(/for/g, '').replace(/of/g, '').replace(/and/g, '').trim();
+    const stopWords = ['and', 'the', 'for', 'of', 'in', 'is', 'or', 'to', 'all', 'summary', 'report', 'detail', 'details', 'list', 'units', 'quantity', 'value', 'inventory', 'stock', 'total', 'show', 'item', 'items', 'product', 'products', 'me'];
+    const cleanedQuery = q
+      .replace(/inventory/g, '').replace(/stock/g, '').replace(/total/g, '')
+      .replace(/value/g, '').replace(/quantity/g, '').replace(/show/g, '')
+      .replace(/for/g, '').replace(/of/g, '').replace(/and/g, '').replace(/me/g, '').trim();
 
-    const isProductSearch = cleanedQuery.length >= 3 && !stopWords.includes(cleanedQuery);
+    const isProductSearch = cleanedQuery.length >= 2 && !stopWords.includes(cleanedQuery);
 
     if (isProductSearch) {
-      const invData = getInventorySummary(cleanedQuery);
-      if (invData.products.length === 0) {
-        return `❌ No inventory records found matching product: **"${cleanedQuery}"**.\n\n*Tip: Try searching for keywords like "Rug", "Mat", "Runner", "Napkin", or "Placemat".*`;
+      const stockData = getStockSummary(cleanedQuery);
+      if (stockData.filteredCount === 0) {
+        return `❌ No stock records found matching: **"${cleanedQuery}"**.\n\n*Tip: Try searching for "Bath Rug", "Basket", "Yoga Mat", "Taupe", or a brand like "HAUS".*`;
       }
-
-      let resp = `### 📦 Product Inventory Details for "${cleanedQuery}"\n\n`;
-      resp += `Found **${invData.products.length} matching product(s)**:\n\n`;
-
-      invData.products.forEach((p, idx) => {
-        resp += `**${idx + 1}. ${p.name}** (${p.category})\n`;
-        if (p.purchasedQty > 0) resp += `   - 📥 **Stock Inward (Purchased):** ${p.purchasedQty} units (Valuation: ₹${p.purchasedVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })})\n`;
-        resp += `   - 🚚 **Dispatched (Sold):** ${p.dispatchedQty} units\n`;
-        resp += `   - 📊 **Current Stock Qty:** ${p.netStockQty} units\n`;
-        if (p.unitCost > 0) resp += `   - 🏷️ **Estimated Unit Cost:** ₹${p.unitCost.toFixed(2)}\n`;
-        resp += `   - 💰 **Total Stock Valuation:** ₹${p.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n\n`;
+      let resp = `### 🏭 Stock Lookup: "${cleanedQuery}"\n\nFound **${stockData.filteredCount} matching product(s)**:\n\n`;
+      resp += `| # | Product | Code | Color | Brand | Qty | Broken | Missing |\n|---|---|---|---|---|---|---|---|\n`;
+      stockData.products.forEach((p, i) => {
+        const qty = Number(p.qty || 0);
+        const qtyDisplay = qty === 0 ? '🔴 0 (OOS)' : qty <= 10 ? `🟡 ${qty} (Low)` : `✅ ${qty}`;
+        resp += `| ${i + 1} | ${p.productname || 'N/A'} | \`${p.productcode || 'N/A'}\` | ${p.productcolor || 'N/A'} | ${p.brand || 'N/A'} | ${qtyDisplay} | ${p.broken || 0} | ${p.missing || 0} |\n`;
       });
       return resp;
     } else {
-      const invData = getInventorySummary();
-      let resp = `### 🏭 Overall ERP Inventory Summary\n\n`;
-      resp += `- 📦 **Total Unique Products:** ${invData.totalUniqueProducts}\n`;
-      resp += `- 📊 **Total Stock Quantity:** ${invData.totalStockQty.toLocaleString('en-IN')} units\n`;
-      resp += `- 🚚 **Total Dispatched Units:** ${invData.totalDispatchedQty.toLocaleString('en-IN')} units\n`;
-      resp += `- 💰 **Total Inventory Valuation:** ₹${invData.totalInventoryVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n\n`;
+      const stockData = getStockSummary();
+      let resp = `### 🏭 Live Stock Summary (${stockData.totalProducts} Products)\n\n`;
+      resp += `| Metric | Value |\n|---|---|\n`;
+      resp += `| 📦 Total Unique Products | **${stockData.totalProducts.toLocaleString('en-IN')}** |\n`;
+      resp += `| 📊 Total Stock Qty | **${stockData.totalQty.toLocaleString('en-IN')} units** |\n`;
+      resp += `| 🔴 Out of Stock | **${stockData.outOfStockCount} products** |\n`;
+      resp += `| 🟡 Low Stock (≤10 units) | **${stockData.lowStockCount} products** |\n`;
+      resp += `| ⚠️ Broken / Damaged | **${stockData.totalBroken} units** |\n`;
+      resp += `| 🔍 Missing | **${stockData.totalMissing} units** |\n\n`;
 
-      resp += `#### 🏆 Top Product Inventory Stock & Dispatches:\n`;
-      invData.products.slice(0, 7).forEach((p, idx) => {
-        resp += `${idx + 1}. **${p.name}:** Dispatched ${p.dispatchedQty} units | Stock: ${p.netStockQty} units | Valuation: ₹${p.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}\n`;
+      resp += `#### 🏷️ Top Brands by Stock Qty:\n`;
+      stockData.brands.slice(0, 5).forEach((b, i) => {
+        resp += `${i + 1}. **${b.name}** — ${b.count} SKUs | ${b.totalQty.toLocaleString('en-IN')} units\n`;
       });
-      resp += `\n*💡 Tip: Search specific product inventory by typing "inventory for Bath Rug" or "stock of Yoga Mat".*`;
+
+      resp += `\n#### 📂 Top Categories by Stock Qty:\n`;
+      stockData.categories.slice(0, 5).forEach((c, i) => {
+        resp += `${i + 1}. **${c.name}** — ${c.count} products | ${c.totalQty.toLocaleString('en-IN')} units\n`;
+      });
+
+      resp += `\n*💡 Tip: Search specific product stock by typing "stock for Bath Rug" or "stock Basket" or a product code like "P0001".*`;
       return resp;
     }
   }
@@ -1087,28 +1094,34 @@ function generateDeterministicFallback(query) {
     return resp;
   }
 
-  // 7. Low Stock Alerts
+  // 7. Low Stock Alerts — powered by real Stock API
   if (q.includes('low stock') || q.includes('stock alert') || q.includes('reorder') || q.includes('out of stock') || q.includes('low inventory')) {
-    const alerts = getLowStockAlerts();
-    let resp = `### ⚠️ Inventory Low Stock Alerts\n\n`;
-    resp += `- 🔴 **Out of Stock Products:** ${alerts.outOfStockCount}\n`;
-    resp += `- 🟡 **Low Stock Products** (< ${alerts.threshold} units): ${alerts.lowStockCount}\n\n`;
-    if (alerts.outOfStock.length > 0) {
+    const stockData = getStockSummary();
+    const outOfStock = stock.filter(s => Number(s.qty || 0) === 0).slice(0, 10);
+    const lowStockItems = stock.filter(s => Number(s.qty || 0) > 0 && Number(s.qty || 0) <= 10).slice(0, 10);
+
+    let resp = `### ⚠️ Live Stock Alerts (from ERP Stock API)\n\n`;
+    resp += `- 🔴 **Out of Stock:** ${stockData.outOfStockCount} products\n`;
+    resp += `- 🟡 **Low Stock (≤10 units):** ${stockData.lowStockCount} products\n`;
+    resp += `- 📦 **Total Stock Items Tracked:** ${stockData.totalProducts.toLocaleString('en-IN')}\n\n`;
+
+    if (outOfStock.length > 0) {
       resp += `#### 🔴 Out of Stock (Immediate Reorder Needed):\n`;
-      resp += `| Product | Category | Purchased | Dispatched |\n|---|---|---|---|\n`;
-      alerts.outOfStock.forEach(p => { resp += `| **${p.name}** | ${p.category} | ${p.purchasedQty} | ${p.dispatchedQty} |\n`; });
+      resp += `| Product | Code | Brand | Category |\n|---|---|---|---|\n`;
+      outOfStock.forEach(p => { resp += `| **${p.productname}** | \`${p.productcode}\` | ${p.brand || 'N/A'} | ${p.category || 'N/A'} |\n`; });
       resp += `\n`;
     }
-    if (alerts.lowStock.length > 0) {
+    if (lowStockItems.length > 0) {
       resp += `#### 🟡 Low Stock (Reorder Soon):\n`;
-      resp += `| Product | Net Stock | Unit Cost | Valuation |\n|---|---|---|---|\n`;
-      alerts.lowStock.forEach(p => { resp += `| **${p.name}** | ${p.netStockQty} units | ₹${p.unitCost.toFixed(2)} | ₹${p.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })} |\n`; });
+      resp += `| Product | Code | Color | Qty | UOM |\n|---|---|---|---|---|\n`;
+      lowStockItems.forEach(p => { resp += `| **${p.productname}** | \`${p.productcode}\` | ${p.productcolor || 'N/A'} | 🟡 ${p.qty} | ${p.uom || 'Pcs'} |\n`; });
     }
-    if (alerts.outOfStockCount === 0 && alerts.lowStockCount === 0) {
+    if (stockData.outOfStockCount === 0 && stockData.lowStockCount === 0) {
       resp += `✅ **All products are well-stocked!** No reorder alerts at this time.`;
     }
     return resp;
   }
+
 
   if (q.includes('best selling') || q.includes('top product') || q.includes('top item') || q.includes('product analysis')) {
     let resp = `### 📦 Top Selling Products\n\n`;
@@ -1193,6 +1206,61 @@ Please specify what purchase information you need by providing one of the follow
   return text;
 }
 
+// ── Stock Summary from stock_api.php ──────────────────────────────────────
+function getStockSummary(productQuery = '') {
+  if (!stock || stock.length === 0) return { totalProducts: 0, totalQty: 0, totalBroken: 0, totalMissing: 0, outOfStockCount: 0, lowStockCount: 0, brands: {}, categories: {}, products: [] };
+
+  let totalQty = 0, totalBroken = 0, totalMissing = 0, outOfStockCount = 0, lowStockCount = 0;
+  const brands = {};
+  const categories = {};
+
+  let filtered = stock;
+  if (productQuery && productQuery.trim().length >= 2) {
+    const q = productQuery.toLowerCase().trim();
+    filtered = stock.filter(s =>
+      (s.productname || '').toLowerCase().includes(q) ||
+      (s.productcode || '').toLowerCase().includes(q) ||
+      (s.productcolor || '').toLowerCase().includes(q) ||
+      (s.brand || '').toLowerCase().includes(q) ||
+      (s.category || '').toLowerCase().includes(q)
+    );
+  }
+
+  stock.forEach(s => {
+    const qty = Number(s.qty || 0);
+    const broken = Number(s.broken || 0);
+    const missing = Number(s.missing || 0);
+    totalQty += qty;
+    totalBroken += broken;
+    totalMissing += missing;
+    if (qty === 0) outOfStockCount++;
+    else if (qty <= 10) lowStockCount++;
+    const brand = (s.brand || 'Unknown').trim();
+    const cat = (s.category || 'General').trim();
+    if (!brands[brand]) brands[brand] = { name: brand, count: 0, totalQty: 0 };
+    brands[brand].count++;
+    brands[brand].totalQty += qty;
+    if (!categories[cat]) categories[cat] = { name: cat, count: 0, totalQty: 0 };
+    categories[cat].count++;
+    categories[cat].totalQty += qty;
+  });
+
+  const sortedFiltered = [...filtered].sort((a, b) => Number(b.qty || 0) - Number(a.qty || 0));
+
+  return {
+    totalProducts: stock.length,
+    filteredCount: filtered.length,
+    totalQty,
+    totalBroken,
+    totalMissing,
+    outOfStockCount,
+    lowStockCount,
+    brands: Object.values(brands).sort((a, b) => b.totalQty - a.totalQty).slice(0, 8),
+    categories: Object.values(categories).sort((a, b) => b.totalQty - a.totalQty).slice(0, 8),
+    products: sortedFiltered.slice(0, 20)
+  };
+}
+
 // REST API Endpoints
 
 app.get('/api/status', async (req, res) => {
@@ -1203,6 +1271,7 @@ app.get('/api/status', async (req, res) => {
     groqEnabled: Boolean(groqClient),
     purchasesCount: purchases.length,
     salesCount: sales.length,
+    stockCount: stock.length,
     lastFetchedTime: lastFetchedTime,
     isLoading: isLoadingData
   });
@@ -1278,6 +1347,15 @@ app.get('/api/analytics/bi', async (req, res) => {
   });
 });
 
+app.get('/api/stock', async (req, res) => {
+  await ensureDataLoaded();
+  const q = req.query.product || '';
+  res.json({
+    status: 'ok',
+    data: getStockSummary(q)
+  });
+});
+
 app.post('/api/refresh', async (req, res) => {
   await loadAPIData();
   res.json({
@@ -1285,46 +1363,14 @@ app.post('/api/refresh', async (req, res) => {
     message: 'ERP API Data Refreshed Successfully',
     purchasesCount: purchases.length,
     salesCount: sales.length,
+    stockCount: stock.length,
     lastFetchedTime: lastFetchedTime
   });
 });
 
-// Configuration: When true, returns 'Building... Will take some time' for features under construction
-const MOCK_UNDER_CONSTRUCTION = true;
-
+// NOTE: All features now LIVE — MOCK_UNDER_CONSTRUCTION disabled
 function checkUnderConstructionQuery(message) {
-  if (!MOCK_UNDER_CONSTRUCTION) return null;
-
-  const q = message.toLowerCase().trim();
-
-  // Executive Summary query (deleted per user instruction)
-  if (q.includes('summary') || q.includes('executive')) {
-    return "🚧 **Building... Will take some time**";
-  }
-
-  // 1. Dispatch queries
-  if (q.includes('dispatch') || q.includes('shipment') || q.includes('dispatched')) {
-    return "🚧 **Building... Will take some time**";
-  }
-
-  // 2. Inventory & Stock queries
-  if (q.includes('inventory') || q.includes('stock')) {
-    return "🚧 **Building... Will take some time**";
-  }
-
-  // 3. Top Customers & Vendors / Suppliers queries
-  if (q.includes('top customer') || q.includes('best customer') || q.includes('customer analysis') || 
-      q.includes('top vendor') || q.includes('top supplier') || q.includes('supplier analysis') || 
-      q.includes('customers and vendor') || q.includes('customers & vendor') || q.includes('customers and supplier') ||
-      q.includes('best selling') || q.includes('top product') || q.includes('top item')) {
-    return "🚧 **Building... Will take some time**";
-  }
-
-  // 4. Low Stock Alerts queries
-  if (q.includes('low stock') || q.includes('stock alert') || q.includes('reorder') || q.includes('out of stock') || q.includes('low inventory')) {
-    return "🚧 **Building... Will take some time**";
-  }
-
+  // All queries are now handled by deterministic fallback or Groq LLM
   return null;
 }
 
