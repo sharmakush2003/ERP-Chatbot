@@ -100,15 +100,9 @@ function detectPromptInjection(text) {
 }
 
 // ERP API Configuration
-// ── SECURITY: No hardcoded fallback URLs — fail loudly if env vars are missing
-const PURCHASE_API_URL = process.env.PURCHASE_API_URL?.trim();
-const SALE_API_URL = process.env.SALE_API_URL?.trim();
-const STOCK_API_URL = process.env.STOCK_API_URL?.trim();
-
-if (!PURCHASE_API_URL || !SALE_API_URL || !STOCK_API_URL) {
-  console.error('❌ FATAL: ERP API URLs (PURCHASE_API_URL, SALE_API_URL, STOCK_API_URL) must be set in environment variables.');
-  if (process.env.NODE_ENV !== 'test') process.exit(1);
-}
+const PURCHASE_API_URL = (process.env.PURCHASE_API_URL || 'https://thegreateasternexports.jbbs.in/API/purchase_api.php').trim();
+const SALE_API_URL = (process.env.SALE_API_URL || 'https://thegreateasternexports.jbbs.in/API/sale_api.php').trim();
+const STOCK_API_URL = (process.env.STOCK_API_URL || 'https://thegreateasternexports.jbbs.in/API/stock_api.php').trim();
 
 // Offline / Fallback ERP Data Cache
 const FALLBACK_DATA_PATH = path.join(__dirname, 'data', 'fallback_erp_data.json');
@@ -1552,14 +1546,16 @@ app.get('/widget.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'widget.js'));
 });
 
-app.listen(PORT, async () => {
-  console.log(`\n=============================================================`);
-  console.log(`🚀 Digify Soft ERP AI Chatbot Server running on port ${PORT}`);
-  console.log(`🌐 API Endpoint: http://localhost:${PORT}/api/chat`);
-  console.log(`💬 Embed Script: <script src="http://localhost:${PORT}/widget.js"></script>`);
-  console.log(`=============================================================\n`);
-  
-  await loadAPIData();
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, async () => {
+    console.log(`\n=============================================================`);
+    console.log(`🚀 Digify Soft ERP AI Chatbot Server running on port ${PORT}`);
+    console.log(`🌐 API Endpoint: http://localhost:${PORT}/api/chat`);
+    console.log(`💬 Embed Script: <script src="http://localhost:${PORT}/widget.js"></script>`);
+    console.log(`=============================================================\n`);
+    
+    await loadAPIData();
+  });
+}
 
 module.exports = app;
